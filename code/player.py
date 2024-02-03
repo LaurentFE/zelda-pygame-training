@@ -1,15 +1,12 @@
 import pygame
 from settings import *
 from debug import debug
+from entities import Entity
 
-
-# TODO : NEED THINKING ABOUT ID = LV_NUM + WARP_POS
-# TODO : CREATE WARP ( & obstacle for TILED program I guess)
 
 # TODO : EQUIPPED ITEM
 # TODO : ITEM PARTICLES
 # TODO : ITEM EFFECT
-
 # TODO : Replace all debugs() with proper error handling I guess
 
 # NOTE : Behaviour difference between original NES version, and mine :
@@ -32,19 +29,11 @@ from debug import debug
 #         'cast' every item, sword included, and I don't want to change directions in middle of candle for instance,
 #         or of flute.
 
-class Player(pygame.sprite.Sprite):
+class Player(Entity):
     def __init__(self, pos, groups: list, obstacle_sprites, enemy_sprites, player_tile_set):
-        super().__init__(groups)
+        super().__init__(groups, obstacle_sprites)
 
-        self.obstacle_sprites = obstacle_sprites
         self.enemy_sprites = enemy_sprites
-
-        self.walking_animations = {
-            'up': [],
-            'right': [],
-            'down': [],
-            'left': []
-        }
         self.action_animations = {
             'up': [],
             'right': [],
@@ -53,19 +42,11 @@ class Player(pygame.sprite.Sprite):
         }
         self.pickup_minor_animation = []
         self.pickup_major_animation = []
-        self.hurt_animations = {
-            'up': [],
-            'right': [],
-            'down': [],
-            'left': []
-        }
         self.gray_animation = {
             'down': []
         }
-        self.despawn_animation = []
         self.load_animation_frames(player_tile_set)
 
-        self.direction_vector = pygame.math.Vector2()
         self.direction_label = 'down'
         self.state = 'idle'
         self.speed = 3
@@ -76,11 +57,11 @@ class Player(pygame.sprite.Sprite):
 
         # All cooldowns are in milliseconds
         # Cooldown between animation frames
-        self.walking_animation_cooldown = 150
-        self.action_animation_cooldown = 100
-        self.pickup_minor_animation_cooldown = 100
-        self.pickup_major_animation_cooldown = 100
-        self.hurt_animation_cooldown = 100
+        self.walking_animation_cooldown = PLAYER_WALKING_ANIMATION_COOLDOWN
+        self.action_animation_cooldown = PLAYER_ACTION_ANIMATION_COOLDOWN
+        self.pickup_minor_animation_cooldown = PLAYER_PICKUP_MINOR_ANIMATION_COOLDOWN
+        self.pickup_major_animation_cooldown = PLAYER_PICKUP_MAJOR_ANIMATION_COOLDOWN
+        self.hurt_animation_cooldown = PLAYER_HURT_ANIMATION_COOLDOWN
         self.despawn_animation_cooldown = PLAYER_DEATH_ANIMATION_COOLDOWN
         # Time at which animation frame started
         self.walking_animation_starting_time = 0
@@ -119,6 +100,7 @@ class Player(pygame.sprite.Sprite):
         self.keys = 123
         self.bombs = 456
         self.isDead = False
+        self.current_speed = self.speed
 
     def load_animation_frames(self, player_tile_set):
         for i in range(PLAYER_WALKING_FRAMES):
@@ -264,8 +246,8 @@ class Player(pygame.sprite.Sprite):
             if current_time - self.hurt_starting_time >= self.invulnerability_cooldown:
                 self.invulnerable = False
 
-    # collision (direction, sprite_group) detects collision with a sprite_group
-    def collision(self, direction, speed):
+    # collision (direction) detects collision with both enemies and obstacle sprites
+    def collision(self, direction):
         if direction == 'horizontal':
             for sprite in self.enemy_sprites:
                 if sprite.hitbox.colliderect(self.hitbox):
@@ -276,10 +258,10 @@ class Player(pygame.sprite.Sprite):
                         self.direction_vector.y = 0
                         if self.hitbox.centerx - sprite.hitbox.centerx <= 0:
                             self.direction_vector.x = -1
-                            self.hitbox.x -= speed
+                            self.hitbox.x -= self.current_speed
                         else:
                             self.direction_vector.x = 1
-                            self.hitbox.x += speed
+                            self.hitbox.x += self.current_speed
                         self.health -= sprite.collision_damage
 
             for sprite in self.obstacle_sprites:
@@ -299,10 +281,10 @@ class Player(pygame.sprite.Sprite):
                         self.direction_vector.x = 0
                         if self.hitbox.centerx - sprite.hitbox.centerx <= 0:
                             self.direction_vector.y = -1
-                            self.hitbox.y -= speed
+                            self.hitbox.y -= self.current_speed
                         else:
                             self.direction_vector.y = 1
-                            self.hitbox.y += speed
+                            self.hitbox.y += self.current_speed
                         self.health -= sprite.collision_damage
 
             for sprite in self.obstacle_sprites:
@@ -312,14 +294,14 @@ class Player(pygame.sprite.Sprite):
                     if self.direction_vector.y < 0:
                         self.hitbox.top = sprite.hitbox.bottom
 
-    def move(self, speed):
+    def move(self):
         if self.direction_vector.magnitude() != 0:
             self.direction_vector = self.direction_vector.normalize()
 
-        self.hitbox.x += self.direction_vector.x * speed
-        self.collision('horizontal', speed)
-        self.hitbox.y += self.direction_vector.y * speed
-        self.collision('vertical', speed)
+        self.hitbox.x += self.direction_vector.x * self.current_speed
+        self.collision('horizontal')
+        self.hitbox.y += self.direction_vector.y * self.current_speed
+        self.collision('vertical')
 
         if not self.isDead:
             self.rect.center = self.hitbox.center
@@ -335,6 +317,7 @@ class Player(pygame.sprite.Sprite):
             self.despawn_animation_starting_time = pygame.time.get_ticks()
         else:
             debug(f'trying to change player state in death to : {state}. Does not exist')
+
     def animate(self):
         current_time = pygame.time.get_ticks()
         if self.state == 'idle':
@@ -410,7 +393,7 @@ class Player(pygame.sprite.Sprite):
             # PLAYER_DEATH_FRAMES frames
             # spread over despawn_duration ms
             frame_time = despawn_duration // PLAYER_DEATH_FRAMES
-            current_frame = int( elapsed_despawn_time // frame_time )
+            current_frame = int(elapsed_despawn_time // frame_time)
             self.image = self.despawn_animation[current_frame]
             pygame.display.get_surface().blit(self.image, self.rect.topleft)
             pygame.display.update()
@@ -419,10 +402,10 @@ class Player(pygame.sprite.Sprite):
         if not self.isDead:
             if 'hurt' not in self.state:
                 self.input()
-                speed = self.speed
+                self.current_speed = self.speed
             else:
-                speed = (PLAYER_HURT_FRAMES - self.hurt_animation_frame_count)
-            self.move(speed)
+                self.current_speed = (PLAYER_HURT_FRAMES - self.hurt_animation_frame_count)
+            self.move()
             self.animate()
             self.cooldowns()
             if self.health <= 0:

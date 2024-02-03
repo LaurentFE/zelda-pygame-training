@@ -5,14 +5,16 @@ from support import *
 from tileset import Tileset
 from tileset import Tile
 from player import Player
-from Enemies import RedOctorock
+from enemies import RedOctorock
 
 
 # SHOULD PLAYER BE CREATED IN LEVEL ? HE SHOULD BE PASSED TO LEVELS AS THEY CHANGE
 # How to remember dead mobs on other maps ? Respawn timers ?
-# Should there be juste one level = MAP and then a camera system ?
+# Should there be juste one level = MAP and then a camera system ? yes, clearly
 # so much to think so much to do
 
+# TODO : NEED THINKING ABOUT ID = LV_NUM + WARP_POS ? Is it needed ?
+# TODO : CREATE WARP ( & obstacle for TILED program I guess)
 
 class Level:
     def __init__(self):

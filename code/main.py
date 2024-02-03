@@ -1,9 +1,3 @@
-# Press Maj+F10 to execute it or replace it with your code.
-# Press Double Shift to search everywhere for classes, files, tool windows, actions, and settings.
-# Press Ctrl+F8 to toggle the breakpoint.
-
-# Development started on Monday 02/10/2023 at noon
-
 import pygame
 import sys
 from settings import *
