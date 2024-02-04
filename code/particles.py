@@ -4,9 +4,6 @@ from settings import *
 from abc import ABC
 
 
-# Probably a particle group at one point could be useful ... To despawn enemy particle at death when they are kill(), or
-# maybe I can do it inside the kill() ??
-# BUG : Particle is always on top of everything, which isn't bad, except for the sword, will destroy the hilt to correct
 class Particle(pygame.sprite.Sprite, ABC):
     def __init__(self, owner_pos, owner_direction_vector, groups):
         super().__init__(groups)
@@ -74,19 +71,19 @@ class WoodenSword(Particle):
                 self.pos_y -= 22
                 self.direction_label = owner_direction_label
             case 'right':
-                self.pos_x += 22
-                self.pos_y += 4
+                self.pos_x += 20
+                self.pos_y += 2
                 self.direction_label = owner_direction_label
             case 'down':
-                self.pos_x += 12
+                self.pos_x += 14
                 self.pos_y += 22
                 self.direction_label = owner_direction_label
             case 'left':
-                self.pos_x -= 22
-                self.pos_y += 4
+                self.pos_x -= 20
+                self.pos_y += 2
                 self.direction_label = owner_direction_label
 
-        self.move_animation_cooldown = PLAYER_ACTION_ANIMATION_COOLDOWN // WOOD_SWORD_FRAMES
+        self.move_animation_cooldown = 5
         self.move_animation_timer_start = pygame.time.get_ticks()
         self.move_animation_frame_count = 0
 
@@ -94,6 +91,8 @@ class WoodenSword(Particle):
         
         self.image = self.move_animations[self.direction_label][0]
         self.rect = self.image.get_rect(topleft=(self.pos_x, self.pos_y))
+        # Hitbox will stay at full sword length despite the animation, because it is extremely fast and doesn't really
+        # improve gameplay at all.
         if owner_direction_label == 'up' or owner_direction_label == 'down':
             self.hitbox = self.rect.inflate(-26, 0)
             self.hitbox.left = self.rect.left + 4
@@ -119,19 +118,8 @@ class WoodenSword(Particle):
                     particle_tileset.get_sprite_image(WOOD_SWORD_RIGHT_FRAME_ID + (2 * i)),
                     True,
                     False))
-        # DAMN that's ugly that I do it this way
-        for i in range(WOOD_SWORD_FRAMES - 1):
-            self.move_animations['up'].append(particle_tileset.get_sprite_image(WOOD_SWORD_UP_FRAME_ID + 2 - (2 * i)))
-            self.move_animations['right'].append(particle_tileset.get_sprite_image(WOOD_SWORD_RIGHT_FRAME_ID + 2 - (2 * i)))
-            self.move_animations['down'].append(particle_tileset.get_sprite_image(WOOD_SWORD_DOWN_FRAME_ID + 2 - (2 * i)))
-            self.move_animations['left'].append(
-                pygame.transform.flip(
-                    particle_tileset.get_sprite_image(WOOD_SWORD_RIGHT_FRAME_ID + 2 - (2 * i)),
-                    True,
-                    False))
 
     def animate(self):
-        # TODO : Update hitbox to fit length of sword showing
         current_time = pygame.time.get_ticks()
 
         # Going through the motions of multiple frames, with a timer per frame
@@ -140,11 +128,9 @@ class WoodenSword(Particle):
             self.move_animation_timer_start = pygame.time.get_ticks()
             if self.move_animation_frame_count < WOOD_SWORD_FRAMES - 1:
                 self.move_animation_frame_count += 1
-            else:
-                self.move_animation_frame_count = 0
 
     def collision(self):
-                pass
+        pass
 
     def move(self):
         # This particle is animated, but doesn't move.

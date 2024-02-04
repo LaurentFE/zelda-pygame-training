@@ -19,7 +19,7 @@ class Enemy(Entity):
 
         self.image = self.walking_animations[self.direction_label][0]
         self.rect = self.image.get_rect(topleft=pos)
-        self.hitbox = self.rect.inflate(-4, -4)
+        self.hitbox = self.rect
 
         # Monster actions cooldowns
         # Monsters always move, except if shooting, or special mechanic such as flying, jumping, diving(water/land)
@@ -32,8 +32,7 @@ class Enemy(Entity):
         self.direction_starting_time = 0
         self.hurt_starting_time = 0
         self.hurt_animation_cooldown = MONSTER_HURT_ANIMATION_COOLDOWN
-        self.hurt_cooldown = MONSTER_HURT_FRAMES * self.hurt_animation_cooldown
-        self.invulnerability_cooldown = 1.5 * self.hurt_cooldown
+        self.hurt_cooldown = (MONSTER_HURT_FRAMES + 1) * self.hurt_animation_cooldown
 
         self.despawn_animation_frame_count = 0
         self.despawn_animation_starting_time = 0
@@ -67,9 +66,6 @@ class Enemy(Entity):
         if 'hurt' in self.state:
             if current_time - self.hurt_starting_time >= self.hurt_cooldown:
                 self.state = 'idle'
-
-        if 'hurt' not in self.state:
-            if current_time - self.hurt_starting_time >= self.invulnerability_cooldown:
                 self.invulnerable = False
 
     @abc.abstractmethod
@@ -86,20 +82,6 @@ class Enemy(Entity):
                         self.hitbox.right = sprite.hitbox.left
                     if self.direction_vector.x < 0:
                         self.hitbox.left = sprite.hitbox.right
-            for particle in self.particle_sprites:
-                if particle.hitbox.colliderect(self.hitbox):
-                    if 'hurt' not in self.state and not self.invulnerable:
-                        self.state = 'hurt_h'
-                        self.hurt_starting_time = pygame.time.get_ticks()
-                        self.invulnerable = True
-                        self.direction_vector.y = 0
-                        if self.hitbox.centerx - particle.hitbox.centerx <= 0:
-                            self.direction_vector.x = -1
-                            self.hitbox.x -= self.current_speed
-                        else:
-                            self.direction_vector.x = 1
-                            self.hitbox.x += self.current_speed
-                        self.health -= particle.collision_damage
 
         elif direction == 'vertical':
             for sprite in self.obstacle_sprites:
@@ -108,20 +90,35 @@ class Enemy(Entity):
                         self.hitbox.bottom = sprite.hitbox.top
                     if self.direction_vector.y < 0:
                         self.hitbox.top = sprite.hitbox.bottom
-            for particle in self.particle_sprites:
-                if particle.hitbox.colliderect(self.hitbox):
-                    if 'hurt' not in self.state and not self.invulnerable:
-                        self.state = 'hurt_v'
-                        self.hurt_starting_time = pygame.time.get_ticks()
-                        self.invulnerable = True
+
+        for particle in self.particle_sprites:
+            if particle.hitbox.colliderect(self.hitbox):
+                if 'hurt' not in self.state and not self.invulnerable:
+                    self.state = 'hurt'
+                    self.hurt_starting_time = pygame.time.get_ticks()
+                    self.invulnerable = True
+                    self.direction_vector.y = 0
+                    if particle.direction_label == 'left':
+                        self.direction_vector.x = -1
+                        self.direction_vector.y = 0
+                        self.hitbox.x -= self.current_speed
+                        self.direction_label = 'right'
+                    elif particle.direction_label == 'right':
+                        self.direction_vector.x = 1
+                        self.direction_vector.y = 0
+                        self.hitbox.x += self.current_speed
+                        self.direction_label = 'left'
+                    elif particle.direction_label == 'up':
+                        self.direction_vector.y = -1
                         self.direction_vector.x = 0
-                        if self.hitbox.centerx - particle.hitbox.centerx <= 0:
-                            self.direction_vector.y = -1
-                            self.hitbox.y -= self.current_speed
-                        else:
-                            self.direction_vector.y = 1
-                            self.hitbox.y += self.current_speed
-                        self.health -= particle.collision_damage
+                        self.hitbox.y -= self.current_speed
+                        self.direction_label = 'down'
+                    else:
+                        self.direction_vector.y = 1
+                        self.direction_vector.x = 0
+                        self.hitbox.y += self.current_speed
+                        self.direction_label = 'up'
+                    self.health -= particle.collision_damage
 
     @abc.abstractmethod
     def move(self):
@@ -168,6 +165,7 @@ class Enemy(Entity):
             if self.state != 'attacking':
                 self.move()
             if self.health <= 0:
+                self.despawn_animation_starting_time = pygame.time.get_ticks()
                 self.isDead = True
 
         self.animate()
@@ -220,7 +218,7 @@ class RedOctorock(Enemy):
             self.hurt_animations['left'].append(
                 enemies_tile_set.get_sprite_image(OCTOROCK_HURT_LEFT_FRAME_ID + (2 * i)))
         for i in range(MONSTER_DEATH_FRAMES):
-            self.despawn_animation.append(enemies_tile_set.get_sprite_image(MONSTER_DEATH_FRAME_ID + 2 * i))
+            self.despawn_animation.append(enemies_tile_set.get_sprite_image(MONSTER_DEATH_FRAME_ID + (2 * i)))
 
     def cooldowns(self):
         super().cooldowns()
@@ -230,22 +228,31 @@ class RedOctorock(Enemy):
 
         # Going through the motions of multiple frames, with a timer per frame
         if not self.isDead:
-            self.image = self.walking_animations[self.direction_label][self.walking_animation_frame_count]
-            if current_time - self.walking_animation_starting_time >= self.walking_animation_cooldown:
-                self.walking_animation_starting_time = pygame.time.get_ticks()
-                if self.walking_animation_frame_count < OCTOROCK_WALKING_FRAMES - 1:
-                    self.walking_animation_frame_count += 1
-                else:
-                    self.walking_animation_frame_count = 0
+            if self.state == 'idle' or self.state == 'walking':
+                self.image = self.walking_animations[self.direction_label][self.walking_animation_frame_count]
+                if current_time - self.walking_animation_starting_time >= self.walking_animation_cooldown:
+                    self.walking_animation_starting_time = pygame.time.get_ticks()
+                    if self.walking_animation_frame_count < OCTOROCK_WALKING_FRAMES - 1:
+                        self.walking_animation_frame_count += 1
+                    else:
+                        self.walking_animation_frame_count = 0
+            elif 'hurt' in self.state:
+                # Going through the motions of multiple frames, with a timer per frame
+                self.image = self.hurt_animations[self.direction_label][self.hurt_animation_frame_count]
+                if current_time - self.hurt_animation_starting_time >= self.hurt_animation_cooldown:
+                    self.hurt_animation_starting_time = pygame.time.get_ticks()
+                    if self.hurt_animation_frame_count < MONSTER_HURT_FRAMES - 1:
+                        self.hurt_animation_frame_count += 1
+                    else:
+                        self.image = self.walking_animations[self.direction_label][0]
         else:
             self.image = self.despawn_animation[self.despawn_animation_frame_count]
-            if current_time - self.despawn_animation_starting_time >- self.despawn_animation_cooldown:
+            if current_time - self.despawn_animation_starting_time >= self.despawn_animation_cooldown:
                 self.despawn_animation_starting_time = pygame.time.get_ticks()
                 if self.despawn_animation_frame_count < MONSTER_DEATH_FRAMES - 1:
                     self.despawn_animation_frame_count += 1
                 else:
                     self.deathPlayed = True
-
 
     def collision(self, direction):
         super().collision(direction)
