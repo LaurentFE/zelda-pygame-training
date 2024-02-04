@@ -22,3 +22,6 @@ The target result is not to redevelop the whole game, but to implement the main 
 
 ## LIMITS
 Graphics and sounds will be basic rips of the Nintendo owned assets, found online on sprite and sound websites. Not recommended, but too lazy to learn to do pixel art and creating my own assets for now. Not the focus of this project. Same for sound design. Might happen in a later project, or will use a free art pack made for this purpose.
+
+## WIP BOARD
+https://jamboard.google.com/d/17sGVfK9TGUQF2FjtBszIERMs1WPzu5huUBg2sg46HeE/edit?usp=sharing
