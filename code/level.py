@@ -8,14 +8,6 @@ from player import Player
 from enemies import RedOctorock
 
 
-# SHOULD PLAYER BE CREATED IN LEVEL ? HE SHOULD BE PASSED TO LEVELS AS THEY CHANGE
-# How to remember dead mobs on other maps ? Respawn timers ?
-# Should there be juste one level = MAP and then a camera system ? yes, clearly
-# so much to think so much to do
-
-# TODO : NEED THINKING ABOUT ID = LV_NUM + WARP_POS ? Is it needed ?
-# TODO : CREATE WARP ( & obstacle for TILED program I guess)
-
 class Level:
     def __init__(self):
         # set up variables
@@ -35,6 +27,7 @@ class Level:
         self.warp_sprites = pygame.sprite.Group()
         self.obstacle_sprites = pygame.sprite.Group()
         self.visible_sprites = pygame.sprite.Group()
+        self.particle_sprites = pygame.sprite.Group()
         self.enemy_sprites = pygame.sprite.Group()
         self.money_amount_sprites = pygame.sprite.Group()
         self.keys_amount_sprites = pygame.sprite.Group()
@@ -49,6 +42,7 @@ class Level:
         # self.npcs_tile_set = Tileset('npcs')
         self.player_tile_set = Tileset('player')
         self.levels_tile_set = Tileset('levels')
+        self.particle_tile_set = Tileset('particles')
 
         # sprite setup
         self.create_map()
@@ -197,14 +191,14 @@ class Level:
         for col in range(0, nb_tiles_width):
             y_top = (MENU_TILE_HEIGHT-1)*TILE_SIZE
             y_bottom = SCREEN_HEIGHT
-            Tile((col*TILE_SIZE, y_top), self.obstacle_sprites)
-            Tile((col*TILE_SIZE, y_bottom), self.obstacle_sprites)
+            Tile((col*TILE_SIZE, y_top), [self.obstacle_sprites])
+            Tile((col*TILE_SIZE, y_bottom), [self.obstacle_sprites])
         # draw lines of obstacles so no one gets out of the sides of the screen
         for row in range(MENU_TILE_HEIGHT, nb_tiles_height):
             x_left = - TILE_SIZE
             x_right = SCREEN_WIDTH
-            Tile((x_left, row*TILE_SIZE), self.obstacle_sprites)
-            Tile((x_right, row*TILE_SIZE), self.obstacle_sprites)
+            Tile((x_left, row*TILE_SIZE), [self.obstacle_sprites])
+            Tile((x_right, row*TILE_SIZE), [self.obstacle_sprites])
         # draw obstacles inside the level layout
         for row_index, row in enumerate(layout):
             for col_index, col in enumerate(row):
@@ -212,7 +206,7 @@ class Level:
                 y = row_index * TILE_SIZE + MENU_TILE_HEIGHT * TILE_SIZE  # skipping menu tiles at the top of screen
                 sprite_id = int(col)
                 if sprite_id != -1:
-                    Tile((x, y), self.obstacle_sprites)
+                    Tile((x, y), [self.obstacle_sprites])
 
     def load_enemies(self):
         layout = import_csv_layout(f'../map/{self.current_level}_Enemies.csv')
@@ -225,6 +219,7 @@ class Level:
                     RedOctorock((x, y),
                                 [self.visible_sprites, self.enemy_sprites],
                                 self.obstacle_sprites,
+                                self.particle_sprites,
                                 self.enemies_tile_set)
 
     def load_player(self):
@@ -239,7 +234,10 @@ class Level:
                                          self.visible_sprites,
                                          self.obstacle_sprites,
                                          self.enemy_sprites,
-                                         self.player_tile_set)
+                                         self.visible_sprites,
+                                         self.particle_sprites,
+                                         self.player_tile_set,
+                                         self.particle_tile_set)
 
     def create_map(self):
         # later, will need to handle warps on their own tile set, with ID = level number & pos or something
@@ -351,6 +349,9 @@ class Level:
                 self.death_played = True
 
     def run(self):
+        for monster in self.enemy_sprites:
+            if monster.isDead and monster.deathPlayed:
+                monster.kill()
         if not self.player.isDead:
             # update and draw the game
             self.draw_hud()

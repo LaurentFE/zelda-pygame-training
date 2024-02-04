@@ -6,12 +6,9 @@ from debug import debug
 from entities import Entity
 
 
-# TODO : SPAWNING ANIMATION
-# TODO : DEATH ANIMATION
-
 class Enemy(Entity):
-    def __init__(self, pos, groups: list, obstacle_sprites, enemies_tile_set, uses_projectiles=False):
-        super().__init__(groups, obstacle_sprites)
+    def __init__(self, pos, groups, obstacle_sprites, particle_sprites, enemies_tile_set, uses_projectiles=False):
+        super().__init__(groups, obstacle_sprites, particle_sprites)
 
         self.direction_label = random.choice(['up', 'down', 'left', 'right'])
         self.state = 'walking'
@@ -33,10 +30,22 @@ class Enemy(Entity):
         self.can_move = True
         self.direction_cooldown = 200
         self.direction_starting_time = 0
+        self.hurt_starting_time = 0
+        self.hurt_animation_cooldown = MONSTER_HURT_ANIMATION_COOLDOWN
+        self.hurt_cooldown = MONSTER_HURT_FRAMES * self.hurt_animation_cooldown
+        self.invulnerability_cooldown = 1.5 * self.hurt_cooldown
+
+        self.despawn_animation_frame_count = 0
+        self.despawn_animation_starting_time = 0
+        self.despawn_animation_cooldown = MONSTER_DEATH_ANIMATION_COOLDOWN
 
         # Monster stats
         self.health = 0
         self.collision_damage = 0
+        self.invulnerable = False
+        self.current_speed = self.speed
+        self.isDead = False
+        self.deathPlayed = False
 
     @abc.abstractmethod
     def load_animation_frames(self, enemies_tile_set):
@@ -55,6 +64,14 @@ class Enemy(Entity):
                     if current_time - self.attack_starting_time >= self.action_animation_cooldown * 2.5:
                         self.state = 'walking'
 
+        if 'hurt' in self.state:
+            if current_time - self.hurt_starting_time >= self.hurt_cooldown:
+                self.state = 'idle'
+
+        if 'hurt' not in self.state:
+            if current_time - self.hurt_starting_time >= self.invulnerability_cooldown:
+                self.invulnerable = False
+
     @abc.abstractmethod
     def animate(self):
         pass
@@ -69,6 +86,20 @@ class Enemy(Entity):
                         self.hitbox.right = sprite.hitbox.left
                     if self.direction_vector.x < 0:
                         self.hitbox.left = sprite.hitbox.right
+            for particle in self.particle_sprites:
+                if particle.hitbox.colliderect(self.hitbox):
+                    if 'hurt' not in self.state and not self.invulnerable:
+                        self.state = 'hurt_h'
+                        self.hurt_starting_time = pygame.time.get_ticks()
+                        self.invulnerable = True
+                        self.direction_vector.y = 0
+                        if self.hitbox.centerx - particle.hitbox.centerx <= 0:
+                            self.direction_vector.x = -1
+                            self.hitbox.x -= self.current_speed
+                        else:
+                            self.direction_vector.x = 1
+                            self.hitbox.x += self.current_speed
+                        self.health -= particle.collision_damage
 
         elif direction == 'vertical':
             for sprite in self.obstacle_sprites:
@@ -77,28 +108,43 @@ class Enemy(Entity):
                         self.hitbox.bottom = sprite.hitbox.top
                     if self.direction_vector.y < 0:
                         self.hitbox.top = sprite.hitbox.bottom
+            for particle in self.particle_sprites:
+                if particle.hitbox.colliderect(self.hitbox):
+                    if 'hurt' not in self.state and not self.invulnerable:
+                        self.state = 'hurt_v'
+                        self.hurt_starting_time = pygame.time.get_ticks()
+                        self.invulnerable = True
+                        self.direction_vector.x = 0
+                        if self.hitbox.centerx - particle.hitbox.centerx <= 0:
+                            self.direction_vector.y = -1
+                            self.hitbox.y -= self.current_speed
+                        else:
+                            self.direction_vector.y = 1
+                            self.hitbox.y += self.current_speed
+                        self.health -= particle.collision_damage
 
     @abc.abstractmethod
     def move(self):
-        match self.direction_label:
-            case 'up':
-                self.direction_vector.x = 0
-                self.direction_vector.y = -1
-            case 'down':
-                self.direction_vector.x = 0
-                self.direction_vector.y = 1
-            case 'left':
-                self.direction_vector.x = -1
-                self.direction_vector.y = 0
-            case 'right':
-                self.direction_vector.x = 1
-                self.direction_vector.y = 0
-            case _:
-                debug(f"Monster tried to move {self.direction_label} !")
+        if self.state == 'walking':
+            match self.direction_label:
+                case 'up':
+                    self.direction_vector.x = 0
+                    self.direction_vector.y = -1
+                case 'down':
+                    self.direction_vector.x = 0
+                    self.direction_vector.y = 1
+                case 'left':
+                    self.direction_vector.x = -1
+                    self.direction_vector.y = 0
+                case 'right':
+                    self.direction_vector.x = 1
+                    self.direction_vector.y = 0
+                case _:
+                    debug(f"Monster tried to move {self.direction_label} !")
 
-        self.hitbox.x += self.direction_vector.x * self.speed
+        self.hitbox.x += self.direction_vector.x * self.current_speed
         self.collision('horizontal')
-        self.hitbox.y += self.direction_vector.y * self.speed
+        self.hitbox.y += self.direction_vector.y * self.current_speed
         self.collision('vertical')
 
         self.rect.center = self.hitbox.center
@@ -106,24 +152,33 @@ class Enemy(Entity):
     @abc.abstractmethod
     def update(self):
         current_time = pygame.time.get_ticks()
-        if current_time - self.direction_starting_time >= self.direction_cooldown:
-            self.direction_label = random.choice(['up', 'down', 'left', 'right'])
-            self.direction_starting_time = current_time
-            self.direction_cooldown = random.randrange(500, 2000, 100)
-        if self.can_attack:
-            self.state = 'attacking'
-            self.attack_starting_time = current_time
-            self.can_attack = False
-        if self.state == 'walking':
-            self.move()
+        if 'hurt' not in self.state:
+            self.current_speed = self.speed
+            if current_time - self.direction_starting_time >= self.direction_cooldown:
+                self.direction_label = random.choice(['up', 'down', 'left', 'right'])
+                self.direction_starting_time = current_time
+                self.direction_cooldown = random.randrange(500, 2000, 100)
+            if self.can_attack:
+                self.state = 'attacking'
+                self.attack_starting_time = current_time
+                self.can_attack = False
+        else:
+            self.current_speed = (MONSTER_HURT_FRAMES - self.hurt_animation_frame_count)
+        if not self.isDead:
+            if self.state != 'attacking':
+                self.move()
+            if self.health <= 0:
+                self.isDead = True
+
         self.animate()
         self.cooldowns()
+
         pygame.display.get_surface().blit(self.image, self.rect.topleft)
 
 
 class RedOctorock(Enemy):
-    def __init__(self, pos, groups: list, obstacle_sprites, enemies_tile_set):
-        super().__init__(pos, groups, obstacle_sprites, enemies_tile_set, True)
+    def __init__(self, pos, groups, obstacle_sprites, particle_sprites, enemies_tile_set):
+        super().__init__(pos, groups, obstacle_sprites, particle_sprites, enemies_tile_set, True)
         self.health = RED_OCTOROCK_HEALTH
         self.collision_damage = RED_OCTOROCK_DMG
 
@@ -149,6 +204,23 @@ class RedOctorock(Enemy):
                 enemies_tile_set.get_sprite_image(OCTOROCK_WALKING_DOWN_FRAME_ID + (2 * i)))
             self.walking_animations['left'].append(
                 enemies_tile_set.get_sprite_image(OCTOROCK_WALKING_LEFT_FRAME_ID + (2 * i)))
+        for i in range(MONSTER_HURT_FRAMES):
+            self.hurt_animations['up'].append(
+                pygame.transform.flip(
+                    enemies_tile_set.get_sprite_image(OCTOROCK_HURT_DOWN_FRAME_ID + (2 * i)),
+                    False,
+                    True))
+            self.hurt_animations['right'].append(
+                pygame.transform.flip(
+                    enemies_tile_set.get_sprite_image(OCTOROCK_HURT_LEFT_FRAME_ID + (2 * i)),
+                    True,
+                    False))
+            self.hurt_animations['down'].append(
+                enemies_tile_set.get_sprite_image(OCTOROCK_HURT_DOWN_FRAME_ID + (2 * i)))
+            self.hurt_animations['left'].append(
+                enemies_tile_set.get_sprite_image(OCTOROCK_HURT_LEFT_FRAME_ID + (2 * i)))
+        for i in range(MONSTER_DEATH_FRAMES):
+            self.despawn_animation.append(enemies_tile_set.get_sprite_image(MONSTER_DEATH_FRAME_ID + 2 * i))
 
     def cooldowns(self):
         super().cooldowns()
@@ -157,13 +229,23 @@ class RedOctorock(Enemy):
         current_time = pygame.time.get_ticks()
 
         # Going through the motions of multiple frames, with a timer per frame
-        self.image = self.walking_animations[self.direction_label][self.walking_animation_frame_count]
-        if current_time - self.walking_animation_starting_time >= self.walking_animation_cooldown:
-            self.walking_animation_starting_time = pygame.time.get_ticks()
-            if self.walking_animation_frame_count < OCTOROCK_WALKING_FRAMES - 1:
-                self.walking_animation_frame_count += 1
-            else:
-                self.walking_animation_frame_count = 0
+        if not self.isDead:
+            self.image = self.walking_animations[self.direction_label][self.walking_animation_frame_count]
+            if current_time - self.walking_animation_starting_time >= self.walking_animation_cooldown:
+                self.walking_animation_starting_time = pygame.time.get_ticks()
+                if self.walking_animation_frame_count < OCTOROCK_WALKING_FRAMES - 1:
+                    self.walking_animation_frame_count += 1
+                else:
+                    self.walking_animation_frame_count = 0
+        else:
+            self.image = self.despawn_animation[self.despawn_animation_frame_count]
+            if current_time - self.despawn_animation_starting_time >- self.despawn_animation_cooldown:
+                self.despawn_animation_starting_time = pygame.time.get_ticks()
+                if self.despawn_animation_frame_count < MONSTER_DEATH_FRAMES - 1:
+                    self.despawn_animation_frame_count += 1
+                else:
+                    self.deathPlayed = True
+
 
     def collision(self, direction):
         super().collision(direction)

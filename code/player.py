@@ -2,12 +2,8 @@ import pygame
 from settings import *
 from debug import debug
 from entities import Entity
+from particles import WoodenSword
 
-
-# TODO : EQUIPPED ITEM
-# TODO : ITEM PARTICLES
-# TODO : ITEM EFFECT
-# TODO : Replace all debugs() with proper error handling I guess
 
 # NOTE : Behaviour difference between original NES version, and mine :
 #   HURT :
@@ -30,10 +26,16 @@ from entities import Entity
 #         or of flute.
 
 class Player(Entity):
-    def __init__(self, pos, groups: list, obstacle_sprites, enemy_sprites, player_tile_set):
-        super().__init__(groups, obstacle_sprites)
+    def __init__(self, pos, groups, obstacle_sprites, enemy_sprites, visible_sprites, particle_sprites,
+                 player_tile_set, particle_tileset):
+        super().__init__(groups, obstacle_sprites, particle_sprites)
 
         self.enemy_sprites = enemy_sprites
+        self.visible_sprites = visible_sprites
+        self.particle_sprites = particle_sprites
+
+        self.particle_tileset = particle_tileset
+
         self.action_animations = {
             'up': [],
             'right': [],
@@ -51,6 +53,7 @@ class Player(Entity):
         self.state = 'idle'
         self.speed = 3
 
+        self.pos = pos
         self.image = self.walking_animations[self.direction_label][0]
         self.rect = self.image.get_rect(topleft=pos)
         self.hitbox = self.rect.inflate(-4, -4)
@@ -81,7 +84,7 @@ class Player(Entity):
         self.idle_time = 0
 
         # Player actions cooldowns
-        self.action_cooldown = 500
+        self.action_cooldown = PLAYER_ACTION_ANIMATION_COOLDOWN
         self.pickup_minor_cooldown = 1500
         self.pickup_major_cooldown = 2500
         self.hurt_cooldown = PLAYER_HURT_FRAMES * self.hurt_animation_cooldown
@@ -90,6 +93,8 @@ class Player(Entity):
         self.pickup_minor_starting_time = 0
         self.pickup_major_starting_time = 0
         self.hurt_starting_time = 0
+
+        self.action_particle = None
 
         # Player stats and items
         # 1 Heart = 256 health
@@ -195,6 +200,9 @@ class Player(Entity):
             self.action_starting_time = pygame.time.get_ticks()
             self.direction_vector.x = 0
             self.direction_vector.y = 0
+            self.action_particle = WoodenSword(self.rect.topleft, self.direction_vector, self.direction_label,
+                                               [self.visible_sprites, self.particle_sprites], self.enemy_sprites,
+                                               self.particle_tileset)
 
         # Cast input has prio over Attack input
         # Can't move during cast
@@ -228,6 +236,8 @@ class Player(Entity):
         current_time = pygame.time.get_ticks()
         if self.state == 'attacking' or self.state == 'casting':
             if current_time - self.action_starting_time >= self.action_cooldown:
+                self.action_particle.kill()
+                self.action_particle = None
                 self.state = 'idle'
         elif self.state == 'walking':
             if current_time - self.idle_time >= self.walking_animation_cooldown:
@@ -239,6 +249,9 @@ class Player(Entity):
             if current_time - self.pickup_major_starting_time >= self.pickup_major_cooldown:
                 self.state = 'idle'
         elif 'hurt' in self.state:
+            if self.action_particle is not None:
+                self.action_particle.kill()
+                self.action_particle = None
             if current_time - self.hurt_starting_time >= self.hurt_cooldown:
                 self.state = 'idle'
 

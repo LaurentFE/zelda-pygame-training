@@ -9,7 +9,7 @@ class Game:
         # general setup
         pygame.init()
         self.screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
-        pygame.display.set_caption('I suck at this for now')
+        pygame.display.set_caption('Getting Somewhere - A Zelda NES demo developed with Pygame')
         self.clock = pygame.time.Clock()
 
         self.level = Level()

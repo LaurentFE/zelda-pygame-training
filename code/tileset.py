@@ -34,6 +34,9 @@ class Tileset(pygame.sprite.Sprite):
         elif tile_type == 'player':
             self.img_width = 2
             self.img_height = 2
+        elif tile_type == 'particles':
+            self.img_width = 2  # IN REALITY IT VARIES A LOT LOL
+            self.img_height = 2  # IN REALITY IT VARIES A LOT LOL
 
         self.items_per_row = self.rec.width // TILE_SIZE
 
