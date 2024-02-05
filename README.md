@@ -9,8 +9,8 @@ Installation command :
 ```python -m pip install -U pygame --user```
 
 ### Run
-Command line from the project folder :
-```python ./code/main.py```
+Command line from the <project folder>/code/ :
+```python ./main.py```
 
 ## Context of the project
 ### WHAT
