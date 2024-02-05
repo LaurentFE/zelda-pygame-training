@@ -10,7 +10,8 @@ class Particle(pygame.sprite.Sprite, ABC):
 
         self.pos_x = owner_pos[0]
         self.pos_y = owner_pos[1]
-        self.direction_vector = owner_direction_vector
+        self.owner_direction_vector = owner_direction_vector
+        self.direction_vector = pygame.math.Vector2()
         self.speed = 0
 
         self.image = None
@@ -27,6 +28,8 @@ class Particle(pygame.sprite.Sprite, ABC):
 
         self.affects_player = False
         self.affects_enemy = False
+
+        self.collision_damage = 0
 
         # is_active must be set to True when created, and depending on the particle, set to False when it must be killed
         # It might be upon collision with intended target, upon a timer, or when going outside screen bounds. Or it
@@ -70,18 +73,26 @@ class WoodenSword(Particle):
                 self.pos_x += 6
                 self.pos_y -= 22
                 self.direction_label = owner_direction_label
+                self.direction_vector.x = 0
+                self.direction_vector.y = -1
             case 'right':
                 self.pos_x += 20
                 self.pos_y += 2
                 self.direction_label = owner_direction_label
+                self.direction_vector.x = 1
+                self.direction_vector.y = 0
             case 'down':
                 self.pos_x += 14
                 self.pos_y += 22
                 self.direction_label = owner_direction_label
+                self.direction_vector.x = 0
+                self.direction_vector.y = 1
             case 'left':
                 self.pos_x -= 20
                 self.pos_y += 2
                 self.direction_label = owner_direction_label
+                self.direction_vector.x = -1
+                self.direction_vector.y = 0
 
         self.move_animation_cooldown = 5
         self.move_animation_timer_start = pygame.time.get_ticks()
@@ -108,7 +119,6 @@ class WoodenSword(Particle):
         self.is_active = True
 
     def load_animation_frames(self, particle_tileset):
-        # TODO : Create propre particles.png file
         for i in range(WOOD_SWORD_FRAMES):
             self.move_animations['up'].append(particle_tileset.get_sprite_image(WOOD_SWORD_UP_FRAME_ID + (2 * i)))
             self.move_animations['right'].append(particle_tileset.get_sprite_image(WOOD_SWORD_RIGHT_FRAME_ID + (2 * i)))

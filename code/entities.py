@@ -21,6 +21,7 @@ class Entity(pygame.sprite.Sprite, ABC):
             'down': [],
             'left': []
         }
+        self.spawn_animation = []
         self.despawn_animation = []
         self.direction_vector = pygame.math.Vector2()
         self.direction_label = ''
