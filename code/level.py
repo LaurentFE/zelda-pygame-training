@@ -218,9 +218,11 @@ class Level:
                 if sprite_id == 4:
                     RedOctorock((x, y),
                                 [self.visible_sprites, self.enemy_sprites],
+                                self.visible_sprites,
                                 self.obstacle_sprites,
                                 self.particle_sprites,
-                                self.enemies_tile_set)
+                                self.enemies_tile_set,
+                                self.particle_tile_set)
 
     def load_player(self):
         layout = import_csv_layout(f'../map/{self.current_level}_Player.csv')
@@ -320,7 +322,7 @@ class Level:
         if self.death_motion_index > 7:
             self.draw_floor('black')
 
-        # call player.beGray()
+        # put player in gray state for animation
         if self.death_motion_index == 8:
             if self.death_gray_starting_time == 0:
                 self.death_gray_starting_time = pygame.time.get_ticks()
@@ -328,7 +330,7 @@ class Level:
             if pygame.time.get_ticks() - self.death_gray_starting_time >= self.death_gray_cooldown:
                 self.death_motion_index += 1
 
-        # call player.animate_despawn()
+        # put player in despawn state for animation
         if self.death_motion_index == 9:
             if self.death_despawn_starting_time == 0:
                 self.death_despawn_starting_time = pygame.time.get_ticks()

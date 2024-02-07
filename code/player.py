@@ -28,13 +28,11 @@ from particles import WoodenSword
 class Player(Entity):
     def __init__(self, pos, groups, obstacle_sprites, enemy_sprites, visible_sprites, particle_sprites,
                  player_tile_set, particle_tileset):
-        super().__init__(groups, obstacle_sprites, particle_sprites)
+        super().__init__(groups, visible_sprites, obstacle_sprites, particle_sprites, particle_tileset)
 
         self.enemy_sprites = enemy_sprites
         self.visible_sprites = visible_sprites
         self.particle_sprites = particle_sprites
-
-        self.particle_tileset = particle_tileset
 
         self.action_animations = {
             'up': [],
@@ -201,7 +199,7 @@ class Player(Entity):
             self.direction_vector.x = 0
             self.direction_vector.y = 0
             self.action_particle = WoodenSword(self.rect.topleft, self.direction_vector, self.direction_label,
-                                               [self.visible_sprites, self.particle_sprites], self.enemy_sprites,
+                                               [self.visible_sprites, self.particle_sprites],
                                                self.particle_tileset)
 
         # Cast input has prio over Attack input
@@ -318,6 +316,7 @@ class Player(Entity):
                     self.hitbox.x += self.current_speed*self.direction_vector.x
                     self.hitbox.y += self.current_speed*self.direction_vector.y
                     self.health -= particle.collision_damage
+                    particle.kill()
 
     def move(self):
         if self.direction_vector.magnitude() != 0:
@@ -406,22 +405,6 @@ class Player(Entity):
                     self.despawn_animation_frame_count = 0
         else:
             debug(f'Error : animate({self.state}) does not exist')
-
-    def animate_despawn(self):
-        despawn_starting_time = pygame.time.get_ticks()
-        despawn_duration = 500
-        self.image = self.despawn_animation[0]
-        pygame.display.get_surface().blit(self.image, self.rect.topleft)
-        pygame.display.update()
-        elapsed_despawn_time = pygame.time.get_ticks() - despawn_starting_time
-        while elapsed_despawn_time < despawn_duration:
-            # PLAYER_DEATH_FRAMES frames
-            # spread over despawn_duration ms
-            frame_time = despawn_duration // PLAYER_DEATH_FRAMES
-            current_frame = int(elapsed_despawn_time // frame_time)
-            self.image = self.despawn_animation[current_frame]
-            pygame.display.get_surface().blit(self.image, self.rect.topleft)
-            pygame.display.update()
 
     def update(self):
         if not self.isDead:

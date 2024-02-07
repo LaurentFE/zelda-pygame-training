@@ -4,11 +4,13 @@ from abc import ABC
 
 
 class Entity(pygame.sprite.Sprite, ABC):
-    def __init__(self, groups, obstacle_sprites, particle_sprites):
+    def __init__(self, groups, visible_sprites, obstacle_sprites, particle_sprites, particle_tileset):
         super().__init__(groups)
 
+        self.visible_sprites = visible_sprites
         self.obstacle_sprites = obstacle_sprites
         self.particle_sprites = particle_sprites
+        self.particle_tileset = particle_tileset
         self.walking_animations = {
             'up': [],
             'right': [],

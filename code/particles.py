@@ -59,10 +59,8 @@ class Particle(pygame.sprite.Sprite, ABC):
 
 class WoodenSword(Particle):
     def __init__(self, owner_pos, owner_direction_vector, owner_direction_label,
-                 groups, enemy_sprites, particle_tileset):
+                 groups, particle_tileset):
         super().__init__(owner_pos, owner_direction_vector, groups)
-
-        self.enemy_sprites = enemy_sprites
 
         self.owner_pos = owner_pos
         self.pos_x = owner_pos[0]
@@ -148,4 +146,73 @@ class WoodenSword(Particle):
 
     def update(self):
         self.animate()
+        pygame.display.get_surface().blit(self.image, self.rect.topleft)
+
+
+class Rock(Particle):
+    def __init__(self, owner_pos,
+                 owner_direction_vector,
+                 groups,
+                 owner_direction_label,
+                 particle_tileset,
+                 obstacle_sprites):
+        super().__init__(owner_pos, owner_direction_vector, groups)
+
+        self.obstacle_sprites = obstacle_sprites
+
+        self.owner_pos = owner_pos
+        self.pos_x = owner_pos[0]
+        self.pos_y = owner_pos[1]
+
+        match owner_direction_label:
+            case 'up':
+                self.direction_vector.x = 0
+                self.direction_vector.y = -1
+            case 'right':
+                self.direction_vector.x = 1
+                self.direction_vector.y = 0
+            case 'down':
+                self.direction_vector.x = 0
+                self.direction_vector.y = 1
+            case 'left':
+                self.direction_vector.x = -1
+                self.direction_vector.y = 0
+
+        self.move_animation_frame_count = 0
+        self.move_animations = []
+
+        self.load_animation_frames(particle_tileset)
+
+        self.image = self.move_animations[0]
+        self.rect = self.image.get_rect(topleft=(self.pos_x, self.pos_y))
+        self.hitbox = self.rect.inflate(-16, -12)
+        self.hitbox.left = self.rect.left
+        self.hitbox.top = self.rect.top + 4
+
+        self.affects_player = True
+        self.collision_damage = ROCK_DMG
+
+        self.is_active = True
+
+    def load_animation_frames(self, particle_tileset):
+        self.move_animations.append(particle_tileset.get_sprite_image(ROCK_FRAME_ID))
+
+    def animate(self):
+        # This particle moves, but isn't animated
+        pass
+
+    def collision(self):
+        for sprite in self.obstacle_sprites:
+            if sprite.hitbox.colliderect(self.hitbox):
+                self.kill()
+
+    def move(self):
+        self.hitbox.x += self.direction_vector.x * ROCK_SPEED
+        self.rect.x += self.direction_vector.x * ROCK_SPEED
+        self.hitbox.y += self.direction_vector.y * ROCK_SPEED
+        self.rect.y += self.direction_vector.y * ROCK_SPEED
+
+    def update(self):
+        self.move()
+        self.collision()
         pygame.display.get_surface().blit(self.image, self.rect.topleft)
