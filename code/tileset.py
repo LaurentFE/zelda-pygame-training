@@ -26,8 +26,8 @@ class Tileset(pygame.sprite.Sprite):
             self.img_width = 1  # sometimes 2 though, how to handle ?
             self.img_height = 1  # sometimes 2 though, how to handle ?
         elif tile_type == 'items':
-            self.img_width = 1  # sometimes 2 though, how to handle ?
-            self.img_height = 1  # sometimes 2 though, how to handle ?
+            self.img_width = 2
+            self.img_height = 2
         elif tile_type == 'npcs':
             self.img_width = 2  # EXCEPT FAIRIES THOUGH LOL WTF
             self.img_height = 2
@@ -35,8 +35,8 @@ class Tileset(pygame.sprite.Sprite):
             self.img_width = 2
             self.img_height = 2
         elif tile_type == 'particles':
-            self.img_width = 2  # IN REALITY IT VARIES A LOT LOL
-            self.img_height = 2  # IN REALITY IT VARIES A LOT LOL
+            self.img_width = 2
+            self.img_height = 2
 
         self.items_per_row = self.rec.width // TILE_SIZE
 
