@@ -3,9 +3,11 @@
 ## Controls
 Move with ```directional arrows``` or ```Z Q S D```
 
-Use sword to attack with ```SPACE```
+Use item A to attack with ```SPACE```
 
-Use nonexistent second item with ```LEFT SHIFT```
+Use nonexistent item B with ```LEFT SHIFT```
+
+Open the pause/item menu with ```ESCAPE```
 
 ## How to build & run project
 ### Prerequisites
