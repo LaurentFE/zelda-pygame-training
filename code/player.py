@@ -105,6 +105,13 @@ class Player(Entity):
         self.isDead = False
         self.current_speed = self.speed
 
+        # Items flags
+        self.has_boomerang = True
+        self.has_candle = True
+        self.has_ladder = True
+        self.has_raft = True
+        self.has_sword_wood = True
+
     def load_animation_frames(self, player_tile_set):
         for i in range(PLAYER_WALKING_FRAMES):
             self.walking_animations['up'].append(
