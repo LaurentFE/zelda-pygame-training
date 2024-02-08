@@ -164,22 +164,22 @@ class Player(Entity):
         keys = pygame.key.get_pressed()
         moving_key_pressed = False
 
-        if keys[pygame.K_UP] and (self.state == 'walking' or self.state == 'idle'):
+        if (keys[pygame.K_UP] or keys[pygame.K_z]) and (self.state == 'walking' or self.state == 'idle'):
             self.direction_vector.y = -1
             self.direction_label = 'up'
             moving_key_pressed = True
-        elif keys[pygame.K_DOWN] and (self.state == 'walking' or self.state == 'idle'):
+        elif (keys[pygame.K_DOWN] or keys[pygame.K_s]) and (self.state == 'walking' or self.state == 'idle'):
             self.direction_vector.y = 1
             self.direction_label = 'down'
             moving_key_pressed = True
         else:
             self.direction_vector.y = 0
 
-        if keys[pygame.K_LEFT] and (self.state == 'walking' or self.state == 'idle'):
+        if (keys[pygame.K_LEFT] or keys[pygame.K_q]) and (self.state == 'walking' or self.state == 'idle'):
             self.direction_vector.x = -1
             self.direction_label = 'left'
             moving_key_pressed = True
-        elif keys[pygame.K_RIGHT] and (self.state == 'walking' or self.state == 'idle'):
+        elif (keys[pygame.K_RIGHT] or keys[pygame.K_d]) and (self.state == 'walking' or self.state == 'idle'):
             self.direction_vector.x = 1
             self.direction_label = 'right'
             moving_key_pressed = True
@@ -234,8 +234,11 @@ class Player(Entity):
         current_time = pygame.time.get_ticks()
         if self.state == 'attacking' or self.state == 'casting':
             if current_time - self.action_starting_time >= self.action_cooldown:
-                self.action_particle.kill()
-                self.action_particle = None
+                # Casting doesn't have a particle created yet because no items are implemented
+                # Attacking is fixed on Wooden Sword. When items are implemented, should be actionA and actionB
+                if self.state == 'attacking':
+                    self.action_particle.kill()
+                    self.action_particle = None
                 self.state = 'idle'
         elif self.state == 'walking':
             if current_time - self.idle_time >= self.walking_animation_cooldown:

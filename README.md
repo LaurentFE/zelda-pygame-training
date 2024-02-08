@@ -1,5 +1,12 @@
 # The Legend of Zelda, a Pygame Training Exercise
 
+## Controls
+Move with ```directional arrows``` or ```Z Q S D```
+
+Use sword to attack with ```SPACE```
+
+Use nonexistent second item with ```LEFT SHIFT```
+
 ## How to build & run project
 ### Prerequisites
 Python 3 : https://www.python.org
@@ -34,7 +41,13 @@ The target result is not to redevelop the whole game, but to implement the main 
 - A selection of items to use (basic like the hearts to regen health, or evolved like the ladder to cross bodies of water, or the flame to torch specific bushes)
 
 ### LIMITS
-Graphics and sounds will be basic rips of the Nintendo owned assets, found online on sprite and sound websites. Current sprites ripped by Mister Mike. Not recommended, but too lazy to learn to do pixel art and creating my own assets for now. Not the focus of this project. Same for sound design. Might happen in a later project, or will use a free art pack made for this purpose.
+Graphics and sounds will be basic rips of the Nintendo owned assets, found online on sprite and sound websites.
+Current sprites ripped by Mister Mike. 
+
+Not recommended, but I'm not motivated to learn how to do pixel art and to create my own assets for now.
+Not the focus of this project. Same for sound design. 
+
+Might happen in a later project, or will use a free art pack made for this purpose.
 
 ## WIP BOARD
 https://jamboard.google.com/d/17sGVfK9TGUQF2FjtBszIERMs1WPzu5huUBg2sg46HeE/edit?usp=sharing
