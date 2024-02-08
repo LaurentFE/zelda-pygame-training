@@ -308,15 +308,23 @@ class Player(Entity):
         for particle in self.particle_sprites:
             if particle.hitbox.colliderect(self.hitbox):
                 if 'hurt' not in self.state and not self.invulnerable and particle.affects_player:
-                    self.state = 'hurt_p'
-                    self.hurt_starting_time = pygame.time.get_ticks()
-                    self.hurt_animation_starting_time = self.hurt_starting_time
-                    self.invulnerable = True
-                    self.direction_vector = particle.direction_vector
-                    self.hitbox.x += self.current_speed*self.direction_vector.x
-                    self.hitbox.y += self.current_speed*self.direction_vector.y
-                    self.health -= particle.collision_damage
-                    particle.kill()
+                    # Shield test
+                    if ((self.direction_label == 'up' and particle.direction_vector.y > 0)
+                            or (self.direction_label == 'down' and particle.direction_vector.y < 0)
+                            or (self.direction_label == 'left' and particle.direction_vector.x > 0)
+                            or (self.direction_label == 'right' and particle.direction_vector.x < 0)):
+                        # Successful block ! Should add a sound
+                        particle.kill()
+                    else:
+                        self.state = 'hurt_p'
+                        self.hurt_starting_time = pygame.time.get_ticks()
+                        self.hurt_animation_starting_time = self.hurt_starting_time
+                        self.invulnerable = True
+                        self.direction_vector = particle.direction_vector
+                        self.hitbox.x += self.current_speed*self.direction_vector.x
+                        self.hitbox.y += self.current_speed*self.direction_vector.y
+                        self.health -= particle.collision_damage
+                        particle.kill()
 
     def move(self):
         if self.direction_vector.magnitude() != 0:
