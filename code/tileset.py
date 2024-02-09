@@ -26,8 +26,8 @@ class Tileset(pygame.sprite.Sprite):
             self.img_width = 1  # sometimes 2 though, how to handle ?
             self.img_height = 1  # sometimes 2 though, how to handle ?
         elif tile_type == 'items':
-            self.img_width = 2
-            self.img_height = 2
+            self.img_width = 1  # sometimes 2 though, how to handle ?
+            self.img_height = 1  # sometimes 2 though, how to handle ?
         elif tile_type == 'npcs':
             self.img_width = 2  # EXCEPT FAIRIES THOUGH LOL WTF
             self.img_height = 2
@@ -35,17 +35,14 @@ class Tileset(pygame.sprite.Sprite):
             self.img_width = 2
             self.img_height = 2
         elif tile_type == 'particles':
-            self.img_width = 2
-            self.img_height = 2
-        elif tile_type == 'consumables':
-            self.img_width = 2
-            self.img_height = 2
+            self.img_width = 2  # IN REALITY IT VARIES A LOT LOL
+            self.img_height = 2  # IN REALITY IT VARIES A LOT LOL
 
         self.items_per_row = self.rec.width // TILE_SIZE
 
     def get_sprite_image(self, sprite_id):
-        sprite_width = TILE_SIZE * self.img_width
-        sprite_height = TILE_SIZE * self.img_height
+        sprite_width = TILE_SIZE*self.img_width
+        sprite_height = TILE_SIZE*self.img_height
         x = (int(sprite_id) % self.items_per_row) * TILE_SIZE
         y = (int(sprite_id) // self.items_per_row) * TILE_SIZE
         sprite_image = self.image.subsurface((x, y, sprite_width, sprite_height)).convert_alpha()

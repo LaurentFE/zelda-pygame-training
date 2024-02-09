@@ -4,14 +4,12 @@ import random
 from settings import *
 from debug import debug
 from entities import Entity
-from particles import Rock
 
 
 # Known issue : Monster waits for 'attacking' to end before getting hurt
 class Enemy(Entity):
-    def __init__(self, pos, groups, visible_sprites, obstacle_sprites, particle_sprites,
-                 enemies_tile_set, particle_tileset, uses_projectiles=False):
-        super().__init__(groups, visible_sprites, obstacle_sprites, particle_sprites, particle_tileset)
+    def __init__(self, pos, groups, obstacle_sprites, particle_sprites, enemies_tile_set, uses_projectiles=False):
+        super().__init__(groups, obstacle_sprites, particle_sprites)
 
         self.direction_label = random.choice(['up', 'down', 'left', 'right'])
         self.state = 'walking'
@@ -28,9 +26,8 @@ class Enemy(Entity):
         # Monsters always move, except if shooting, or special mechanic such as flying, jumping, diving(water/land)
         self.uses_projectiles = uses_projectiles
         self.can_attack = self.uses_projectiles
-        self.has_attacked = True
         self.attack_cooldown = random.randrange(1600, 4800, 100)
-        self.attack_starting_time = pygame.time.get_ticks()
+        self.attack_starting_time = 0
         self.can_move = True
         self.direction_cooldown = 200
         self.direction_starting_time = 0
@@ -64,9 +61,9 @@ class Enemy(Entity):
 
         # Monster can shoot if he isn't in the hurt animation. Attack cooldown is randomized
         if self.uses_projectiles and 'hurt' not in self.state:
-            if self.has_attacked:
+            if not self.can_attack:
                 if current_time - self.attack_starting_time >= self.attack_cooldown:
-                    self.has_attacked = False
+                    self.can_attack = True
                     self.attack_cooldown = random.randrange(1600, 4800, 100)
                 if self.state == 'attacking':
                     if current_time - self.attack_starting_time >= self.action_animation_cooldown * 2:
@@ -76,7 +73,6 @@ class Enemy(Entity):
             if current_time - self.hurt_starting_time >= self.hurt_cooldown:
                 self.state = 'walking'
                 self.invulnerable = False
-                self.hurt_animation_frame_count = 0
 
     @abc.abstractmethod
     def animate(self):
@@ -182,33 +178,25 @@ class Enemy(Entity):
         self.rect.center = self.hitbox.center
 
     @abc.abstractmethod
-    def attack(self):
-        pass
-
-    @abc.abstractmethod
     def update(self):
         current_time = pygame.time.get_ticks()
 
         # Attacks interrupt movements if available.
         if 'hurt' not in self.state:
             self.current_speed = self.speed
-            if (self.isSpawned
-                    and self.state == 'walking'
-                    and current_time - self.direction_starting_time >= self.direction_cooldown):
+            if self.state == 'walking' and current_time - self.direction_starting_time >= self.direction_cooldown:
                 self.direction_label = random.choice(['up', 'down', 'left', 'right'])
                 self.direction_starting_time = current_time
                 self.direction_cooldown = random.randrange(500, 2000, 100)
-            if self. isSpawned and self.can_attack and not self.has_attacked:
+            if self.can_attack:
                 self.state = 'attacking'
                 self.attack_starting_time = current_time
+                self.can_attack = False
         else:
             # While hurt, Monster is repelled with a fading speed
             self.current_speed = (MONSTER_HURT_FRAMES - self.hurt_animation_frame_count)
-        if self.isSpawned and not self.isDead:
-            if self.state == 'attacking' and not self.has_attacked:
-                self.attack()
-                self.has_attacked = True
-            elif self.state != 'attacking':
+        if not self.isDead:
+            if self.state != 'attacking':
                 self.move()
             if self.health <= 0:
                 self.despawn_animation_starting_time = pygame.time.get_ticks()
@@ -221,10 +209,8 @@ class Enemy(Entity):
 
 
 class RedOctorock(Enemy):
-    def __init__(self, pos, groups, visible_sprites, obstacle_sprites, particle_sprites,
-                 enemies_tileset, particle_tileset):
-        super().__init__(pos, groups, visible_sprites, obstacle_sprites, particle_sprites,
-                         enemies_tileset, particle_tileset, True)
+    def __init__(self, pos, groups, obstacle_sprites, particle_sprites, enemies_tile_set):
+        super().__init__(pos, groups, obstacle_sprites, particle_sprites, enemies_tile_set, True)
         self.health = RED_OCTOROCK_HEALTH
         self.collision_damage = RED_OCTOROCK_DMG
 
@@ -300,7 +286,7 @@ class RedOctorock(Enemy):
                         self.hurt_animation_frame_count += 1
                     else:
                         self.image = self.walking_animations[self.direction_label][0]
-
+                        self.hurt_animation_frame_count = 0
         else:
             self.animate_despawn(current_time)
 
@@ -309,14 +295,6 @@ class RedOctorock(Enemy):
 
     def move(self):
         super().move()
-
-    def attack(self):
-        Rock(self.rect.topleft,
-             self.direction_vector,
-             [self.visible_sprites, self.particle_sprites],
-             self.direction_label,
-             self.particle_tileset,
-             self.obstacle_sprites)
 
     def update(self):
         super().update()
