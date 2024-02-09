@@ -7,6 +7,7 @@ from tileset import Tileset
 from tileset import Tile
 from player import Player
 from enemies import RedOctorock
+from particles import Heart, Rupee, CBomb, Fairy
 
 
 class Level:
@@ -37,6 +38,7 @@ class Level:
         self.bombs_amount_sprites = pygame.sprite.Group()
         self.health_sprites = pygame.sprite.Group()
         self.menu_sprites = pygame.sprite.Group()
+        self.border_sprites = pygame.sprite.Group()
 
         self.equipped_item_a_sprite = None
         self.equipped_item_b_sprite = None
@@ -50,6 +52,7 @@ class Level:
         self.player_tile_set = Tileset('player')
         self.levels_tile_set = Tileset('levels')
         self.particle_tile_set = Tileset('particles')
+        self.consumables_tile_set = Tileset('consumables')
 
         # sprite setup
         self.create_map()
@@ -354,8 +357,8 @@ class Level:
         for col in range(0, nb_tiles_width):
             y_top = (HUD_TILE_HEIGHT-1)*TILE_SIZE
             y_bottom = SCREEN_HEIGHT
-            Tile((col*TILE_SIZE, y_top), [self.obstacle_sprites])
-            Tile((col*TILE_SIZE, y_bottom), [self.obstacle_sprites])
+            Tile((col*TILE_SIZE, y_top), [self.obstacle_sprites, self.border_sprites])
+            Tile((col*TILE_SIZE, y_bottom), [self.obstacle_sprites, self.border_sprites])
         # Draw lines of obstacles so no one gets out of the sides of the screen
         for row in range(HUD_TILE_HEIGHT, nb_tiles_height):
             x_left = - TILE_SIZE
@@ -427,10 +430,12 @@ class Level:
     def death(self):
         self.draw_hud()
         self.draw_floor()
-        # Kill every enemy sprite
+        # Kill every enemy sprite and every particle sprite
         if self.death_motion_index == 1:
-            for sprite in self.enemy_sprites:
-                sprite.kill()
+            for enemy in self.enemy_sprites:
+                enemy.kill()
+            for particle in self.particle_sprites:
+                particle.kill()
             self.death_motion_index += 1
 
         # Call player.hurt_animation(3 seconds)
@@ -528,56 +533,59 @@ class Level:
                 for sprite in self.menu_sprites:
                     sprite.kill()
 
-    def drop_loot(self):
+    def drop_loot(self, pos):
         # Loot system follows (loosely) the system used in the NES game
         # Monsters have a chance of dropping an item when they die
         # If Monster drops an item, which item spawns is decided by a loot table, that compares the kill count
         # of the current play session compared to the table of the group the monster is a part of
-        # I chose to do only one table, and all monster will belong to this group.
+        # I chose to do only one table, and all monster will belong to this group :
         # From 0 to 9 : Rupee - Bombs - Rupee - Fairy - Rupee - Heart - Heart - Bombs - Rupee - Heart
         # 40% Rupee, 30% Heart, 20% Bombs, 10% Fairy
         self.kill_count += 1
         if random.randint(1, 100) <= LOOT_DROP_PERCENTAGE:
             loot = self.kill_count % 10
             match loot:
-                case 0:
-                    # Rupee
-                    pass
-                case 1:
-                    # Bombs
-                    pass
-                case 2:
-                    # Rupee
-                    pass
+                case 0 | 2 | 4 | 8:
+                    Rupee(pos,
+                          [self.visible_sprites, self.particle_sprites],
+                          self.consumables_tile_set,
+                          self.obstacle_sprites,
+                          self)
+                case 1 | 7:
+                    CBomb(pos,
+                          [self.visible_sprites, self.particle_sprites],
+                          self.consumables_tile_set,
+                          self.obstacle_sprites,
+                          self)
                 case 3:
-                    # Fairy
-                    pass
-                case 4:
-                    # Rupee
-                    pass
-                case 5:
-                    # Heart
-                    pass
-                case 6:
-                    # Heart
-                    pass
-                case 7:
-                    # Bombs
-                    pass
-                case 8:
-                    # Rupee
-                    pass
-                case 9:
-                    # Heart
-                    pass
+                    Fairy(pos,
+                          [self.visible_sprites, self.particle_sprites],
+                          self.consumables_tile_set,
+                          self.border_sprites,
+                          self)
+                case 5 | 6 | 9:
+                    Heart(pos,
+                          [self.visible_sprites, self.particle_sprites],
+                          self.consumables_tile_set,
+                          self.obstacle_sprites,
+                          self)
+
+    def heal_player(self, amount):
+        self.player.heal(amount)
+
+    def add_money(self, amount):
+        self.player.add_money(amount)
+
+    def add_bombs(self, amount):
+        self.player.add_bombs(amount)
 
     def run(self):
         self.input()
         for monster in self.enemy_sprites:
             if monster.isDead and monster.deathPlayed:
                 # Delete monsters that have played their death animation
+                self.drop_loot(monster.rect.topleft)
                 monster.kill()
-                self.drop_loot()
             elif self.in_menu:
                 # Reset attack cooldown timer until game is resumed
                 monster.attack_starting_time = pygame.time.get_ticks()
