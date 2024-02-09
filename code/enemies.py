@@ -76,6 +76,7 @@ class Enemy(Entity):
             if current_time - self.hurt_starting_time >= self.hurt_cooldown:
                 self.state = 'walking'
                 self.invulnerable = False
+                self.hurt_animation_frame_count = 0
 
     @abc.abstractmethod
     def animate(self):
@@ -299,7 +300,7 @@ class RedOctorock(Enemy):
                         self.hurt_animation_frame_count += 1
                     else:
                         self.image = self.walking_animations[self.direction_label][0]
-                        self.hurt_animation_frame_count = 0
+
         else:
             self.animate_despawn(current_time)
 

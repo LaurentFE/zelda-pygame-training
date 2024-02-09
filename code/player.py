@@ -267,6 +267,7 @@ class Player(Entity):
         if 'hurt' not in self.state:
             if current_time - self.hurt_starting_time >= self.invulnerability_cooldown:
                 self.invulnerable = False
+                self.hurt_animation_frame_count = 0
 
     # collision (direction) detects collision with both enemies and obstacle sprites
     def collision(self, direction):
@@ -411,8 +412,7 @@ class Player(Entity):
                 self.hurt_animation_starting_time = pygame.time.get_ticks()
                 if self.hurt_animation_frame_count < PLAYER_HURT_FRAMES-1:
                     self.hurt_animation_frame_count += 1
-                else:
-                    self.hurt_animation_frame_count = 0
+
         elif self.state == 'gray':
             # be gray
             self.image = self.gray_animation['down'][0]
