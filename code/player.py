@@ -28,13 +28,11 @@ from particles import WoodenSword
 class Player(Entity):
     def __init__(self, pos, groups, obstacle_sprites, enemy_sprites, visible_sprites, particle_sprites,
                  player_tile_set, particle_tileset):
-        super().__init__(groups, obstacle_sprites, particle_sprites)
+        super().__init__(groups, visible_sprites, obstacle_sprites, particle_sprites, particle_tileset)
 
         self.enemy_sprites = enemy_sprites
         self.visible_sprites = visible_sprites
         self.particle_sprites = particle_sprites
-
-        self.particle_tileset = particle_tileset
 
         self.action_animations = {
             'up': [],
@@ -56,7 +54,8 @@ class Player(Entity):
         self.pos = pos
         self.image = self.walking_animations[self.direction_label][0]
         self.rect = self.image.get_rect(topleft=pos)
-        self.hitbox = self.rect.inflate(-4, -4)
+        self.hitbox = self.rect.inflate(-4, -16)
+        self.hitbox.top = self.rect.top + 14
 
         # All cooldowns are in milliseconds
         # Cooldown between animation frames
@@ -102,10 +101,17 @@ class Player(Entity):
         self.health = int(self.current_max_health)
         self.invulnerable = False
         self.money = 0
-        self.keys = 123
-        self.bombs = 456
+        self.keys = 0
+        self.bombs = 0
         self.isDead = False
         self.current_speed = self.speed
+
+        # Items flags
+        self.has_boomerang = True
+        self.has_candle = True
+        self.has_ladder = True
+        self.has_raft = True
+        self.has_sword_wood = True
 
     def load_animation_frames(self, player_tile_set):
         for i in range(PLAYER_WALKING_FRAMES):
@@ -166,22 +172,22 @@ class Player(Entity):
         keys = pygame.key.get_pressed()
         moving_key_pressed = False
 
-        if keys[pygame.K_UP] and (self.state == 'walking' or self.state == 'idle'):
+        if (keys[pygame.K_UP] or keys[pygame.K_z]) and (self.state == 'walking' or self.state == 'idle'):
             self.direction_vector.y = -1
             self.direction_label = 'up'
             moving_key_pressed = True
-        elif keys[pygame.K_DOWN] and (self.state == 'walking' or self.state == 'idle'):
+        elif (keys[pygame.K_DOWN] or keys[pygame.K_s]) and (self.state == 'walking' or self.state == 'idle'):
             self.direction_vector.y = 1
             self.direction_label = 'down'
             moving_key_pressed = True
         else:
             self.direction_vector.y = 0
 
-        if keys[pygame.K_LEFT] and (self.state == 'walking' or self.state == 'idle'):
+        if (keys[pygame.K_LEFT] or keys[pygame.K_q]) and (self.state == 'walking' or self.state == 'idle'):
             self.direction_vector.x = -1
             self.direction_label = 'left'
             moving_key_pressed = True
-        elif keys[pygame.K_RIGHT] and (self.state == 'walking' or self.state == 'idle'):
+        elif (keys[pygame.K_RIGHT] or keys[pygame.K_d]) and (self.state == 'walking' or self.state == 'idle'):
             self.direction_vector.x = 1
             self.direction_label = 'right'
             moving_key_pressed = True
@@ -201,7 +207,7 @@ class Player(Entity):
             self.direction_vector.x = 0
             self.direction_vector.y = 0
             self.action_particle = WoodenSword(self.rect.topleft, self.direction_vector, self.direction_label,
-                                               [self.visible_sprites, self.particle_sprites], self.enemy_sprites,
+                                               [self.visible_sprites, self.particle_sprites],
                                                self.particle_tileset)
 
         # Cast input has prio over Attack input
@@ -236,8 +242,11 @@ class Player(Entity):
         current_time = pygame.time.get_ticks()
         if self.state == 'attacking' or self.state == 'casting':
             if current_time - self.action_starting_time >= self.action_cooldown:
-                self.action_particle.kill()
-                self.action_particle = None
+                # Casting doesn't have a particle created yet because no items are implemented
+                # Attacking is fixed on Wooden Sword. When items are implemented, should be actionA and actionB
+                if self.state == 'attacking':
+                    self.action_particle.kill()
+                    self.action_particle = None
                 self.state = 'idle'
         elif self.state == 'walking':
             if current_time - self.idle_time >= self.walking_animation_cooldown:
@@ -258,13 +267,14 @@ class Player(Entity):
         if 'hurt' not in self.state:
             if current_time - self.hurt_starting_time >= self.invulnerability_cooldown:
                 self.invulnerable = False
+                self.hurt_animation_frame_count = 0
 
     # collision (direction) detects collision with both enemies and obstacle sprites
     def collision(self, direction):
         if direction == 'horizontal':
             for sprite in self.enemy_sprites:
                 if sprite.hitbox.colliderect(self.hitbox):
-                    if 'hurt' not in self.state and not self.invulnerable:
+                    if 'hurt' not in self.state and not self.invulnerable and not sprite.invulnerable:
                         self.state = 'hurt_h'
                         self.hurt_starting_time = pygame.time.get_ticks()
                         self.invulnerable = True
@@ -287,7 +297,7 @@ class Player(Entity):
         elif direction == 'vertical':
             for sprite in self.enemy_sprites:
                 if sprite.hitbox.colliderect(self.hitbox):
-                    if 'hurt' not in self.state and not self.invulnerable:
+                    if 'hurt' not in self.state and not self.invulnerable and not sprite.invulnerable:
                         self.state = 'hurt_v'
                         self.hurt_starting_time = pygame.time.get_ticks()
                         self.invulnerable = True
@@ -310,14 +320,28 @@ class Player(Entity):
         for particle in self.particle_sprites:
             if particle.hitbox.colliderect(self.hitbox):
                 if 'hurt' not in self.state and not self.invulnerable and particle.affects_player:
-                    self.state = 'hurt_p'
-                    self.hurt_starting_time = pygame.time.get_ticks()
-                    self.hurt_animation_starting_time = self.hurt_starting_time
-                    self.invulnerable = True
-                    self.direction_vector = particle.direction_vector
-                    self.hitbox.x += self.current_speed*self.direction_vector.x
-                    self.hitbox.y += self.current_speed*self.direction_vector.y
-                    self.health -= particle.collision_damage
+                    # Shield test
+                    if (not particle.bypasses_shield
+                            and 'attacking' not in self.state
+                            and ((self.direction_label == 'up' and particle.direction_vector.y > 0)
+                                 or (self.direction_label == 'down' and particle.direction_vector.y < 0)
+                                 or (self.direction_label == 'left' and particle.direction_vector.x > 0)
+                                 or (self.direction_label == 'right' and particle.direction_vector.x < 0))):
+                        # Successful block ! Should add a sound
+                        particle.kill()
+                    else:
+                        if particle.collision_damage != 0:
+                            self.state = 'hurt_p'
+                            self.hurt_starting_time = pygame.time.get_ticks()
+                            self.hurt_animation_starting_time = self.hurt_starting_time
+                            self.invulnerable = True
+                            self.direction_vector = particle.direction_vector
+                            self.hitbox.x += self.current_speed*self.direction_vector.x
+                            self.hitbox.y += self.current_speed*self.direction_vector.y
+                            self.health -= particle.collision_damage
+                        else:
+                            particle.effect()
+                        particle.kill()
 
     def move(self):
         if self.direction_vector.magnitude() != 0:
@@ -329,7 +353,8 @@ class Player(Entity):
         self.collision('vertical')
 
         if not self.isDead:
-            self.rect.center = self.hitbox.center
+            self.rect.top = self.hitbox.top - 12
+            self.rect.left = self.hitbox.left - 4
 
     def set_player_death_state(self, state):
         if state == 'hurt':
@@ -391,8 +416,7 @@ class Player(Entity):
                 self.hurt_animation_starting_time = pygame.time.get_ticks()
                 if self.hurt_animation_frame_count < PLAYER_HURT_FRAMES-1:
                     self.hurt_animation_frame_count += 1
-                else:
-                    self.hurt_animation_frame_count = 0
+
         elif self.state == 'gray':
             # be gray
             self.image = self.gray_animation['down'][0]
@@ -407,21 +431,23 @@ class Player(Entity):
         else:
             debug(f'Error : animate({self.state}) does not exist')
 
-    def animate_despawn(self):
-        despawn_starting_time = pygame.time.get_ticks()
-        despawn_duration = 500
-        self.image = self.despawn_animation[0]
-        pygame.display.get_surface().blit(self.image, self.rect.topleft)
-        pygame.display.update()
-        elapsed_despawn_time = pygame.time.get_ticks() - despawn_starting_time
-        while elapsed_despawn_time < despawn_duration:
-            # PLAYER_DEATH_FRAMES frames
-            # spread over despawn_duration ms
-            frame_time = despawn_duration // PLAYER_DEATH_FRAMES
-            current_frame = int(elapsed_despawn_time // frame_time)
-            self.image = self.despawn_animation[current_frame]
-            pygame.display.get_surface().blit(self.image, self.rect.topleft)
-            pygame.display.update()
+    def heal(self, amount):
+        if amount >= 0:
+            self.health += amount * PLAYER_HEALTH_PER_HEART
+            if self.health > self.current_max_health:
+                self.health = self.current_max_health
+
+    def add_money(self, amount):
+        if amount >= 0:
+            self.money += amount
+            if self.money > 999:
+                self.health = 999
+
+    def add_bombs(self, amount):
+        if amount >= 0:
+            self.bombs += amount
+            if self.bombs > PLAYER_BOMBS_MAX:
+                self.bombs = PLAYER_BOMBS_MAX
 
     def update(self):
         if not self.isDead:
