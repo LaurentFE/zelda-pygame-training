@@ -13,6 +13,7 @@ class Particle(pygame.sprite.Sprite, ABC):
         self.owner_direction_vector = owner_direction_vector
         self.direction_vector = pygame.math.Vector2()
         self.speed = 0
+        self.bypasses_shield = False
 
         self.image = None
 
@@ -50,6 +51,10 @@ class Particle(pygame.sprite.Sprite, ABC):
 
     @abc.abstractmethod
     def move(self):
+        pass
+
+    @abc.abstractmethod
+    def effect(self):
         pass
 
     @abc.abstractmethod
@@ -144,6 +149,10 @@ class WoodenSword(Particle):
         # This particle is animated, but doesn't move.
         pass
 
+    def effect(self):
+        # None, it's a damaging particle
+        pass
+
     def update(self):
         self.animate()
         pygame.display.get_surface().blit(self.image, self.rect.topleft)
@@ -211,6 +220,10 @@ class Rock(Particle):
         self.rect.x += self.direction_vector.x * ROCK_SPEED
         self.hitbox.y += self.direction_vector.y * ROCK_SPEED
         self.rect.y += self.direction_vector.y * ROCK_SPEED
+
+    def effect(self):
+        # None, it's a damaging particle
+        pass
 
     def update(self):
         self.move()

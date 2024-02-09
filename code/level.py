@@ -1,5 +1,6 @@
 import sys
 import pygame
+import random
 from settings import *
 from support import *
 from tileset import Tileset
@@ -15,6 +16,7 @@ class Level:
         self.current_level = 'level0'
         self.death_played = False
         self.in_menu = False
+        self.kill_count = 0
 
         # set up display surface
         self.display_surface = pygame.display.get_surface()
@@ -526,12 +528,56 @@ class Level:
                 for sprite in self.menu_sprites:
                     sprite.kill()
 
+    def drop_loot(self):
+        # Loot system follows (loosely) the system used in the NES game
+        # Monsters have a chance of dropping an item when they die
+        # If Monster drops an item, which item spawns is decided by a loot table, that compares the kill count
+        # of the current play session compared to the table of the group the monster is a part of
+        # I chose to do only one table, and all monster will belong to this group.
+        # From 0 to 9 : Rupee - Bombs - Rupee - Fairy - Rupee - Heart - Heart - Bombs - Rupee - Heart
+        # 40% Rupee, 30% Heart, 20% Bombs, 10% Fairy
+        self.kill_count += 1
+        if random.randint(1, 100) <= LOOT_DROP_PERCENTAGE:
+            loot = self.kill_count % 10
+            match loot:
+                case 0:
+                    # Rupee
+                    pass
+                case 1:
+                    # Bombs
+                    pass
+                case 2:
+                    # Rupee
+                    pass
+                case 3:
+                    # Fairy
+                    pass
+                case 4:
+                    # Rupee
+                    pass
+                case 5:
+                    # Heart
+                    pass
+                case 6:
+                    # Heart
+                    pass
+                case 7:
+                    # Bombs
+                    pass
+                case 8:
+                    # Rupee
+                    pass
+                case 9:
+                    # Heart
+                    pass
+
     def run(self):
         self.input()
         for monster in self.enemy_sprites:
             if monster.isDead and monster.deathPlayed:
                 # Delete monsters that have played their death animation
                 monster.kill()
+                self.drop_loot()
             elif self.in_menu:
                 # Reset attack cooldown timer until game is resumed
                 monster.attack_starting_time = pygame.time.get_ticks()
