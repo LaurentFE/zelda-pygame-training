@@ -101,8 +101,8 @@ class Player(Entity):
         self.health = int(self.current_max_health)
         self.invulnerable = False
         self.money = 0
-        self.keys = 123
-        self.bombs = 456
+        self.keys = 0
+        self.bombs = 0
         self.isDead = False
         self.current_speed = self.speed
 
@@ -430,6 +430,24 @@ class Player(Entity):
                     self.despawn_animation_frame_count = 0
         else:
             debug(f'Error : animate({self.state}) does not exist')
+
+    def heal(self, amount):
+        if amount >= 0:
+            self.health += amount * PLAYER_HEALTH_PER_HEART
+            if self.health > self.current_max_health:
+                self.health = self.current_max_health
+
+    def add_money(self, amount):
+        if amount >= 0:
+            self.money += amount
+            if self.money > 999:
+                self.health = 999
+
+    def add_bombs(self, amount):
+        if amount >= 0:
+            self.bombs += amount
+            if self.bombs > PLAYER_BOMBS_MAX:
+                self.bombs = PLAYER_BOMBS_MAX
 
     def update(self):
         if not self.isDead:

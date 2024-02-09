@@ -37,12 +37,15 @@ class Tileset(pygame.sprite.Sprite):
         elif tile_type == 'particles':
             self.img_width = 2
             self.img_height = 2
+        elif tile_type == 'consumables':
+            self.img_width = 2
+            self.img_height = 2
 
         self.items_per_row = self.rec.width // TILE_SIZE
 
     def get_sprite_image(self, sprite_id):
-        sprite_width = TILE_SIZE*self.img_width
-        sprite_height = TILE_SIZE*self.img_height
+        sprite_width = TILE_SIZE * self.img_width
+        sprite_height = TILE_SIZE * self.img_height
         x = (int(sprite_id) % self.items_per_row) * TILE_SIZE
         y = (int(sprite_id) // self.items_per_row) * TILE_SIZE
         sprite_image = self.image.subsurface((x, y, sprite_width, sprite_height)).convert_alpha()
