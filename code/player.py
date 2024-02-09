@@ -54,7 +54,8 @@ class Player(Entity):
         self.pos = pos
         self.image = self.walking_animations[self.direction_label][0]
         self.rect = self.image.get_rect(topleft=pos)
-        self.hitbox = self.rect.inflate(-4, -4)
+        self.hitbox = self.rect.inflate(-4, -16)
+        self.hitbox.top = self.rect.top + 14
 
         # All cooldowns are in milliseconds
         # Cooldown between animation frames
@@ -272,7 +273,7 @@ class Player(Entity):
         if direction == 'horizontal':
             for sprite in self.enemy_sprites:
                 if sprite.hitbox.colliderect(self.hitbox):
-                    if 'hurt' not in self.state and not self.invulnerable:
+                    if 'hurt' not in self.state and not self.invulnerable and not sprite.invulnerable:
                         self.state = 'hurt_h'
                         self.hurt_starting_time = pygame.time.get_ticks()
                         self.invulnerable = True
@@ -295,7 +296,7 @@ class Player(Entity):
         elif direction == 'vertical':
             for sprite in self.enemy_sprites:
                 if sprite.hitbox.colliderect(self.hitbox):
-                    if 'hurt' not in self.state and not self.invulnerable:
+                    if 'hurt' not in self.state and not self.invulnerable and not sprite.invulnerable:
                         self.state = 'hurt_v'
                         self.hurt_starting_time = pygame.time.get_ticks()
                         self.invulnerable = True
@@ -319,10 +320,11 @@ class Player(Entity):
             if particle.hitbox.colliderect(self.hitbox):
                 if 'hurt' not in self.state and not self.invulnerable and particle.affects_player:
                     # Shield test
-                    if ((self.direction_label == 'up' and particle.direction_vector.y > 0)
-                            or (self.direction_label == 'down' and particle.direction_vector.y < 0)
-                            or (self.direction_label == 'left' and particle.direction_vector.x > 0)
-                            or (self.direction_label == 'right' and particle.direction_vector.x < 0)):
+                    if ('attacking' not in self.state
+                        and ((self.direction_label == 'up' and particle.direction_vector.y > 0)
+                             or (self.direction_label == 'down' and particle.direction_vector.y < 0)
+                             or (self.direction_label == 'left' and particle.direction_vector.x > 0)
+                             or (self.direction_label == 'right' and particle.direction_vector.x < 0))):
                         # Successful block ! Should add a sound
                         particle.kill()
                     else:
@@ -346,7 +348,8 @@ class Player(Entity):
         self.collision('vertical')
 
         if not self.isDead:
-            self.rect.center = self.hitbox.center
+            self.rect.top = self.hitbox.top - 12
+            self.rect.left = self.hitbox.left - 4
 
     def set_player_death_state(self, state):
         if state == 'hurt':
