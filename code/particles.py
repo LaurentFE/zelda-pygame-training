@@ -253,7 +253,7 @@ class Heart(Particle):
 
         self.image = self.move_animations[0]
         self.rect = self.image.get_rect(topleft=(self.pos_x, self.pos_y))
-        self.hitbox = self.rect
+        self.hitbox = self.rect.inflate(-16, -16)
 
         self.affects_player = True
         self.bypasses_shield = True
@@ -314,7 +314,7 @@ class Rupee(Particle):
 
         self.image = self.move_animations[0]
         self.rect = self.image.get_rect(topleft=(self.pos_x, self.pos_y))
-        self.hitbox = self.rect
+        self.hitbox = self.rect.inflate(-16, 0)
 
         self.affects_player = True
         self.bypasses_shield = True
@@ -375,7 +375,7 @@ class CBomb(Particle):
 
         self.image = self.move_animations[0]
         self.rect = self.image.get_rect(topleft=(self.pos_x, self.pos_y))
-        self.hitbox = self.rect
+        self.hitbox = self.rect.inflate(-16, 0)
 
         self.affects_player = True
         self.bypasses_shield = True
@@ -426,7 +426,7 @@ class Fairy(Particle):
 
         self.image = self.move_animations[0]
         self.rect = self.image.get_rect(topleft=(self.pos_x, self.pos_y))
-        self.hitbox = self.rect
+        self.hitbox = self.rect.inflate(-16, 0)
 
         self.affects_player = True
         self.bypasses_shield = True
