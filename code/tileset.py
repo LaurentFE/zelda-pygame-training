@@ -2,7 +2,7 @@ import pygame
 from settings import *
 
 
-# Need to remove particles from tile sets for later
+# Will need someday to SINGLETON-ify this
 class Tileset(pygame.sprite.Sprite):
     def __init__(self, tile_type):
         super().__init__()
