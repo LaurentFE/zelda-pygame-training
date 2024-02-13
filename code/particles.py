@@ -400,7 +400,7 @@ class CBomb(Particle):
         pass
 
     def effect(self):
-        self.level.add_bombs(4)
+        self.level.add_bombs(PLAYER_BOMB_LOOT_AMOUNT)
 
     def update(self):
         pygame.display.get_surface().blit(self.image, self.rect.topleft)

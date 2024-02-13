@@ -107,19 +107,19 @@ class Player(Entity):
         self.invulnerable = False
         self.money = 0
         self.keys = 0
-        self.bombs = 0
+        self.bombs = PLAYER_BOMB_LOOT_AMOUNT
         self.isDead = False
         self.current_speed = self.speed
 
         # Items flags
         self.has_boomerang = True
         self.has_candle = True
-        self.has_bombs = False
+        self.has_bombs = True
         self.has_ladder = True
         self.has_raft = True
         self.has_sword_wood = True
         self.itemA = "WoodenSword"
-        self.itemB = "None"
+        self.itemB = "Bomb"
 
     def load_animation_frames(self, player_tile_set):
         for i in range(PLAYER_WALKING_FRAMES):
@@ -472,6 +472,25 @@ class Player(Entity):
             self.bombs += amount
             if self.bombs > PLAYER_BOMBS_MAX:
                 self.bombs = PLAYER_BOMBS_MAX
+
+    def has_item(self, label):
+        match label:
+            case 'Boomerang':
+                return self.has_boomerang
+            case 'Bomb':
+                return self.has_bombs
+            case 'Candle':
+                return self.has_candle
+            case 'Ladder':
+                return self.has_ladder
+            case 'Raft':
+                return self.has_raft
+            case _:
+                return False
+
+    def change_item_b(self, label):
+        if self.has_item(label):
+            self.itemB = label
 
     def update(self):
         if not self.isDead:

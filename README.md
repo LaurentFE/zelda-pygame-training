@@ -9,6 +9,9 @@ Use nonexistent item B with ```LEFT SHIFT```
 
 Open the pause/item menu with ```ESCAPE```
 
+In the pause/item menu, select item B by moving the blinking selector with ```directional arrows``` or ```Z Q S D```
+(Not all visible items are implemented, they will have no sprite nor effect when used)
+
 ## How to build & run project
 ### Prerequisites
 Python 3 : https://www.python.org
@@ -26,7 +29,7 @@ Command line from the <project folder>/code/ :
 Recreation of The Legend of Zelda as seen on the NES, published in 1986 by Nintendo.
 
 ### HOW
-Developed in Pyhton3 using the Pygame engine.
+Developed in Python3 using the Pygame engine.
 
 ### WHY
 The goals are : 

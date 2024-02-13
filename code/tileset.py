@@ -14,32 +14,11 @@ class Tileset(pygame.sprite.Sprite):
 
         pygame.display.get_surface().blit(self.image, (0, 0))
 
-        self.img_width = None
-        self.img_height = None
-        if tile_type == 'enemies':
-            self.img_width = 2
-            self.img_height = 2
-        elif tile_type == 'font':
+        self.img_width = 2
+        self.img_height = 2
+        if tile_type == 'font':
             self.img_width = 1
             self.img_height = 1
-        elif tile_type == 'hud':
-            self.img_width = 1  # sometimes 2 though, how to handle ?
-            self.img_height = 1  # sometimes 2 though, how to handle ?
-        elif tile_type == 'items':
-            self.img_width = 2
-            self.img_height = 2
-        elif tile_type == 'npcs':
-            self.img_width = 2  # EXCEPT FAIRIES THOUGH LOL WTF
-            self.img_height = 2
-        elif tile_type == 'player':
-            self.img_width = 2
-            self.img_height = 2
-        elif tile_type == 'particles':
-            self.img_width = 2
-            self.img_height = 2
-        elif tile_type == 'consumables':
-            self.img_width = 2
-            self.img_height = 2
 
         self.items_per_row = self.rec.width // TILE_SIZE
 
