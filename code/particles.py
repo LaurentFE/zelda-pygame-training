@@ -125,12 +125,13 @@ class WoodenSword(Particle):
 
     def load_animation_frames(self, particle_tileset):
         for i in range(WOOD_SWORD_FRAMES):
-            self.move_animations['up'].append(particle_tileset.get_sprite_image(WOOD_SWORD_UP_FRAME_ID + (2 * i)))
-            self.move_animations['right'].append(particle_tileset.get_sprite_image(WOOD_SWORD_RIGHT_FRAME_ID + (2 * i)))
-            self.move_animations['down'].append(particle_tileset.get_sprite_image(WOOD_SWORD_DOWN_FRAME_ID + (2 * i)))
+            tiles_offset = SPRITE_SIZE // TILE_SIZE * i
+            self.move_animations['up'].append(particle_tileset.get_sprite_image(WOOD_SWORD_UP_FRAME_ID + tiles_offset))
+            self.move_animations['right'].append(particle_tileset.get_sprite_image(WOOD_SWORD_RIGHT_FRAME_ID + tiles_offset))
+            self.move_animations['down'].append(particle_tileset.get_sprite_image(WOOD_SWORD_DOWN_FRAME_ID + tiles_offset))
             self.move_animations['left'].append(
                 pygame.transform.flip(
-                    particle_tileset.get_sprite_image(WOOD_SWORD_RIGHT_FRAME_ID + (2 * i)),
+                    particle_tileset.get_sprite_image(WOOD_SWORD_RIGHT_FRAME_ID + tiles_offset),
                     True,
                     False))
 
@@ -263,7 +264,8 @@ class Heart(Particle):
 
     def load_animation_frames(self, particle_tileset):
         for i in range(HEART_FRAMES):
-            self.move_animations.append(particle_tileset.get_sprite_image(HEART_FRAME_ID + (2 * i)))
+            tiles_offset = SPRITE_SIZE // TILE_SIZE * i
+            self.move_animations.append(particle_tileset.get_sprite_image(HEART_FRAME_ID + tiles_offset))
 
     def animate(self):
         current_time = pygame.time.get_ticks()
@@ -324,7 +326,8 @@ class Rupee(Particle):
 
     def load_animation_frames(self, particle_tileset):
         for i in range(RUPEE_FRAMES):
-            self.move_animations.append(particle_tileset.get_sprite_image(RUPEE_FRAME_ID + (2 * i)))
+            tiles_offset = SPRITE_SIZE // TILE_SIZE * i
+            self.move_animations.append(particle_tileset.get_sprite_image(RUPEE_FRAME_ID + tiles_offset))
 
     def animate(self):
         current_time = pygame.time.get_ticks()
@@ -440,7 +443,8 @@ class Fairy(Particle):
 
     def load_animation_frames(self, particle_tileset):
         for i in range(FAIRY_FRAMES):
-            self.move_animations.append(particle_tileset.get_sprite_image(FAIRY_FRAMES_ID + (2 * i)))
+            tiles_offset = SPRITE_SIZE // TILE_SIZE * i
+            self.move_animations.append(particle_tileset.get_sprite_image(FAIRY_FRAMES_ID + tiles_offset))
 
     def animate(self):
         current_time = pygame.time.get_ticks()
@@ -595,7 +599,8 @@ class BombSmoke(Particle):
 
     def load_animation_frames(self, particle_tileset):
         for i in range(PBOMB_SMOKE_FRAMES):
-            self.move_animations.append(particle_tileset.get_sprite_image(PBOMB_SMOKE_FRAME_ID + (2 * i)))
+            tiles_offset = SPRITE_SIZE // TILE_SIZE * i
+            self.move_animations.append(particle_tileset.get_sprite_image(PBOMB_SMOKE_FRAME_ID + tiles_offset))
 
     def animate(self):
         current_time = pygame.time.get_ticks()

@@ -4,7 +4,7 @@ import random
 from settings import *
 from support import *
 from tileset import Tileset
-from tileset import Tile
+from tile import Tile
 from player import Player
 from enemies import RedOctorock
 from particles import Heart, Rupee, CBomb, Fairy
@@ -46,9 +46,9 @@ class Level:
         self.equipped_item_b_sprite = None
         self.current_selected_item = 'None'
         self.menu_item_coord_and_frame_id = {
-            'Boomerang': (MENU_BOOMERANG_TOPLEFT, BOOMERANG_FRAME_ID),
-            'Bomb': (MENU_BOMBS_TOPLEFT, BOMB_FRAME_ID),
-            'Candle': (MENU_CANDLE_TOPLEFT, RED_CANDLE_FRAME_ID)
+            BOOMERANG_LABEL: (MENU_BOOMERANG_TOPLEFT, BOOMERANG_FRAME_ID),
+            BOMB_LABEL: (MENU_BOMBS_TOPLEFT, BOMB_FRAME_ID),
+            CANDLE_LABEL: (MENU_CANDLE_TOPLEFT, RED_CANDLE_FRAME_ID)
         }
         self.item_selector = None
         self.item_selected_sprite = None
@@ -58,7 +58,7 @@ class Level:
         self.font_tile_set = Tileset('font')
         self.hud_tile_set = Tileset('hud')
         self.items_tile_set = Tileset('items')
-        # Self.npcs_tile_set = Tileset('npcs')
+        # self.npcs_tile_set = Tileset('npcs')
         self.player_tile_set = Tileset('player')
         self.levels_tile_set = Tileset('levels')
         self.particle_tile_set = Tileset('particles')
@@ -120,18 +120,18 @@ class Level:
                                                  self.menu_item_coord_and_frame_id[self.current_selected_item][1]))
 
         # Passive Items
-        if self.player.has_item('Raft'):
+        if self.player.has_item(RAFT_LABEL):
             Tile(MENU_RAFT_TOPLEFT, [self.menu_sprites], self.items_tile_set.get_sprite_image(RAFT_FRAME_ID))
-        if self.player.has_item('Ladder'):
+        if self.player.has_item(LADDER_LABEL):
             Tile(MENU_LADDER_TOPLEFT, [self.menu_sprites], self.items_tile_set.get_sprite_image(LADDER_FRAME_ID))
 
         # Selectable items
-        if self.player.has_item('Boomerang'):
+        if self.player.has_item(BOOMERANG_LABEL):
             # Didn't implement red/blue boomerang system
             Tile(MENU_BOOMERANG_TOPLEFT, [self.menu_sprites], self.items_tile_set.get_sprite_image(BOOMERANG_FRAME_ID))
-        if self.player.has_item('Bomb'):
+        if self.player.has_item(BOMB_LABEL):
             Tile(MENU_BOMBS_TOPLEFT, [self.menu_sprites], self.items_tile_set.get_sprite_image(BOMB_FRAME_ID))
-        if self.player.has_item('Candle'):
+        if self.player.has_item(CANDLE_LABEL):
             # Didn't implement red/blue candle system
             Tile(MENU_CANDLE_TOPLEFT, [self.menu_sprites], self.items_tile_set.get_sprite_image(RED_CANDLE_FRAME_ID))
 
@@ -529,6 +529,40 @@ class Level:
             if keys[pygame.K_SPACE]:
                 self.death_played = True
 
+    def is_menu_key_pressed_out_of_menu(self, keys):
+        if keys[pygame.K_ESCAPE] and not self.in_menu:
+            return True
+        return False
+
+    def is_menu_key_pressed_in_menu(self, keys):
+        if keys[pygame.K_ESCAPE] and self.in_menu:
+            return True
+        return False
+
+    def is_right_key_pressed_in_menu_with_item(self, keys):
+        if (keys[pygame.K_RIGHT] or keys[pygame.K_d]) and self.in_menu and self.current_selected_item != 'None':
+            return True
+        return False
+
+    def is_left_key_pressed_in_menu_with_item(self, keys):
+        if (keys[pygame.K_LEFT] or keys[pygame.K_q]) and self.in_menu and self.current_selected_item != 'None':
+            return True
+        return False
+
+    def get_selector_position_for_next_item(self, is_reversed=False):
+        if is_reversed:
+            item_list = list(reversed(list(self.menu_item_coord_and_frame_id.keys())))
+        else:
+            item_list = list(list(self.menu_item_coord_and_frame_id.keys()))
+
+        current_item_index = item_list.index(self.current_selected_item) + 1
+        for i in range(len(item_list) - current_item_index):
+            if self.player.has_item(item_list[current_item_index + i]):
+                self.current_selected_item = (item_list[current_item_index + i])
+                break
+
+        return self.menu_item_coord_and_frame_id[self.current_selected_item][0]
+
     def input(self):
         # Known issue : When key press is short, it is sometimes not registered and the menu doesn't open/close
         # How to fix that ?
@@ -538,32 +572,22 @@ class Level:
             self.key_pressed_start_timer = current_time
 
             # Toggle pause menu on/off
-            if keys[pygame.K_ESCAPE] and not self.in_menu:
+            if self.is_menu_key_pressed_out_of_menu(keys):
                 self.in_menu = True
                 self.current_selected_item = self.player.itemB
                 self.draw_selector()
-            elif keys[pygame.K_ESCAPE] and self.in_menu:
+            elif self.is_menu_key_pressed_in_menu(keys):
                 self.in_menu = False
                 self.player.change_item_b(self.current_selected_item)
                 for sprite in self.menu_sprites:
                     sprite.kill()
-            elif (keys[pygame.K_RIGHT] or keys[pygame.K_d]) and self.in_menu and self.current_selected_item != 'None':
-                item_list = list(self.menu_item_coord_and_frame_id.keys())
-                current_item_index = item_list.index(self.current_selected_item)
-                for i in range(len(item_list) - current_item_index - 1):
-                    if self.player.has_item(item_list[current_item_index + i + 1]):
-                        self.current_selected_item = (item_list[current_item_index + i + 1])
-                        break
-                self.item_selector.move(self.menu_item_coord_and_frame_id[self.current_selected_item][0])
-
-            elif (keys[pygame.K_LEFT] or keys[pygame.K_q]) and self.in_menu and self.current_selected_item != 'None':
-                item_list = list(reversed(list(self.menu_item_coord_and_frame_id.keys())))
-                current_item_index = item_list.index(self.current_selected_item)
-                for i in range(len(item_list) - current_item_index - 1):
-                    if self.player.has_item(item_list[current_item_index + i + 1]):
-                        self.current_selected_item = (item_list[current_item_index + i + 1])
-                        break
-                self.item_selector.move(self.menu_item_coord_and_frame_id[self.current_selected_item][0])
+            # Move item selector in menu
+            elif self.is_right_key_pressed_in_menu_with_item(keys):
+                item_pos = self.get_selector_position_for_next_item()
+                self.item_selector.move(item_pos)
+            elif self.is_left_key_pressed_in_menu_with_item(keys):
+                item_pos = self.get_selector_position_for_next_item(True)
+                self.item_selector.move(item_pos)
 
     def drop_loot(self, pos):
         # Loot system follows (loosely) the system used in the NES game

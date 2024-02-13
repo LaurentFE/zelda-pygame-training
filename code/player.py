@@ -123,56 +123,97 @@ class Player(Entity):
 
     def load_animation_frames(self, player_tile_set):
         for i in range(PLAYER_WALKING_FRAMES):
+            tiles_offset = SPRITE_SIZE // TILE_SIZE * i
             self.walking_animations['up'].append(
-                player_tile_set.get_sprite_image(PLAYER_WALKING_UP_FRAME_ID + (2 * i)))
+                player_tile_set.get_sprite_image(PLAYER_WALKING_UP_FRAME_ID + tiles_offset))
             self.walking_animations['right'].append(
-                player_tile_set.get_sprite_image(PLAYER_WALKING_RIGHT_FRAME_ID + (2 * i)))
+                player_tile_set.get_sprite_image(PLAYER_WALKING_RIGHT_FRAME_ID + tiles_offset))
             self.walking_animations['down'].append(
-                player_tile_set.get_sprite_image(PLAYER_WALKING_DOWN_FRAME_ID + (2 * i)))
+                player_tile_set.get_sprite_image(PLAYER_WALKING_DOWN_FRAME_ID + tiles_offset))
             self.walking_animations['left'].append(
                 pygame.transform.flip(
-                    player_tile_set.get_sprite_image(PLAYER_WALKING_RIGHT_FRAME_ID + (2 * i)),
+                    player_tile_set.get_sprite_image(PLAYER_WALKING_RIGHT_FRAME_ID + tiles_offset),
                     True,
                     False))
             self.gray_animation['down'].append(
-                player_tile_set.get_sprite_image(PLAYER_GRAY_WALKING_DOWN_FRAME_ID + (2 * i)))
+                player_tile_set.get_sprite_image(PLAYER_GRAY_WALKING_DOWN_FRAME_ID + tiles_offset))
 
         for i in range(PLAYER_ACTION_FRAMES):
+            tiles_offset = SPRITE_SIZE // TILE_SIZE * i
             self.action_animations['up'].append(
-                player_tile_set.get_sprite_image(PLAYER_ACTION_UP_FRAME_ID + (2 * i)))
+                player_tile_set.get_sprite_image(PLAYER_ACTION_UP_FRAME_ID + tiles_offset))
             self.action_animations['right'].append(
-                player_tile_set.get_sprite_image(PLAYER_ACTION_RIGHT_FRAME_ID + (2 * i)))
+                player_tile_set.get_sprite_image(PLAYER_ACTION_RIGHT_FRAME_ID + tiles_offset))
             self.action_animations['down'].append(
-                player_tile_set.get_sprite_image(PLAYER_ACTION_DOWN_FRAME_ID + (2 * i)))
+                player_tile_set.get_sprite_image(PLAYER_ACTION_DOWN_FRAME_ID + tiles_offset))
             self.action_animations['left'].append(
                 pygame.transform.flip(
-                    player_tile_set.get_sprite_image(PLAYER_ACTION_RIGHT_FRAME_ID + (2 * i)),
+                    player_tile_set.get_sprite_image(PLAYER_ACTION_RIGHT_FRAME_ID + tiles_offset),
                     True,
                     False))
 
         for i in range(PLAYER_PICKUP_MINOR_FRAMES):
+            tiles_offset = SPRITE_SIZE // TILE_SIZE * i
             self.pickup_minor_animation.append(
-                player_tile_set.get_sprite_image(PLAYER_PICKUP_MINOR_FRAME_ID + (2 * i)))
+                player_tile_set.get_sprite_image(PLAYER_PICKUP_MINOR_FRAME_ID + tiles_offset))
 
         for i in range(PLAYER_PICKUP_MAJOR_FRAMES):
+            tiles_offset = SPRITE_SIZE // TILE_SIZE * i
             self.pickup_major_animation.append(
-                player_tile_set.get_sprite_image(PLAYER_PICKUP_MAJOR_FRAME_ID + (2 * i)))
+                player_tile_set.get_sprite_image(PLAYER_PICKUP_MAJOR_FRAME_ID + tiles_offset))
 
         for i in range(PLAYER_HURT_FRAMES):
+            tiles_offset = SPRITE_SIZE // TILE_SIZE * i
             self.hurt_animations['up'].append(
-                player_tile_set.get_sprite_image(PLAYER_HURT_UP_FRAME_ID + (2 * i)))
+                player_tile_set.get_sprite_image(PLAYER_HURT_UP_FRAME_ID + tiles_offset))
             self.hurt_animations['right'].append(
-                player_tile_set.get_sprite_image(PLAYER_HURT_RIGHT_FRAME_ID + (2 * i)))
+                player_tile_set.get_sprite_image(PLAYER_HURT_RIGHT_FRAME_ID + tiles_offset))
             self.hurt_animations['down'].append(
-                player_tile_set.get_sprite_image(PLAYER_HURT_DOWN_FRAME_ID + (2 * i)))
+                player_tile_set.get_sprite_image(PLAYER_HURT_DOWN_FRAME_ID + tiles_offset))
             self.hurt_animations['left'].append(
                 pygame.transform.flip(
-                    player_tile_set.get_sprite_image(PLAYER_HURT_RIGHT_FRAME_ID + (2 * i)),
+                    player_tile_set.get_sprite_image(PLAYER_HURT_RIGHT_FRAME_ID + tiles_offset),
                     True,
                     False))
 
         for i in range(PLAYER_DEATH_FRAMES):
-            self.despawn_animation.append(player_tile_set.get_sprite_image(PLAYER_DEATH_FRAME_ID + (2 * i)))
+            tiles_offset = SPRITE_SIZE // TILE_SIZE * i
+            self.despawn_animation.append(player_tile_set.get_sprite_image(PLAYER_DEATH_FRAME_ID + tiles_offset))
+
+    def is_up_key_pressed_and_player_is_walking_or_idle(self, keys):
+        if (keys[pygame.K_UP] or keys[pygame.K_z]) and (self.state == 'walking' or self.state == 'idle'):
+            return True
+        return False
+
+    def is_down_key_pressed_and_player_is_walking_or_idle(self, keys):
+        if (keys[pygame.K_DOWN] or keys[pygame.K_s]) and (self.state == 'walking' or self.state == 'idle'):
+            return True
+        return False
+
+    def is_left_key_pressed_and_player_is_walking_or_idle(self, keys):
+        if (keys[pygame.K_LEFT] or keys[pygame.K_q]) and (self.state == 'walking' or self.state == 'idle'):
+            return True,
+        return False
+
+    def is_right_key_pressed_and_player_is_walking_or_idle(self, keys):
+        if (keys[pygame.K_RIGHT] or keys[pygame.K_d]) and (self.state == 'walking' or self.state == 'idle'):
+            return True
+        return False
+
+    def is_player_beginning_to_walk(self, moving_key_pressed):
+        if moving_key_pressed and self.state != 'walking':
+            return True
+        return False
+
+    def is_action_a_pressed_and_player_not_already_in_action(self, keys):
+        if keys[pygame.K_SPACE] and 'action' not in self.state:
+            return True
+        return False
+
+    def is_action_b_pressed_and_player_not_already_in_action(self, keys):
+        if keys[pygame.K_LSHIFT] and 'action' not in self.state:
+            return True
+        return False
 
     # input() detects which key is pressed, and modifies player direction_label & direction_vector,
     # and/or player_state, and starts cooldown on actions if used.
@@ -180,36 +221,36 @@ class Player(Entity):
         keys = pygame.key.get_pressed()
         moving_key_pressed = False
 
-        if (keys[pygame.K_UP] or keys[pygame.K_z]) and (self.state == 'walking' or self.state == 'idle'):
+        if self.is_up_key_pressed_and_player_is_walking_or_idle(keys):
             self.direction_vector.y = -1
             self.direction_label = 'up'
             moving_key_pressed = True
-        elif (keys[pygame.K_DOWN] or keys[pygame.K_s]) and (self.state == 'walking' or self.state == 'idle'):
+        elif self.is_down_key_pressed_and_player_is_walking_or_idle(keys):
             self.direction_vector.y = 1
             self.direction_label = 'down'
             moving_key_pressed = True
         else:
             self.direction_vector.y = 0
 
-        if (keys[pygame.K_LEFT] or keys[pygame.K_q]) and (self.state == 'walking' or self.state == 'idle'):
+        if self.is_left_key_pressed_and_player_is_walking_or_idle(keys):
             self.direction_vector.x = -1
             self.direction_label = 'left'
             moving_key_pressed = True
-        elif (keys[pygame.K_RIGHT] or keys[pygame.K_d]) and (self.state == 'walking' or self.state == 'idle'):
+        elif self.is_right_key_pressed_and_player_is_walking_or_idle(keys):
             self.direction_vector.x = 1
             self.direction_label = 'right'
             moving_key_pressed = True
         else:
             self.direction_vector.x = 0
 
-        if moving_key_pressed and self.state != 'walking':
+        if self.is_player_beginning_to_walk(moving_key_pressed):
             self.state = 'walking'
             self.walking_animation_starting_time = pygame.time.get_ticks()
             self.idle_time = pygame.time.get_ticks()
 
         # ActionA input has prio over Move input
         # Can't move during sword use
-        if keys[pygame.K_SPACE] and 'action' not in self.state:
+        if self.is_action_a_pressed_and_player_not_already_in_action(keys):
             self.state = 'actionA'
             self.action_starting_time = pygame.time.get_ticks()
             self.direction_vector.x = 0
@@ -219,43 +260,22 @@ class Player(Entity):
                                                  self.particle_tileset)
 
         # Can't move during item use
-        if keys[pygame.K_LSHIFT] and 'action' not in self.state:
+        if self.is_action_b_pressed_and_player_not_already_in_action(keys):
             self.state = 'actionB'
             self.action_starting_time = pygame.time.get_ticks()
             self.direction_vector.x = 0
             self.direction_vector.y = 0
-            match self.itemB:
-                case 'Bomb':
-                    if self.bombs > 0:
-                        # Bombs are dropped and forgotten, won't get deleted upon timer but when they die by themselves
-                        Bomb(self.rect.topleft, self.direction_vector, self.direction_label,
-                             [self.visible_sprites, self.particle_sprites],
-                             self.particle_tileset)
-                        self.bombs -= 1
-                    else:
-                        self.state = 'idle'
-                case 'None':
+            if self.itemB == BOMB_LABEL:
+                if self.bombs > 0:
+                    # Bombs are dropped and forgotten, won't get deleted upon timer but when they die by themselves
+                    Bomb(self.rect.topleft, self.direction_vector, self.direction_label,
+                         [self.visible_sprites, self.particle_sprites],
+                         self.particle_tileset)
+                    self.bombs -= 1
+                else:
                     self.state = 'idle'
-
-        # REMOVE ALL THE FOLLOWING KEY DETECTIONS AFTER TESTING
-        # THESE KEYS ARE FOR TESTING SPECIFIC ANIMATIONS
-        if keys[pygame.K_a] and 'action' not in self.state:
-            self.state = 'pickup_minor'
-            # Don't forget, there is also a timer on the action to stop movement !
-            self.pickup_minor_animation_starting_time = pygame.time.get_ticks()
-            self.pickup_minor_starting_time = pygame.time.get_ticks()
-            self.direction_vector.x = 0
-            self.direction_vector.y = 0
-        if keys[pygame.K_r] and 'action' not in self.state:
-            self.state = 'pickup_major'
-            # Don't forget, there is also a timer on the action to stop movement !
-            self.pickup_major_animation_starting_time = pygame.time.get_ticks()
-            self.pickup_major_starting_time = pygame.time.get_ticks()
-            self.direction_vector.x = 0
-            self.direction_vector.y = 0
-        if keys[pygame.K_e] and 'action' not in self.state:
-            self.state = 'hurt_h'
-            self.hurt_animation_starting_time = pygame.time.get_ticks()
+            elif self.itemB == 'None':
+                self.state = 'idle'
 
     def cooldowns(self):
         current_time = pygame.time.get_ticks()
@@ -468,25 +488,24 @@ class Player(Entity):
             if not self.has_bombs:
                 self.has_bombs = True
                 if self.itemB == 'None':
-                    self.itemB = 'Bomb'
+                    self.itemB = BOMB_LABEL
             self.bombs += amount
             if self.bombs > PLAYER_BOMBS_MAX:
                 self.bombs = PLAYER_BOMBS_MAX
 
     def has_item(self, label):
-        match label:
-            case 'Boomerang':
-                return self.has_boomerang
-            case 'Bomb':
-                return self.has_bombs
-            case 'Candle':
-                return self.has_candle
-            case 'Ladder':
-                return self.has_ladder
-            case 'Raft':
-                return self.has_raft
-            case _:
-                return False
+        if label == BOOMERANG_LABEL:
+            return self.has_boomerang
+        elif label == BOMB_LABEL:
+            return self.has_bombs
+        elif label == CANDLE_LABEL:
+            return self.has_candle
+        elif label == LADDER_LABEL:
+            return self.has_ladder
+        elif label == RAFT_LABEL:
+            return self.has_raft
+        else:
+            return False
 
     def change_item_b(self, label):
         if self.has_item(label):

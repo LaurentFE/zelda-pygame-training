@@ -19,7 +19,8 @@ class Selector(pygame.sprite.Sprite):
 
     def load_animation_frames(self, hud_tileset):
         for i in range(MENU_ITEM_SELECTOR_FRAMES):
-            self.animation_frames.append(hud_tileset.get_sprite_image(MENU_ITEM_SELECTOR_FRAME_ID + (2 * i)))
+            tiles_offset = SPRITE_SIZE//TILE_SIZE * i
+            self.animation_frames.append(hud_tileset.get_sprite_image(MENU_ITEM_SELECTOR_FRAME_ID + tiles_offset))
 
     def animate(self):
         current_time = pygame.time.get_ticks()
