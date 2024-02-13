@@ -2,7 +2,7 @@ import pygame
 from settings import *
 from debug import debug
 from entities import Entity
-from particles import WoodenSword
+from particles import WoodenSword, Bomb
 
 
 # NOTE : Behaviour difference between original NES version, and mine :
@@ -25,14 +25,18 @@ from particles import WoodenSword
 #         'cast' every item, sword included, and I don't want to change directions in middle of candle for instance,
 #         or of flute.
 
+# Will need someday to SINGLETON-ify this
+
 class Player(Entity):
     def __init__(self, pos, groups, obstacle_sprites, enemy_sprites, visible_sprites, particle_sprites,
-                 player_tile_set, particle_tileset):
+                 player_tile_set, particle_tileset, item_tileset):
         super().__init__(groups, visible_sprites, obstacle_sprites, particle_sprites, particle_tileset)
 
         self.enemy_sprites = enemy_sprites
         self.visible_sprites = visible_sprites
         self.particle_sprites = particle_sprites
+
+        self.item_tileset = item_tileset
 
         self.action_animations = {
             'up': [],
@@ -93,7 +97,8 @@ class Player(Entity):
         self.pickup_major_starting_time = 0
         self.hurt_starting_time = 0
 
-        self.action_particle = None
+        self.action_a_particle = None
+        self.action_b_particle = None
 
         # Player stats and items
         # 1 Heart = 256 health
@@ -109,9 +114,12 @@ class Player(Entity):
         # Items flags
         self.has_boomerang = True
         self.has_candle = True
+        self.has_bombs = False
         self.has_ladder = True
         self.has_raft = True
         self.has_sword_wood = True
+        self.itemA = "WoodenSword"
+        self.itemB = "None"
 
     def load_animation_frames(self, player_tile_set):
         for i in range(PLAYER_WALKING_FRAMES):
@@ -199,54 +207,66 @@ class Player(Entity):
             self.walking_animation_starting_time = pygame.time.get_ticks()
             self.idle_time = pygame.time.get_ticks()
 
-        # Attack input has prio over Move input
-        # Can't move during attack
-        if keys[pygame.K_SPACE] and self.state != 'attacking' and self.state != 'casting':
-            self.state = 'attacking'
+        # ActionA input has prio over Move input
+        # Can't move during sword use
+        if keys[pygame.K_SPACE] and 'action' not in self.state:
+            self.state = 'actionA'
             self.action_starting_time = pygame.time.get_ticks()
             self.direction_vector.x = 0
             self.direction_vector.y = 0
-            self.action_particle = WoodenSword(self.rect.topleft, self.direction_vector, self.direction_label,
-                                               [self.visible_sprites, self.particle_sprites],
-                                               self.particle_tileset)
+            self.action_a_particle = WoodenSword(self.rect.topleft, self.direction_vector, self.direction_label,
+                                                 [self.visible_sprites, self.particle_sprites],
+                                                 self.particle_tileset)
 
-        # Cast input has prio over Attack input
-        # Can't move during cast
-        if keys[pygame.K_LSHIFT] and self.state != 'casting' and self.state != 'attacking':
-            self.state = 'casting'
+        # Can't move during item use
+        if keys[pygame.K_LSHIFT] and 'action' not in self.state:
+            self.state = 'actionB'
             self.action_starting_time = pygame.time.get_ticks()
             self.direction_vector.x = 0
             self.direction_vector.y = 0
+            match self.itemB:
+                case 'Bomb':
+                    if self.bombs > 0:
+                        # Bombs are dropped and forgotten, won't get deleted upon timer but when they die by themselves
+                        Bomb(self.rect.topleft, self.direction_vector, self.direction_label,
+                             [self.visible_sprites, self.particle_sprites],
+                             self.particle_tileset)
+                        self.bombs -= 1
+                    else:
+                        self.state = 'idle'
+                case 'None':
+                    self.state = 'idle'
 
         # REMOVE ALL THE FOLLOWING KEY DETECTIONS AFTER TESTING
         # THESE KEYS ARE FOR TESTING SPECIFIC ANIMATIONS
-        if keys[pygame.K_a] and self.state != 'casting' and self.state != 'attacking':
+        if keys[pygame.K_a] and 'action' not in self.state:
             self.state = 'pickup_minor'
             # Don't forget, there is also a timer on the action to stop movement !
             self.pickup_minor_animation_starting_time = pygame.time.get_ticks()
             self.pickup_minor_starting_time = pygame.time.get_ticks()
             self.direction_vector.x = 0
             self.direction_vector.y = 0
-        if keys[pygame.K_z] and self.state != 'casting' and self.state != 'attacking':
+        if keys[pygame.K_r] and 'action' not in self.state:
             self.state = 'pickup_major'
             # Don't forget, there is also a timer on the action to stop movement !
             self.pickup_major_animation_starting_time = pygame.time.get_ticks()
             self.pickup_major_starting_time = pygame.time.get_ticks()
             self.direction_vector.x = 0
             self.direction_vector.y = 0
-        if keys[pygame.K_e] and self.state != 'casting' and self.state != 'attacking':
+        if keys[pygame.K_e] and 'action' not in self.state:
             self.state = 'hurt_h'
             self.hurt_animation_starting_time = pygame.time.get_ticks()
 
     def cooldowns(self):
         current_time = pygame.time.get_ticks()
-        if self.state == 'attacking' or self.state == 'casting':
+        if 'action' in self.state:
             if current_time - self.action_starting_time >= self.action_cooldown:
-                # Casting doesn't have a particle created yet because no items are implemented
-                # Attacking is fixed on Wooden Sword. When items are implemented, should be actionA and actionB
-                if self.state == 'attacking':
-                    self.action_particle.kill()
-                    self.action_particle = None
+                if self.state == 'actionA':
+                    self.action_a_particle.kill()
+                    self.action_a_particle = None
+                elif self.state == 'actionB' and self.action_b_particle is not None:
+                    self.action_b_particle.kill()
+                    self.action_b_particle = None
                 self.state = 'idle'
         elif self.state == 'walking':
             if current_time - self.idle_time >= self.walking_animation_cooldown:
@@ -258,9 +278,9 @@ class Player(Entity):
             if current_time - self.pickup_major_starting_time >= self.pickup_major_cooldown:
                 self.state = 'idle'
         elif 'hurt' in self.state:
-            if self.action_particle is not None:
-                self.action_particle.kill()
-                self.action_particle = None
+            if self.action_a_particle is not None:
+                self.action_a_particle.kill()
+                self.action_a_particle = None
             if current_time - self.hurt_starting_time >= self.hurt_cooldown:
                 self.state = 'idle'
 
@@ -322,7 +342,7 @@ class Player(Entity):
                 if 'hurt' not in self.state and not self.invulnerable and particle.affects_player:
                     # Shield test
                     if (not particle.bypasses_shield
-                            and 'attacking' not in self.state
+                            and 'action' not in self.state
                             and ((self.direction_label == 'up' and particle.direction_vector.y > 0)
                                  or (self.direction_label == 'down' and particle.direction_vector.y < 0)
                                  or (self.direction_label == 'left' and particle.direction_vector.x > 0)
@@ -382,7 +402,7 @@ class Player(Entity):
                     self.walking_animation_frame_count += 1
                 else:
                     self.walking_animation_frame_count = 0
-        elif self.state == 'attacking' or self.state == 'casting':
+        elif 'action' in self.state:
             # Going through the motions of multiple frames, with a timer per frame
             self.image = self.action_animations[self.direction_label][self.action_animation_frame_count]
             if current_time - self.action_animation_starting_time >= self.action_animation_cooldown:
@@ -445,6 +465,10 @@ class Player(Entity):
 
     def add_bombs(self, amount):
         if amount >= 0:
+            if not self.has_bombs:
+                self.has_bombs = True
+                if self.itemB == 'None':
+                    self.itemB = 'Bomb'
             self.bombs += amount
             if self.bombs > PLAYER_BOMBS_MAX:
                 self.bombs = PLAYER_BOMBS_MAX

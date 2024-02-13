@@ -10,6 +10,7 @@ from enemies import RedOctorock
 from particles import Heart, Rupee, CBomb, Fairy
 
 
+# Will need someday to SINGLETON-ify this
 class Level:
     def __init__(self):
         # set up variables
@@ -118,7 +119,7 @@ class Level:
         if self.player.has_boomerang:
             # Didn't implement red/blue boomerang system
             Tile((256, 96), [self.menu_sprites], self.items_tile_set.get_sprite_image(BOOMERANG_FRAME_ID))
-        if self.player.bombs:
+        if self.player.has_bombs:
             Tile((304, 96), [self.menu_sprites], self.items_tile_set.get_sprite_image(BOMB_FRAME_ID))
         # Bow & red/blue Arrow - Not Implemented
         # if self.player.has_bow:
@@ -338,7 +339,15 @@ class Level:
         item_b_pos = (self.menu_rect.x + 248,
                       self.menu_rect.y + 48)
 
-        item_frame_id = None
+        match self.player.itemB:
+            case 'Bomb':
+                item_frame_id = BOMB_FRAME_ID
+            case 'None':
+                item_frame_id = None
+            case _:
+                # Error case
+                print(f'Item {self.player.itemB} selected as action B is not implemented yet')
+                item_frame_id = None
         # Get selected item B id
 
         if self.equipped_item_b_sprite:
@@ -399,13 +408,14 @@ class Level:
                 sprite_id = int(col)
                 if sprite_id != -1:
                     self.player = Player((x, y),
-                                         self.visible_sprites,
+                                         [self.visible_sprites],
                                          self.obstacle_sprites,
                                          self.enemy_sprites,
                                          self.visible_sprites,
                                          self.particle_sprites,
                                          self.player_tile_set,
-                                         self.particle_tile_set)
+                                         self.particle_tile_set,
+                                         self.items_tile_set)
 
     def create_map(self):
         # Lacks a proper level management, with screen changes for the over-world, and access to underworld sections

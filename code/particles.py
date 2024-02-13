@@ -390,7 +390,7 @@ class CBomb(Particle):
         # This doesn't animate
         pass
 
-    def collision(self):
+    def collision(self, direction):
         # This doesn't move, so it won't collide with things.
         # But things will collide with it, and they will handle the collision
         pass
@@ -400,7 +400,7 @@ class CBomb(Particle):
         pass
 
     def effect(self):
-        self.level.add_bombs(3)
+        self.level.add_bombs(4)
 
     def update(self):
         pygame.display.get_surface().blit(self.image, self.rect.topleft)
@@ -499,3 +499,129 @@ class Fairy(Particle):
         self.animate()
         self.move()
         pygame.display.get_surface().blit(self.image, self.rect.topleft)
+
+
+class Bomb(Particle):
+    def __init__(self, owner_pos, owner_direction_vector, owner_direction_label, groups, particle_tileset):
+        super().__init__(owner_pos, owner_direction_vector, groups)
+        # Will later give a group of destructible sprites to check if the bomb is close enough to break it
+        self.owner_pos = owner_pos
+        self.groups = groups
+
+        self.move_animation_frame_count = 0
+        self.move_animations = []
+
+        self.particle_tileset = particle_tileset
+        self.load_animation_frames(particle_tileset)
+
+        self.image = self.move_animations[0]
+        self.rect = self.image.get_rect(topleft=(self.pos_x, self.pos_y))
+        self.hitbox = self.rect.inflate(32, 32)
+        self.hitbox.center = self.rect.center
+
+        self.collision_damage = 0
+
+        self.is_active = True
+
+        self.ignited_starting_time = pygame.time.get_ticks()
+        self.explosion_cooldown = 1000
+
+        match owner_direction_label:
+            case 'up':
+                self.pos_x = owner_pos[0]
+                self.pos_y = owner_pos[1] - 32
+            case 'right':
+                self.pos_x = owner_pos[0] + 16
+                self.pos_y = owner_pos[1]
+            case 'down':
+                self.pos_x = owner_pos[0]
+                self.pos_y = owner_pos[1] + 32
+            case 'left':
+                self.pos_x = owner_pos[0] - 16
+                self.pos_y = owner_pos[1]
+
+    def load_animation_frames(self, particle_tileset):
+        self.move_animations.append(particle_tileset.get_sprite_image(PBOMB_FRAME_ID))
+
+    def animate(self):
+        pass
+
+    def collision(self, direction):
+        pass
+
+    def move(self):
+        pass
+
+    def effect(self):
+        # Generate smoke effect
+        BombSmoke((self.pos_x - 16, self.pos_y), self.groups, self.particle_tileset)
+        BombSmoke((self.pos_x + 16, self.pos_y + 16), self.groups, self.particle_tileset)
+        BombSmoke((self.pos_x, self.pos_y + 24), self.groups, self.particle_tileset)
+        BombSmoke((self.pos_x + 8, self.pos_y - 8), self.groups, self.particle_tileset)
+        BombSmoke((self.pos_x - 16, self.pos_y), self.groups, self.particle_tileset)
+        # Destroy fragile walls nearby
+        pass
+
+    def update(self):
+        current_time = pygame.time.get_ticks()
+        if current_time - self.ignited_starting_time >= self.explosion_cooldown:
+            self.effect()
+            self.kill()
+        else:
+            pygame.display.get_surface().blit(self.image, (self.pos_x, self.pos_y))
+
+
+class BombSmoke(Particle):
+    def __init__(self, effect_pos, groups, particle_tileset):
+        owner_direction_vector = pygame.math.Vector2()
+        super().__init__(effect_pos, owner_direction_vector, groups)
+
+        self.move_animation_frame_count = 0
+        self.move_animations = []
+
+        self.load_animation_frames(particle_tileset)
+
+        self.image = self.move_animations[0]
+        self.rect = self.image.get_rect(topleft=(self.pos_x, self.pos_y))
+        self.hitbox = self.rect.inflate(-32, -32)
+
+        self.collision_damage = 0
+
+        self.is_active = True
+
+        self.smoke_starting_time = self.move_animation_timer_start = pygame.time.get_ticks()
+        self.move_animation_cooldown = 150
+        self.smoke_cooldown = PBOMB_SMOKE_FRAMES * self.move_animation_cooldown
+
+    def load_animation_frames(self, particle_tileset):
+        for i in range(PBOMB_SMOKE_FRAMES):
+            self.move_animations.append(particle_tileset.get_sprite_image(PBOMB_SMOKE_FRAME_ID + (2 * i)))
+
+    def animate(self):
+        current_time = pygame.time.get_ticks()
+
+        # Going through the motions of multiple frames, with a timer per frame
+        self.image = self.move_animations[self.move_animation_frame_count]
+        if current_time - self.move_animation_timer_start >= self.move_animation_cooldown:
+            self.move_animation_timer_start = pygame.time.get_ticks()
+            if self.move_animation_frame_count < PBOMB_SMOKE_FRAMES - 1:
+                self.move_animation_frame_count += 1
+            else:
+                self.move_animation_frame_count = 0
+
+    def collision(self, direction):
+        pass
+
+    def move(self):
+        pass
+
+    def effect(self):
+        pass
+
+    def update(self):
+        current_time = pygame.time.get_ticks()
+        if current_time - self.smoke_starting_time >= self.smoke_cooldown:
+            self.kill()
+        else:
+            self.animate()
+            pygame.display.get_surface().blit(self.image, (self.pos_x, self.pos_y))
