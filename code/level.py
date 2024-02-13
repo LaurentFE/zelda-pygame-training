@@ -58,7 +58,8 @@ class Level:
         self.font_tile_set = Tileset('font')
         self.hud_tile_set = Tileset('hud')
         self.items_tile_set = Tileset('items')
-        # Self.npcs_tile_set = Tileset('npcs')
+        # self.npcs_tile_set = Tileset('npcs')
+
         self.player_tile_set = Tileset('player')
         self.levels_tile_set = Tileset('levels')
         self.particle_tile_set = Tileset('particles')
