@@ -17,12 +17,12 @@ class Enemy(Entity):
         self.state = 'walking'
         self.speed = 1
 
-        self.load_animation_frames(enemies_tile_set)
-
-        # Set first image of the monster appearing when created, and generating corresponding hitbox
-        self.image = self.spawn_animation[0]
-        self.rect = self.image.get_rect(topleft=pos)
-        self.hitbox = self.rect
+        # Initialisation of values common to all Enemy used to load the different animations
+        self.hurt_frames = MONSTER_HURT_FRAMES
+        self.spawn_frames = MONSTER_SPAWN_FRAMES
+        self.spawn_frame_id = MONSTER_SPAWN_FRAME_ID
+        self.despawn_frames = MONSTER_DEATH_FRAMES
+        self.despawn_frame_id = MONSTER_DEATH_FRAME_ID
 
         # Monster actions cooldowns
         # Monsters always move, except if shooting, or special mechanic such as flying, jumping, diving(water/land)
@@ -56,7 +56,7 @@ class Enemy(Entity):
 
     @abc.abstractmethod
     def load_animation_frames(self, enemies_tile_set):
-        pass
+        super().load_animation_frames(enemies_tile_set)
 
     @abc.abstractmethod
     def cooldowns(self):
@@ -225,6 +225,26 @@ class RedOctorock(Enemy):
                  enemies_tileset, particle_tileset):
         super().__init__(pos, groups, visible_sprites, obstacle_sprites, particle_sprites,
                          enemies_tileset, particle_tileset, True)
+
+        self.walking_frames = OCTOROCK_WALKING_FRAMES
+        self.is_up_flipped = True
+        self.is_right_flipped = True
+        self.walking_up_frame_id = OCTOROCK_WALKING_DOWN_FRAME_ID
+        self.walking_down_frame_id = OCTOROCK_WALKING_DOWN_FRAME_ID
+        self.walking_left_frame_id = OCTOROCK_WALKING_LEFT_FRAME_ID
+        self.walking_right_frame_id = OCTOROCK_WALKING_LEFT_FRAME_ID
+        self.hurt_up_frame_id = OCTOROCK_HURT_DOWN_FRAME_ID
+        self.hurt_down_frame_id = OCTOROCK_HURT_DOWN_FRAME_ID
+        self.hurt_left_frame_id = OCTOROCK_HURT_LEFT_FRAME_ID
+        self.hurt_right_frame_id = OCTOROCK_HURT_LEFT_FRAME_ID
+        self.load_animation_frames(enemies_tileset)
+
+        # Set first image of the monster appearing when created, and generating corresponding hitbox
+        self.image = self.spawn_animation[0]
+        self.rect = self.image.get_rect(topleft=pos)
+        self.hitbox = self.rect
+
+        # Red Octorock Stats
         self.health = RED_OCTOROCK_HEALTH
         self.collision_damage = RED_OCTOROCK_DMG
 
@@ -234,43 +254,7 @@ class RedOctorock(Enemy):
         self.action_animation_cooldown = OCTOROCK_ACTION_ANIMATION_COOLDOWN
 
     def load_animation_frames(self, enemies_tile_set):
-        for i in range(OCTOROCK_WALKING_FRAMES):
-            tiles_offset = SPRITE_SIZE // TILE_SIZE * i
-            self.walking_animations['up'].append(
-                pygame.transform.flip(
-                    enemies_tile_set.get_sprite_image(OCTOROCK_WALKING_DOWN_FRAME_ID + tiles_offset),
-                    False,
-                    True))
-            self.walking_animations['right'].append(
-                pygame.transform.flip(
-                    enemies_tile_set.get_sprite_image(OCTOROCK_WALKING_LEFT_FRAME_ID + tiles_offset),
-                    True,
-                    False))
-            self.walking_animations['down'].append(
-                enemies_tile_set.get_sprite_image(OCTOROCK_WALKING_DOWN_FRAME_ID + tiles_offset))
-            self.walking_animations['left'].append(
-                enemies_tile_set.get_sprite_image(OCTOROCK_WALKING_LEFT_FRAME_ID + tiles_offset))
-        for i in range(MONSTER_HURT_FRAMES):
-            tiles_offset = SPRITE_SIZE // TILE_SIZE * i
-            self.hurt_animations['up'].append(
-                pygame.transform.flip(
-                    enemies_tile_set.get_sprite_image(OCTOROCK_HURT_DOWN_FRAME_ID + tiles_offset),
-                    False,
-                    True))
-            self.hurt_animations['right'].append(
-                pygame.transform.flip(
-                    enemies_tile_set.get_sprite_image(OCTOROCK_HURT_LEFT_FRAME_ID + tiles_offset),
-                    True,
-                    False))
-            self.hurt_animations['down'].append(
-                enemies_tile_set.get_sprite_image(OCTOROCK_HURT_DOWN_FRAME_ID + tiles_offset))
-            self.hurt_animations['left'].append(
-                enemies_tile_set.get_sprite_image(OCTOROCK_HURT_LEFT_FRAME_ID + tiles_offset))
-        for i in range(MONSTER_SPAWN_FRAMES):
-            tiles_offset = SPRITE_SIZE // TILE_SIZE * i
-            self.spawn_animation.append(enemies_tile_set.get_sprite_image(MONSTER_SPAWN_FRAME_ID + tiles_offset))
-        for i in range(MONSTER_DEATH_FRAMES):
-            self.despawn_animation.append(enemies_tile_set.get_sprite_image(MONSTER_DEATH_FRAME_ID + tiles_offset))
+        super().load_animation_frames(enemies_tile_set)
 
     def cooldowns(self):
         super().cooldowns()

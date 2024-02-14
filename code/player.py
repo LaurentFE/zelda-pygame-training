@@ -49,6 +49,32 @@ class Player(Entity):
         self.gray_animation = {
             'down': []
         }
+
+        # Initialisation of the values used to load the different animations
+        self.is_right_flipped = True
+        self.walking_frames = PLAYER_WALKING_FRAMES
+        self.walking_up_frame_id = PLAYER_WALKING_UP_FRAME_ID
+        self.walking_down_frame_id = PLAYER_WALKING_DOWN_FRAME_ID
+        self.walking_left_frame_id = PLAYER_WALKING_RIGHT_FRAME_ID
+        self.walking_right_frame_id = PLAYER_WALKING_RIGHT_FRAME_ID
+        self.can_be_gray = True
+        self.walking_down_gray_frame_id = PLAYER_GRAY_WALKING_DOWN_FRAME_ID
+        self.action_frames = PLAYER_ACTION_FRAMES
+        self.action_up_frame_id = PLAYER_ACTION_UP_FRAME_ID
+        self.action_down_frame_id = PLAYER_ACTION_DOWN_FRAME_ID
+        self.action_left_frame_id = PLAYER_ACTION_RIGHT_FRAME_ID
+        self.action_right_frame_id = PLAYER_ACTION_RIGHT_FRAME_ID
+        self.pickup_minor_frames = PLAYER_PICKUP_MINOR_FRAMES
+        self.pickup_minor_frame_id = PLAYER_PICKUP_MINOR_FRAME_ID
+        self.pickup_major_frames = PLAYER_PICKUP_MAJOR_FRAMES
+        self.pickup_major_frame_id = PLAYER_PICKUP_MAJOR_FRAME_ID
+        self.hurt_frames = PLAYER_HURT_FRAMES
+        self.hurt_up_frame_id = PLAYER_HURT_UP_FRAME_ID
+        self.hurt_down_frame_id = PLAYER_HURT_DOWN_FRAME_ID
+        self.hurt_left_frame_id = PLAYER_HURT_RIGHT_FRAME_ID
+        self.hurt_right_frame_id = PLAYER_HURT_RIGHT_FRAME_ID
+        self.despawn_frames = PLAYER_DEATH_FRAMES
+        self.despawn_frame_id = PLAYER_DEATH_FRAME_ID
         self.load_animation_frames(player_tile_set)
 
         self.direction_label = 'down'
@@ -101,13 +127,12 @@ class Player(Entity):
         self.action_b_particle = None
 
         # Player stats and items
-        # 1 Heart = 256 health
         self.current_max_health = PLAYER_INITIAL_HEALTH
         self.health = int(self.current_max_health)
         self.invulnerable = False
-        self.money = 0
-        self.keys = 0
-        self.bombs = PLAYER_BOMB_LOOT_AMOUNT
+        self.money = PLAYER_INITIAL_MONEY
+        self.keys = PLAYER_INITIAL_KEY
+        self.bombs = PLAYER_INITIAL_BOMB
         self.isDead = False
         self.current_speed = self.speed
 
@@ -122,63 +147,7 @@ class Player(Entity):
         self.itemB = "Bomb"
 
     def load_animation_frames(self, player_tile_set):
-        for i in range(PLAYER_WALKING_FRAMES):
-            tiles_offset = SPRITE_SIZE // TILE_SIZE * i
-            self.walking_animations['up'].append(
-                player_tile_set.get_sprite_image(PLAYER_WALKING_UP_FRAME_ID + tiles_offset))
-            self.walking_animations['right'].append(
-                player_tile_set.get_sprite_image(PLAYER_WALKING_RIGHT_FRAME_ID + tiles_offset))
-            self.walking_animations['down'].append(
-                player_tile_set.get_sprite_image(PLAYER_WALKING_DOWN_FRAME_ID + tiles_offset))
-            self.walking_animations['left'].append(
-                pygame.transform.flip(
-                    player_tile_set.get_sprite_image(PLAYER_WALKING_RIGHT_FRAME_ID + tiles_offset),
-                    True,
-                    False))
-            self.gray_animation['down'].append(
-                player_tile_set.get_sprite_image(PLAYER_GRAY_WALKING_DOWN_FRAME_ID + tiles_offset))
-
-        for i in range(PLAYER_ACTION_FRAMES):
-            tiles_offset = SPRITE_SIZE // TILE_SIZE * i
-            self.action_animations['up'].append(
-                player_tile_set.get_sprite_image(PLAYER_ACTION_UP_FRAME_ID + tiles_offset))
-            self.action_animations['right'].append(
-                player_tile_set.get_sprite_image(PLAYER_ACTION_RIGHT_FRAME_ID + tiles_offset))
-            self.action_animations['down'].append(
-                player_tile_set.get_sprite_image(PLAYER_ACTION_DOWN_FRAME_ID + tiles_offset))
-            self.action_animations['left'].append(
-                pygame.transform.flip(
-                    player_tile_set.get_sprite_image(PLAYER_ACTION_RIGHT_FRAME_ID + tiles_offset),
-                    True,
-                    False))
-
-        for i in range(PLAYER_PICKUP_MINOR_FRAMES):
-            tiles_offset = SPRITE_SIZE // TILE_SIZE * i
-            self.pickup_minor_animation.append(
-                player_tile_set.get_sprite_image(PLAYER_PICKUP_MINOR_FRAME_ID + tiles_offset))
-
-        for i in range(PLAYER_PICKUP_MAJOR_FRAMES):
-            tiles_offset = SPRITE_SIZE // TILE_SIZE * i
-            self.pickup_major_animation.append(
-                player_tile_set.get_sprite_image(PLAYER_PICKUP_MAJOR_FRAME_ID + tiles_offset))
-
-        for i in range(PLAYER_HURT_FRAMES):
-            tiles_offset = SPRITE_SIZE // TILE_SIZE * i
-            self.hurt_animations['up'].append(
-                player_tile_set.get_sprite_image(PLAYER_HURT_UP_FRAME_ID + tiles_offset))
-            self.hurt_animations['right'].append(
-                player_tile_set.get_sprite_image(PLAYER_HURT_RIGHT_FRAME_ID + tiles_offset))
-            self.hurt_animations['down'].append(
-                player_tile_set.get_sprite_image(PLAYER_HURT_DOWN_FRAME_ID + tiles_offset))
-            self.hurt_animations['left'].append(
-                pygame.transform.flip(
-                    player_tile_set.get_sprite_image(PLAYER_HURT_RIGHT_FRAME_ID + tiles_offset),
-                    True,
-                    False))
-
-        for i in range(PLAYER_DEATH_FRAMES):
-            tiles_offset = SPRITE_SIZE // TILE_SIZE * i
-            self.despawn_animation.append(player_tile_set.get_sprite_image(PLAYER_DEATH_FRAME_ID + tiles_offset))
+        super().load_animation_frames(player_tile_set)
 
     def can_move(self):
         if self.state == 'walking' or self.state == 'idle':
