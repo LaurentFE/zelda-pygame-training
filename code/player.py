@@ -1,5 +1,5 @@
-import pygame
 from settings import *
+from inputs import *
 from debug import debug
 from entities import Entity
 from particles import WoodenSword, Bomb
@@ -180,38 +180,13 @@ class Player(Entity):
             tiles_offset = SPRITE_SIZE // TILE_SIZE * i
             self.despawn_animation.append(player_tile_set.get_sprite_image(PLAYER_DEATH_FRAME_ID + tiles_offset))
 
-    def is_up_key_pressed_and_player_is_walking_or_idle(self, keys):
-        if (keys[pygame.K_UP] or keys[pygame.K_z]) and (self.state == 'walking' or self.state == 'idle'):
+    def can_move(self):
+        if self.state == 'walking' or self.state == 'idle':
             return True
         return False
 
-    def is_down_key_pressed_and_player_is_walking_or_idle(self, keys):
-        if (keys[pygame.K_DOWN] or keys[pygame.K_s]) and (self.state == 'walking' or self.state == 'idle'):
-            return True
-        return False
-
-    def is_left_key_pressed_and_player_is_walking_or_idle(self, keys):
-        if (keys[pygame.K_LEFT] or keys[pygame.K_q]) and (self.state == 'walking' or self.state == 'idle'):
-            return True,
-        return False
-
-    def is_right_key_pressed_and_player_is_walking_or_idle(self, keys):
-        if (keys[pygame.K_RIGHT] or keys[pygame.K_d]) and (self.state == 'walking' or self.state == 'idle'):
-            return True
-        return False
-
-    def is_player_beginning_to_walk(self, moving_key_pressed):
-        if moving_key_pressed and self.state != 'walking':
-            return True
-        return False
-
-    def is_action_a_pressed_and_player_not_already_in_action(self, keys):
-        if keys[pygame.K_SPACE] and 'action' not in self.state:
-            return True
-        return False
-
-    def is_action_b_pressed_and_player_not_already_in_action(self, keys):
-        if keys[pygame.K_LSHIFT] and 'action' not in self.state:
+    def can_action(self):
+        if 'action' not in self.state:
             return True
         return False
 
@@ -221,36 +196,29 @@ class Player(Entity):
         keys = pygame.key.get_pressed()
         moving_key_pressed = False
 
-        if self.is_up_key_pressed_and_player_is_walking_or_idle(keys):
-            self.direction_vector.y = -1
-            self.direction_label = 'up'
-            moving_key_pressed = True
-        elif self.is_down_key_pressed_and_player_is_walking_or_idle(keys):
-            self.direction_vector.y = 1
-            self.direction_label = 'down'
-            moving_key_pressed = True
-        else:
-            self.direction_vector.y = 0
-
-        if self.is_left_key_pressed_and_player_is_walking_or_idle(keys):
-            self.direction_vector.x = -1
-            self.direction_label = 'left'
-            moving_key_pressed = True
-        elif self.is_right_key_pressed_and_player_is_walking_or_idle(keys):
-            self.direction_vector.x = 1
-            self.direction_label = 'right'
-            moving_key_pressed = True
-        else:
-            self.direction_vector.x = 0
-
-        if self.is_player_beginning_to_walk(moving_key_pressed):
-            self.state = 'walking'
-            self.walking_animation_starting_time = pygame.time.get_ticks()
-            self.idle_time = pygame.time.get_ticks()
+        self.direction_vector.x = 0
+        self.direction_vector.y = 0
+        if is_move_key_pressed(keys) and self.can_move():
+            if is_up_key_pressed(keys):
+                self.direction_vector.y = -1
+                self.direction_label = 'up'
+            elif is_down_key_pressed(keys):
+                self.direction_vector.y = 1
+                self.direction_label = 'down'
+            if is_left_key_pressed(keys):
+                self.direction_vector.x = -1
+                self.direction_label = 'left'
+            elif is_right_key_pressed(keys):
+                self.direction_vector.x = 1
+                self.direction_label = 'right'
+            if self.state != 'walking':
+                self.state = 'walking'
+                self.walking_animation_starting_time = pygame.time.get_ticks()
+                self.idle_time = pygame.time.get_ticks()
 
         # ActionA input has prio over Move input
         # Can't move during sword use
-        if self.is_action_a_pressed_and_player_not_already_in_action(keys):
+        if is_action_a_key_pressed(keys) and self.can_action():
             self.state = 'actionA'
             self.action_starting_time = pygame.time.get_ticks()
             self.direction_vector.x = 0
@@ -260,7 +228,7 @@ class Player(Entity):
                                                  self.particle_tileset)
 
         # Can't move during item use
-        if self.is_action_b_pressed_and_player_not_already_in_action(keys):
+        if is_action_b_key_pressed(keys) and self.can_action():
             self.state = 'actionB'
             self.action_starting_time = pygame.time.get_ticks()
             self.direction_vector.x = 0

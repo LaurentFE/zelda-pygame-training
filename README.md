@@ -1,16 +1,20 @@
 # The Legend of Zelda, a Pygame Training Exercise
 
 ## Controls
+_All controls are configurable in inputs.py_
+
 Move with ```directional arrows``` or ```Z Q S D```
 
 Use item A to attack with ```SPACE```
 
-Use nonexistent item B with ```LEFT SHIFT```
+Use item B with ```LEFT SHIFT```
 
 Open the pause/item menu with ```ESCAPE```
 
-In the pause/item menu, select item B by moving the blinking selector with ```directional arrows``` or ```Z Q S D```
+In the pause/item menu, select item B by moving the blinking selector with ```arrow up / arrow down``` or ```Q D```
 (Not all visible items are implemented, they will have no sprite nor effect when used)
+
+Game can be closed by pressing ```SPACE``` on the GAME OVER screen
 
 ## How to build & run project
 ### Prerequisites

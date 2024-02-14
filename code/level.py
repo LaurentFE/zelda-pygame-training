@@ -1,8 +1,8 @@
 import sys
-import pygame
 import random
 from settings import *
 from support import *
+from inputs import *
 from tileset import Tileset
 from tile import Tile
 from player import Player
@@ -526,26 +526,26 @@ class Level:
         if self.death_motion_index == 11:
             self.display_surface.blit(self.game_over_message, self.game_over_message_pos)
             keys = pygame.key.get_pressed()
-            if keys[pygame.K_SPACE]:
+            if is_action_a_key_pressed(keys):
                 self.death_played = True
 
     def is_menu_key_pressed_out_of_menu(self, keys):
-        if keys[pygame.K_ESCAPE] and not self.in_menu:
+        if is_menu_key_pressed(keys) and not self.in_menu:
             return True
         return False
 
     def is_menu_key_pressed_in_menu(self, keys):
-        if keys[pygame.K_ESCAPE] and self.in_menu:
+        if is_menu_key_pressed(keys) and self.in_menu:
             return True
         return False
 
     def is_right_key_pressed_in_menu_with_item(self, keys):
-        if (keys[pygame.K_RIGHT] or keys[pygame.K_d]) and self.in_menu and self.current_selected_item != 'None':
+        if is_right_key_pressed(keys) and self.in_menu and self.current_selected_item != 'None':
             return True
         return False
 
     def is_left_key_pressed_in_menu_with_item(self, keys):
-        if (keys[pygame.K_LEFT] or keys[pygame.K_q]) and self.in_menu and self.current_selected_item != 'None':
+        if is_left_key_pressed(keys) and self.in_menu and self.current_selected_item != 'None':
             return True
         return False
 
