@@ -1,26 +1,27 @@
 import sys
-import pygame
 import random
 from settings import *
 from support import *
+from inputs import *
 from tileset import Tileset
-from tileset import Tile
+from tile import Tile
 from player import Player
 from enemies import RedOctorock
 from particles import Heart, Rupee, CBomb, Fairy
+from selector import Selector
 
 
 # Will need someday to SINGLETON-ify this
 class Level:
     def __init__(self):
-        # set up variables
+        # Set up variables
         self.player = None
         self.current_level = 'level0'
         self.death_played = False
         self.in_menu = False
         self.kill_count = 0
 
-        # set up display surface
+        # Set up display surface
         self.display_surface = pygame.display.get_surface()
         self.floor_surface = None
         self.floor_rect = None
@@ -28,7 +29,7 @@ class Level:
         self.menu_rect = None
         self.game_over_message = None
 
-        # set up group sprites
+        # Set up group sprites
         self.warp_sprites = pygame.sprite.Group()
         self.obstacle_sprites = pygame.sprite.Group()
         self.visible_sprites = pygame.sprite.Group()
@@ -43,8 +44,16 @@ class Level:
 
         self.equipped_item_a_sprite = None
         self.equipped_item_b_sprite = None
+        self.current_selected_item = 'None'
+        self.menu_item_coord_and_frame_id = {
+            BOOMERANG_LABEL: (MENU_BOOMERANG_TOPLEFT, BOOMERANG_FRAME_ID),
+            BOMB_LABEL: (MENU_BOMBS_TOPLEFT, BOMB_FRAME_ID),
+            CANDLE_LABEL: (MENU_CANDLE_TOPLEFT, RED_CANDLE_FRAME_ID)
+        }
+        self.item_selector = None
+        self.item_selected_sprite = None
 
-        # set up tile sets
+        # Set up tile sets
         self.enemies_tile_set = Tileset('enemies')
         self.font_tile_set = Tileset('font')
         self.hud_tile_set = Tileset('hud')
@@ -55,7 +64,7 @@ class Level:
         self.particle_tile_set = Tileset('particles')
         self.consumables_tile_set = Tileset('consumables')
 
-        # sprite setup
+        # Sprite setup
         self.create_map()
         self.game_over_text = 'game over'
         self.game_over_message = self.draw_message(self.game_over_text, len(self.game_over_text), 1)
@@ -64,7 +73,7 @@ class Level:
                 (SCREEN_HEIGHT // 2) + ((HUD_TILE_HEIGHT * TILE_SIZE) // 2) - (TILE_SIZE // 2)
         )
 
-        # set up spin player timers
+        # Set up spin player timers
         self.key_pressed_start_timer = 0
         self.key_pressed_cooldown = LEVEL_KEY_PRESSED_COOLDOWN
         self.spin_start_timer = 0
@@ -82,68 +91,53 @@ class Level:
         self.death_hurt_cooldown = PLAYER_DEATH_HURT_COOLDOWN
         self.death_hurt_starting_time = 0
 
+    def draw_selector(self):
+        # creates the item selector for the menu screen
+        selector_pos = MENU_BOOMERANG_TOPLEFT
+        if self.current_selected_item != 'None':
+            selector_pos = self.menu_item_coord_and_frame_id[self.current_selected_item][0]
+        self.item_selector = Selector([self.menu_sprites], selector_pos, self.hud_tile_set)
+
     def draw_menu(self):
         # Draw background
         self.floor_surface = pygame.image.load('../graphics/hud/pause_menu.png').convert()
         self.floor_rect = self.floor_surface.get_rect(topleft=(0, 0))
         self.display_surface.blit(self.floor_surface, (0, 0))
 
-        # Draw owned items
+        # Draw owned & selected items
         self.draw_items()
-        # Do I create item selector here, based on player action B ?
-        # Item selector defines item B. It can't go on nonexistent items, jumps to the next available
-        # Selected item should be drawn by selector hovered item (128, 96)
 
         self.draw_triforce()
 
     def draw_items(self):
+        # Draw (if any) the currently selected item in the frame left of the items owned
+        if self.current_selected_item != 'None':
+            if self.item_selected_sprite is not None:
+                self.item_selected_sprite.kill()
+            self.item_selected_sprite = Tile(MENU_SELECTED_ITEM_TOPLEFT,
+                                             [self.menu_sprites],
+                                             self.items_tile_set.get_sprite_image(
+                                                 self.menu_item_coord_and_frame_id[self.current_selected_item][1]))
+
         # Passive Items
-        if self.player.has_raft:
-            Tile((256, 48), [self.menu_sprites], self.items_tile_set.get_sprite_image(RAFT_FRAME_ID))
-        # Magic Tome - not implemented
-        # if self.player.has_magic_tome:
-        #     Tile((296, 48), [self.menu_sprites], self.items_tile_set.get_sprite_image(MAGIC_TOME_FRAME_ID))
-        # Blue / Red ring - Not implemented
-        # if self.player.has_ring:
-        #     Tile((320, 48), [self.menu_sprites], self.items_tile_set.get_sprite_image(RED_RING_FRAME_ID))
-        if self.player.has_ladder:
-            Tile((352, 48), [self.menu_sprites], self.items_tile_set.get_sprite_image(LADDER_FRAME_ID))
-        # Magical Key - Not implemented
-        # if self.player.has_magical_key:
-        #     Tile((386, 48), [self.menu_sprites], self.items_tile_set.get_sprite_image(MAGIC_KEY_FRAME_ID))
-        # Power Bracelet - Not implemented
-        # if self.player.has_raft:
-        #     Tile((408, 48), [self.menu_sprites], self.items_tile_set.get_sprite_image(POWER_BRACELET_FRAME_ID))
+        if self.player.has_item(RAFT_LABEL):
+            Tile(MENU_RAFT_TOPLEFT, [self.menu_sprites], self.items_tile_set.get_sprite_image(RAFT_FRAME_ID))
+        if self.player.has_item(LADDER_LABEL):
+            Tile(MENU_LADDER_TOPLEFT, [self.menu_sprites], self.items_tile_set.get_sprite_image(LADDER_FRAME_ID))
 
         # Selectable items
-        if self.player.has_boomerang:
+        if self.player.has_item(BOOMERANG_LABEL):
             # Didn't implement red/blue boomerang system
-            Tile((256, 96), [self.menu_sprites], self.items_tile_set.get_sprite_image(BOOMERANG_FRAME_ID))
-        if self.player.has_bombs:
-            Tile((304, 96), [self.menu_sprites], self.items_tile_set.get_sprite_image(BOMB_FRAME_ID))
-        # Bow & red/blue Arrow - Not Implemented
-        # if self.player.has_bow:
-        #     Tile((352, 96), [self.menu_sprites], self.items_tile_set.get_sprite_image(BOW_ARROW_FRAME_ID))
-        if self.player.has_candle:
+            Tile(MENU_BOOMERANG_TOPLEFT, [self.menu_sprites], self.items_tile_set.get_sprite_image(BOOMERANG_FRAME_ID))
+        if self.player.has_item(BOMB_LABEL):
+            Tile(MENU_BOMBS_TOPLEFT, [self.menu_sprites], self.items_tile_set.get_sprite_image(BOMB_FRAME_ID))
+        if self.player.has_item(CANDLE_LABEL):
             # Didn't implement red/blue candle system
-            Tile((400, 96), [self.menu_sprites], self.items_tile_set.get_sprite_image(RED_CANDLE_FRAME_ID))
-        # Recorder - Not Implemented
-        # if self.player.has_recorder:
-        #     Tile((256, 128), [self.menu_sprites], self.items_tile_set.get_sprite_image(RECORDER_FRAME_ID))
-        # Meat - Not Implemented
-        # if self.player.has_meat:
-        #     Tile((304, 128), [self.menu_sprites], self.items_tile_set.get_sprite_image(MEAT_FRAME_ID))
-        # Medicine - Not Implemented
-        # if self.player.has_medicine:
-        #     Tile((352, 128), [self.menu_sprites], self.items_tile_set.get_sprite_image(MEDICINE_FRAME_ID))
-        # Magical Rod - Not Implemented
-        # if self.player.has_magical_rod:
-        #     Tile((400, 128), [self.menu_sprites], self.items_tile_set.get_sprite_image(MAGICAL_ROD_FRAME_ID))
+            Tile(MENU_CANDLE_TOPLEFT, [self.menu_sprites], self.items_tile_set.get_sprite_image(RED_CANDLE_FRAME_ID))
 
     def draw_triforce(self):
-        # If I ever implement a dungeon level with a TriForce fragment as a reward, I should have a flag for every
-        # fragment, and use them to both draw in the menu, and use them to keep track of cleared dungeons
-        # Until I do this, the empty triforce will be drawn on the background of the menu directly
+        # TriForce fragment system is not implemented yet
+        # Empty Triforce is part of the menu background, fragments will be drawn on top of it
         pass
 
     def draw_hud(self):
@@ -156,7 +150,7 @@ class Level:
         self.menu_rect = self.menu_surface.get_rect(topleft=top_left)
         self.display_surface.blit(self.menu_surface, top_left)
 
-        # Draw ... minimap ? for this, best would be level number represent position on map, 0 being top left
+        # Minimap is not implemented yet
         self.draw_money()
         self.draw_keys()
         self.draw_bombs()
@@ -285,6 +279,7 @@ class Level:
                  self.hud_tile_set.get_sprite_image(HUD_EMPTY_HEART_FRAME_ID))
 
     def draw_floor(self, death_color=''):
+        # Draw the background of the level
         if death_color == 'black':
             self.floor_surface = pygame.image.load('../graphics/levels/black.png').convert()
         else:
@@ -310,6 +305,7 @@ class Level:
         return message_surface
 
     def draw_item_a(self):
+        # Draw the A item in the A Frame of the HUD
         if self.in_menu:
             sprite_groups = [self.menu_sprites]
         else:
@@ -331,6 +327,7 @@ class Level:
                                                self.items_tile_set.get_sprite_image(item_a_id))
 
     def draw_item_b(self):
+        # Draw the selected B item in the B Frame of the HUD
         if self.in_menu:
             sprite_groups = [self.menu_sprites]
         else:
@@ -339,16 +336,20 @@ class Level:
         item_b_pos = (self.menu_rect.x + 248,
                       self.menu_rect.y + 48)
 
+        # Get selected item B id
         match self.player.itemB:
+            case 'Boomerang':
+                item_frame_id = BOOMERANG_FRAME_ID
             case 'Bomb':
                 item_frame_id = BOMB_FRAME_ID
+            case 'Candle':
+                item_frame_id = RED_CANDLE_FRAME_ID
             case 'None':
                 item_frame_id = None
             case _:
                 # Error case
-                print(f'Item {self.player.itemB} selected as action B is not implemented yet')
+                print(f'Item {self.player.itemB} selected as action B is not implemented')
                 item_frame_id = None
-        # Get selected item B id
 
         if self.equipped_item_b_sprite:
             self.equipped_item_b_sprite.kill()
@@ -525,23 +526,68 @@ class Level:
         if self.death_motion_index == 11:
             self.display_surface.blit(self.game_over_message, self.game_over_message_pos)
             keys = pygame.key.get_pressed()
-            if keys[pygame.K_SPACE]:
+            if is_action_a_key_pressed(keys):
                 self.death_played = True
+
+    def is_menu_key_pressed_out_of_menu(self, keys):
+        if is_menu_key_pressed(keys) and not self.in_menu:
+            return True
+        return False
+
+    def is_menu_key_pressed_in_menu(self, keys):
+        if is_menu_key_pressed(keys) and self.in_menu:
+            return True
+        return False
+
+    def is_right_key_pressed_in_menu_with_item(self, keys):
+        if is_right_key_pressed(keys) and self.in_menu and self.current_selected_item != 'None':
+            return True
+        return False
+
+    def is_left_key_pressed_in_menu_with_item(self, keys):
+        if is_left_key_pressed(keys) and self.in_menu and self.current_selected_item != 'None':
+            return True
+        return False
+
+    def get_selector_position_for_next_item(self, is_reversed=False):
+        if is_reversed:
+            item_list = list(reversed(list(self.menu_item_coord_and_frame_id.keys())))
+        else:
+            item_list = list(list(self.menu_item_coord_and_frame_id.keys()))
+
+        current_item_index = item_list.index(self.current_selected_item) + 1
+        for i in range(len(item_list) - current_item_index):
+            if self.player.has_item(item_list[current_item_index + i]):
+                self.current_selected_item = (item_list[current_item_index + i])
+                break
+
+        return self.menu_item_coord_and_frame_id[self.current_selected_item][0]
 
     def input(self):
         # Known issue : When key press is short, it is sometimes not registered and the menu doesn't open/close
+        # How to fix that ?
         current_time = pygame.time.get_ticks()
         keys = pygame.key.get_pressed()
         if current_time - self.key_pressed_start_timer >= self.key_pressed_cooldown:
             self.key_pressed_start_timer = current_time
 
             # Toggle pause menu on/off
-            if keys[pygame.K_ESCAPE] and not self.in_menu:
+            if self.is_menu_key_pressed_out_of_menu(keys):
                 self.in_menu = True
-            elif keys[pygame.K_ESCAPE] and self.in_menu:
+                self.current_selected_item = self.player.itemB
+                self.draw_selector()
+            elif self.is_menu_key_pressed_in_menu(keys):
                 self.in_menu = False
+                self.player.change_item_b(self.current_selected_item)
                 for sprite in self.menu_sprites:
                     sprite.kill()
+            # Move item selector in menu
+            elif self.is_right_key_pressed_in_menu_with_item(keys):
+                item_pos = self.get_selector_position_for_next_item()
+                self.item_selector.move(item_pos)
+            elif self.is_left_key_pressed_in_menu_with_item(keys):
+                item_pos = self.get_selector_position_for_next_item(True)
+                self.item_selector.move(item_pos)
 
     def drop_loot(self, pos):
         # Loot system follows (loosely) the system used in the NES game
