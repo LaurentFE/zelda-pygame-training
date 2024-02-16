@@ -42,6 +42,10 @@ class Entity(pygame.sprite.Sprite, ABC):
         self.state = ''
         self.speed = 0
 
+        self.image = None
+        self.rect = None
+        self.hitbox = None
+
         self.walking_frames = 0
         self.is_up_flipped = False
         self.is_right_flipped = False
@@ -125,13 +129,13 @@ class Entity(pygame.sprite.Sprite, ABC):
             tiles_offset = SPRITE_SIZE // TILE_SIZE * i
             self.action_animations['up'].append(
                 entity_tile_set.get_sprite_image(self.action_up_frame_id + tiles_offset))
-            self.action_animations['right'].append(
-                entity_tile_set.get_sprite_image(self.action_right_frame_id + tiles_offset))
+            self.action_animations['left'].append(
+                entity_tile_set.get_sprite_image(self.action_left_frame_id + tiles_offset))
             self.action_animations['down'].append(
                 entity_tile_set.get_sprite_image(self.action_down_frame_id + tiles_offset))
-            self.action_animations['left'].append(
+            self.action_animations['right'].append(
                 pygame.transform.flip(
-                    entity_tile_set.get_sprite_image(self.action_left_frame_id + tiles_offset),
+                    entity_tile_set.get_sprite_image(self.action_right_frame_id + tiles_offset),
                     True,
                     False))
 

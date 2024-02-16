@@ -9,8 +9,8 @@ from particles import Rock
 
 # Known issue : Monster waits for 'attacking' to end before getting hurt
 class Enemy(Entity):
-    def __init__(self, pos, groups, visible_sprites, obstacle_sprites, particle_sprites,
-                 enemies_tile_set, particle_tileset, uses_projectiles=False):
+    def __init__(self, groups, visible_sprites, obstacle_sprites, particle_sprites,
+                 particle_tileset, uses_projectiles=False):
         super().__init__(groups, visible_sprites, obstacle_sprites, particle_sprites, particle_tileset)
 
         self.direction_label = random.choice(['up', 'down', 'left', 'right'])
@@ -223,8 +223,8 @@ class Enemy(Entity):
 class RedOctorock(Enemy):
     def __init__(self, pos, groups, visible_sprites, obstacle_sprites, particle_sprites,
                  enemies_tileset, particle_tileset):
-        super().__init__(pos, groups, visible_sprites, obstacle_sprites, particle_sprites,
-                         enemies_tileset, particle_tileset, True)
+        super().__init__(groups, visible_sprites, obstacle_sprites, particle_sprites,
+                         particle_tileset, True)
 
         self.walking_frames = OCTOROCK_WALKING_FRAMES
         self.is_up_flipped = True
@@ -237,6 +237,7 @@ class RedOctorock(Enemy):
         self.hurt_down_frame_id = OCTOROCK_HURT_DOWN_FRAME_ID
         self.hurt_left_frame_id = OCTOROCK_HURT_LEFT_FRAME_ID
         self.hurt_right_frame_id = OCTOROCK_HURT_LEFT_FRAME_ID
+
         self.load_animation_frames(enemies_tileset)
 
         # Set first image of the monster appearing when created, and generating corresponding hitbox
@@ -307,31 +308,3 @@ class RedOctorock(Enemy):
 
     def update(self):
         super().update()
-
-        # THIS CODE IS PROBABLY FOR MOBLIN ANIMATE()
-        # current_time = pygame.time.get_ticks()
-        # if self.state == 'idle':
-        #     # Stops all animation, resetting to 1st walking frame of the current direction
-        #     # Monsters don't idle, they walk while not moving
-        #     # self.image = self.walking_animations[self.direction_label][0]
-        #     pass
-        # elif self.state == 'walking':
-        #     # Going through the motions of multiple frames, with a timer per frame
-        #     self.image = self.walking_animations[self.direction_label][self.walking_animation_frame_count]
-        #     if current_time - self.walking_animation_starting_time >= self.walking_animation_cooldown:
-        #         self.walking_animation_starting_time = pygame.time.get_ticks()
-        #         if self.walking_animation_frame_count < PLAYER_WALKING_FRAMES - 1:
-        #             self.walking_animation_frame_count += 1
-        #         else:
-        #             self.walking_animation_frame_count = 0
-        # elif self.state == 'attacking':
-        #     # Until projectile is shot : walking[dir][0], then walking[dir][1] for half as long, then walking[dir][0]
-        #     if current_time - self.attack_animation_starting_time <= self.attack_animation_cooldown:
-        #         self.image = self.walking_animations[self.direction_label][0]
-        #     else:
-        #         if current_time - self.attack_animation_starting_time <= self.attack_animation_cooldown*1.5:
-        #             self.image = self.walking_animations[self.direction_label][0]
-        #         else:
-        #             self.image = self.walking_animations[self.direction_label][1]
-        # else:
-        #     debug(f'Error : animate({self.state}) does not exist')

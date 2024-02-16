@@ -163,7 +163,6 @@ class Player(Entity):
     # and/or player_state, and starts cooldown on actions if used.
     def input(self):
         keys = pygame.key.get_pressed()
-        moving_key_pressed = False
 
         self.direction_vector.x = 0
         self.direction_vector.y = 0

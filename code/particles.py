@@ -126,9 +126,12 @@ class WoodenSword(Particle):
     def load_animation_frames(self, particle_tileset):
         for i in range(WOOD_SWORD_FRAMES):
             tiles_offset = SPRITE_SIZE // TILE_SIZE * i
-            self.move_animations['up'].append(particle_tileset.get_sprite_image(WOOD_SWORD_UP_FRAME_ID + tiles_offset))
-            self.move_animations['right'].append(particle_tileset.get_sprite_image(WOOD_SWORD_RIGHT_FRAME_ID + tiles_offset))
-            self.move_animations['down'].append(particle_tileset.get_sprite_image(WOOD_SWORD_DOWN_FRAME_ID + tiles_offset))
+            self.move_animations['up'].append(particle_tileset.get_sprite_image(
+                WOOD_SWORD_UP_FRAME_ID + tiles_offset))
+            self.move_animations['right'].append(particle_tileset.get_sprite_image(
+                WOOD_SWORD_RIGHT_FRAME_ID + tiles_offset))
+            self.move_animations['down'].append(particle_tileset.get_sprite_image(
+                WOOD_SWORD_DOWN_FRAME_ID + tiles_offset))
             self.move_animations['left'].append(
                 pygame.transform.flip(
                     particle_tileset.get_sprite_image(WOOD_SWORD_RIGHT_FRAME_ID + tiles_offset),
