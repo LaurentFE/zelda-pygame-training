@@ -101,6 +101,7 @@ class Player(Entity):
         self.pickup_minor_animation_starting_time = 0
         self.pickup_major_animation_starting_time = 0
         self.hurt_animation_starting_time = 0
+        self.spin_animation_starting_time = 0
         self.despawn_animation_starting_time = 0
         # Index of animation being played
         self.walking_animation_frame_count = 0
@@ -133,6 +134,7 @@ class Player(Entity):
         self.money = PLAYER_INITIAL_MONEY
         self.keys = PLAYER_INITIAL_KEY
         self.bombs = PLAYER_INITIAL_BOMB
+        self.is_spinning = False
         self.isDead = False
         self.current_speed = self.speed
 
@@ -333,14 +335,23 @@ class Player(Entity):
             self.rect.left = self.hitbox.left - 4
 
     def set_player_death_state(self, state):
-        if state == 'hurt':
+        current_time = pygame.time.get_ticks()
+        if state == 'dying':
             self.state = state
-            self.hurt_starting_time = pygame.time.get_ticks()
+            self.hurt_starting_time = current_time
+        elif state == 'spinning':
+            if not self.is_spinning:
+                self.state = state
+                self.spin_animation_starting_time = current_time
+            self.is_spinning = True
+        elif state == 'idle':
+            self.state = state
+            self.direction_label = 'down'
         elif state == 'gray':
             self.state = state
         elif state == 'despawn':
             self.state = state
-            self.despawn_animation_starting_time = pygame.time.get_ticks()
+            self.despawn_animation_starting_time = current_time
         else:
             debug(f'trying to change player state in death to : {state}. Does not exist')
 
@@ -353,7 +364,7 @@ class Player(Entity):
             # Going through the motions of multiple frames, with a timer per frame
             self.image = self.walking_animations[self.direction_label][self.walking_animation_frame_count]
             if current_time - self.walking_animation_starting_time >= self.walking_animation_cooldown:
-                self.walking_animation_starting_time = pygame.time.get_ticks()
+                self.walking_animation_starting_time = current_time
                 if self.walking_animation_frame_count < PLAYER_WALKING_FRAMES-1:
                     self.walking_animation_frame_count += 1
                 else:
@@ -362,7 +373,7 @@ class Player(Entity):
             # Going through the motions of multiple frames, with a timer per frame
             self.image = self.action_animations[self.direction_label][self.action_animation_frame_count]
             if current_time - self.action_animation_starting_time >= self.action_animation_cooldown:
-                self.action_animation_starting_time = pygame.time.get_ticks()
+                self.action_animation_starting_time = current_time
                 if self.action_animation_frame_count < PLAYER_ACTION_FRAMES-1:
                     self.action_animation_frame_count += 1
                 else:
@@ -371,7 +382,7 @@ class Player(Entity):
             # Going through the motions of multiple frames, with a timer per frame
             self.image = self.pickup_minor_animation[self.pickup_minor_animation_frame_count]
             if current_time - self.pickup_minor_animation_starting_time >= self.pickup_minor_animation_cooldown:
-                self.pickup_minor_animation_starting_time = pygame.time.get_ticks()
+                self.pickup_minor_animation_starting_time = current_time
                 if self.pickup_minor_animation_frame_count < PLAYER_PICKUP_MINOR_FRAMES-1:
                     self.pickup_minor_animation_frame_count += 1
                 else:
@@ -380,7 +391,7 @@ class Player(Entity):
             # Going through the motions of multiple frames, with a timer per frame
             self.image = self.pickup_major_animation[self.pickup_major_animation_frame_count]
             if current_time - self.pickup_major_animation_starting_time >= self.pickup_major_animation_cooldown:
-                self.pickup_major_animation_starting_time = pygame.time.get_ticks()
+                self.pickup_major_animation_starting_time = current_time
                 if self.pickup_major_animation_frame_count < PLAYER_PICKUP_MAJOR_FRAMES-1:
                     self.pickup_major_animation_frame_count += 1
                 else:
@@ -389,17 +400,45 @@ class Player(Entity):
             # Going through the motions of multiple frames, with a timer per frame
             self.image = self.hurt_animations[self.direction_label][self.hurt_animation_frame_count]
             if current_time - self.hurt_animation_starting_time >= self.hurt_animation_cooldown:
-                self.hurt_animation_starting_time = pygame.time.get_ticks()
+                self.hurt_animation_starting_time = current_time
                 if self.hurt_animation_frame_count < PLAYER_HURT_FRAMES-1:
                     self.hurt_animation_frame_count += 1
 
+        elif self.state == 'dying':
+            # Going through the motions of multiple frames, with a timer per frame
+            self.image = self.hurt_animations[self.direction_label][self.hurt_animation_frame_count]
+            if current_time - self.hurt_animation_starting_time >= self.hurt_animation_cooldown:
+                self.hurt_animation_starting_time = current_time
+                if self.hurt_animation_frame_count < PLAYER_HURT_FRAMES-1:
+                    self.hurt_animation_frame_count += 1
+                else:
+                    self.hurt_animation_frame_count = 0
+        elif self.state == 'spinning':
+            # Spin spin spin !
+            self.image = self.walking_animations[self.direction_label][self.walking_animation_frame_count]
+            if current_time - self.walking_animation_starting_time >= self.walking_animation_cooldown:
+                self.walking_animation_starting_time = current_time
+                if self.walking_animation_frame_count < PLAYER_WALKING_FRAMES - 1:
+                    self.walking_animation_frame_count += 1
+                else:
+                    self.walking_animation_frame_count = 0
+            elapsed_spin_time = current_time - self.spin_animation_starting_time
+            if elapsed_spin_time < PLAYER_DEATH_SPIN_DURATION * 0.25:
+                self.direction_label = 'right'
+            elif elapsed_spin_time < PLAYER_DEATH_SPIN_DURATION * 0.5:
+                self.direction_label = 'up'
+            elif elapsed_spin_time < PLAYER_DEATH_SPIN_DURATION * 0.75:
+                self.direction_label = 'left'
+            else:
+                self.spin_animation_starting_time = current_time
+                self.direction_label = 'down'
         elif self.state == 'gray':
             # be gray
             self.image = self.gray_animation['down'][0]
         elif self.state == 'despawn':
             self.image = self.despawn_animation[self.despawn_animation_frame_count]
             if current_time - self.despawn_animation_starting_time >= self.despawn_animation_cooldown:
-                self.despawn_animation_starting_time = pygame.time.get_ticks()
+                self.despawn_animation_starting_time = current_time
                 if self.despawn_animation_frame_count < PLAYER_DEATH_FRAMES-1:
                     self.despawn_animation_frame_count += 1
                 else:
