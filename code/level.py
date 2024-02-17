@@ -1,5 +1,8 @@
 import sys
 import random
+
+import pygame.mixer
+
 from settings import *
 from support import *
 from inputs import *
@@ -63,6 +66,11 @@ class Level:
         self.levels_tile_set = Tileset('levels')
         self.particle_tile_set = Tileset('particles')
         self.consumables_tile_set = Tileset('consumables')
+
+        self.overworld_background_theme = pygame.mixer.Sound('../audio/overworld.mp3')
+        self.overworld_background_theme.set_volume(0.2)
+        self.game_over_sound = pygame.mixer.Sound('../audio/Death.wav')
+        self.game_over_sound.set_volume(0.4)
 
         # Sprite setup
         self.create_map()
@@ -423,6 +431,7 @@ class Level:
         self.load_limits()
         self.load_enemies()
         self.load_player()
+        self.overworld_background_theme.play(loops=-1)
 
     def spin_player(self):
         self.player.direction_vector = (0, 0)
@@ -456,6 +465,7 @@ class Level:
                 self.player.set_player_death_state('hurt')
             if pygame.time.get_ticks() - self.death_hurt_starting_time >= self.death_hurt_cooldown:
                 self.death_motion_index += 1
+                self.game_over_sound.play()
 
         # Set map img to red version
         if self.death_motion_index == 4:
@@ -657,6 +667,7 @@ class Level:
         elif not self.death_played:
             # Play death & game over animation
             if self.death_motion_index == 0:
+                self.overworld_background_theme.stop()
                 self.death_motion_index = 1
             self.death()
         elif self.death_played:
