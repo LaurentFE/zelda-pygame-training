@@ -80,16 +80,16 @@ class Player(Entity):
         self.load_animation_frames(player_tile_set)
 
         # Sounds
-        self.shield_block_sound = pygame.mixer.Sound('../audio/Shield_Bounce.wav')
+        self.shield_block_sound = pygame.mixer.Sound(SOUND_SHIELD_BLOCK)
         self.shield_block_sound.set_volume(0.5)
-        self.player_hurt_sound = pygame.mixer.Sound('../audio/Player_Hurt.wav')
+        self.player_hurt_sound = pygame.mixer.Sound(SOUND_PLAYER_HURT)
         self.player_hurt_sound.set_volume(0.1)
-        self.rupee_acquired_sound = pygame.mixer.Sound('../audio/Rupee.wav')
+        self.rupee_acquired_sound = pygame.mixer.Sound(SOUND_RUPEE_ACQUIRED)
         self.rupee_acquired_sound.set_volume(0.3)
         self.is_low_health = False
-        self.low_health_sound = pygame.mixer.Sound('../audio/Low_Health.wav')
+        self.low_health_sound = pygame.mixer.Sound(SOUND_LOW_HEALTH)
         self.low_health_sound.set_volume(0.3)
-        self.despawn_sound = pygame.mixer.Sound('../audio/Player_Death.wav')
+        self.despawn_sound = pygame.mixer.Sound(SOUND_PLAYER_DESPAWN)
         self.despawn_sound.set_volume(0.4)
 
         self.direction_label = 'down'

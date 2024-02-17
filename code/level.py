@@ -67,9 +67,9 @@ class Level:
         self.particle_tile_set = Tileset('particles')
         self.consumables_tile_set = Tileset('consumables')
 
-        self.overworld_background_theme = pygame.mixer.Sound('../audio/overworld.mp3')
+        self.overworld_background_theme = pygame.mixer.Sound(SOUND_OVERWORLD)
         self.overworld_background_theme.set_volume(0.2)
-        self.game_over_sound = pygame.mixer.Sound('../audio/Death.wav')
+        self.game_over_sound = pygame.mixer.Sound(SOUND_GAME_OVER)
         self.game_over_sound.set_volume(0.4)
 
         # Sprite setup

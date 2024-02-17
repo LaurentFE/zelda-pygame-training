@@ -121,7 +121,7 @@ class WoodenSword(Particle):
         self.affects_enemy = True
         self.collision_damage = WOOD_SWORD_DMG
 
-        self.sword_attack_sound = pygame.mixer.Sound('../audio/Sword_Attack.wav')
+        self.sword_attack_sound = pygame.mixer.Sound(SOUND_SWORD_ATTACK)
         self.sword_attack_sound.set_volume(0.5)
         self.sword_attack_sound.play()
 
@@ -267,7 +267,7 @@ class Heart(Particle):
         self.bypasses_shield = True
         self.collision_damage = 0
 
-        self.heart_pickup_sound = pygame.mixer.Sound('../audio/Tiny_Pick_Up.wav')
+        self.heart_pickup_sound = pygame.mixer.Sound(SOUND_TINY_PICKUP)
         self.heart_pickup_sound.set_volume(0.3)
 
         self.is_active = True
@@ -333,7 +333,7 @@ class Rupee(Particle):
         self.bypasses_shield = True
         self.collision_damage = 0
 
-        self.rupee_pickup_sound = pygame.mixer.Sound('../audio/Tiny_Pick_Up.wav')
+        self.rupee_pickup_sound = pygame.mixer.Sound(SOUND_TINY_PICKUP)
         self.rupee_pickup_sound.set_volume(0.3)
 
         self.is_active = True
@@ -399,7 +399,7 @@ class CBomb(Particle):
         self.bypasses_shield = True
         self.collision_damage = 0
 
-        self.bomb_pickup_sound = pygame.mixer.Sound('../audio/Small_Pick_Up.wav')
+        self.bomb_pickup_sound = pygame.mixer.Sound(SOUND_SMALL_PICKUP)
         self.bomb_pickup_sound.set_volume(0.3)
 
         self.is_active = True
@@ -458,7 +458,7 @@ class Fairy(Particle):
         self.direction_starting_time = 0
         self.direction_cooldown = random.randrange(500, 2000, 100)
 
-        self.fairy_pickup_sound = pygame.mixer.Sound('../audio/Small_Pick_Up.wav')
+        self.fairy_pickup_sound = pygame.mixer.Sound(SOUND_SMALL_PICKUP)
         self.fairy_pickup_sound.set_volume(0.3)
 
         self.is_active = True
@@ -548,10 +548,10 @@ class Bomb(Particle):
 
         self.collision_damage = 0
 
-        self.bomb_drop_sound = pygame.mixer.Sound('../audio/Bomb_Drop.wav')
+        self.bomb_drop_sound = pygame.mixer.Sound(SOUND_BOMB_DROP)
         self.bomb_drop_sound.set_volume(0.3)
         self.bomb_drop_sound.play()
-        self.bomb_explode_sound = pygame.mixer.Sound('../audio/Bomb_Explode.wav')
+        self.bomb_explode_sound = pygame.mixer.Sound(SOUND_BOMB_EXPLODE)
         self.bomb_explode_sound.set_volume(0.3)
 
         self.is_active = True

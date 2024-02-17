@@ -193,3 +193,19 @@ FONT_CHARACTERS_PER_ROW = 10
 FONT_NUMBER_OF_ROWS = 5
 FONT_NUMBER_OF_SPECIALS = 9
 FONT_CHARS = '0123456789abcdefghijklmnopqrstuvwxyz,!\'&."?- '
+
+# SOUNDS
+SOUND_OVERWORLD = '../audio/overworld.mp3'
+SOUND_GAME_OVER = '../audio/Game_Over.wav'
+SOUND_SHIELD_BLOCK = '../audio/Shield_Block.wav'
+SOUND_PLAYER_HURT = '../audio/Player_Hurt.wav'
+SOUND_RUPEE_ACQUIRED = '../audio/Rupee.wav'
+SOUND_LOW_HEALTH = '../audio/Low_Health.wav'
+SOUND_PLAYER_DESPAWN = '../audio/Player_Despawn.wav'
+SOUND_MONSTER_HURT = '../audio/Monster_Hurt.wav'
+SOUND_MONSTER_DESPAWN = '../audio/Monster_Despawn.wav'
+SOUND_SWORD_ATTACK = '../audio/Sword_Attack.wav'
+SOUND_TINY_PICKUP = '../audio/Tiny_Pick_Up.wav'
+SOUND_SMALL_PICKUP = '../audio/Small_Pick_Up.wav'
+SOUND_BOMB_DROP = '../audio/Bomb_Drop.wav'
+SOUND_BOMB_EXPLODE = '../audio/Bomb_Explode.wav'

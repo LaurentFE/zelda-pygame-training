@@ -46,10 +46,10 @@ class Enemy(Entity):
         self.despawn_animation_cooldown = MONSTER_DEATH_ANIMATION_COOLDOWN
 
         # Sounds
-        self.monster_hurt_sound = pygame.mixer.Sound('../audio/Monster_Hurt.wav')
+        self.monster_hurt_sound = pygame.mixer.Sound(SOUND_MONSTER_HURT)
         self.monster_hurt_sound.set_volume(0.3)
-        self.monster_death_sound = pygame.mixer.Sound('../audio/Monster_Death.wav')
-        self.monster_death_sound.set_volume(0.3)
+        self.monster_despawn_sound = pygame.mixer.Sound(SOUND_MONSTER_DESPAWN)
+        self.monster_despawn_sound.set_volume(0.3)
 
         # Monster stats
         self.health = 0
@@ -221,7 +221,7 @@ class Enemy(Entity):
             if self.health <= 0:
                 self.despawn_animation_starting_time = pygame.time.get_ticks()
                 self.isDead = True
-                self.monster_death_sound.play()
+                self.monster_despawn_sound.play()
 
         self.animate()
         self.cooldowns()
