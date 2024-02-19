@@ -1,3 +1,5 @@
+import pygame.mixer
+
 from settings import *
 from inputs import *
 from debug import debug
@@ -76,6 +78,19 @@ class Player(Entity):
         self.despawn_frames = PLAYER_DEATH_FRAMES
         self.despawn_frame_id = PLAYER_DEATH_FRAME_ID
         self.load_animation_frames(player_tile_set)
+
+        # Sounds
+        self.shield_block_sound = pygame.mixer.Sound(SOUND_SHIELD_BLOCK)
+        self.shield_block_sound.set_volume(0.5)
+        self.player_hurt_sound = pygame.mixer.Sound(SOUND_PLAYER_HURT)
+        self.player_hurt_sound.set_volume(0.1)
+        self.rupee_acquired_sound = pygame.mixer.Sound(SOUND_RUPEE_ACQUIRED)
+        self.rupee_acquired_sound.set_volume(0.3)
+        self.is_low_health = False
+        self.low_health_sound = pygame.mixer.Sound(SOUND_LOW_HEALTH)
+        self.low_health_sound.set_volume(0.3)
+        self.despawn_sound = pygame.mixer.Sound(SOUND_PLAYER_DESPAWN)
+        self.despawn_sound.set_volume(0.4)
 
         self.direction_label = 'down'
         self.state = 'idle'
@@ -203,7 +218,10 @@ class Player(Entity):
             self.action_starting_time = pygame.time.get_ticks()
             self.direction_vector.x = 0
             self.direction_vector.y = 0
-            if self.itemB == BOMB_LABEL:
+            if self.itemB == BOOMERANG_LABEL:
+                # Create Boomerang particle
+                pass
+            elif self.itemB == BOMB_LABEL:
                 if self.bombs > 0:
                     # Bombs are dropped and forgotten, won't get deleted upon timer but when they die by themselves
                     Bomb(self.rect.topleft, self.direction_vector, self.direction_label,
@@ -212,6 +230,9 @@ class Player(Entity):
                     self.bombs -= 1
                 else:
                     self.state = 'idle'
+            elif self.itemB == CANDLE_LABEL:
+                # Create Flame particle
+                pass
             elif self.itemB == 'None':
                 self.state = 'idle'
 
@@ -256,6 +277,7 @@ class Player(Entity):
                         self.state = 'hurt_h'
                         self.hurt_starting_time = pygame.time.get_ticks()
                         self.invulnerable = True
+                        self.player_hurt_sound.play()
                         self.direction_vector.y = 0
                         if self.hitbox.centerx - sprite.hitbox.centerx <= 0:
                             self.direction_vector.x = -1
@@ -264,6 +286,9 @@ class Player(Entity):
                             self.direction_vector.x = 1
                             self.hitbox.x += self.current_speed
                         self.health -= sprite.collision_damage
+                        if self.health <= PLAYER_HEALTH_PER_HEART and not self.is_low_health:
+                            self.low_health_sound.play(loops=-1)
+                            self.is_low_health = True
 
             for sprite in self.obstacle_sprites:
                 if sprite.hitbox.colliderect(self.hitbox):
@@ -279,6 +304,7 @@ class Player(Entity):
                         self.state = 'hurt_v'
                         self.hurt_starting_time = pygame.time.get_ticks()
                         self.invulnerable = True
+                        self.player_hurt_sound.play()
                         self.direction_vector.x = 0
                         if self.hitbox.centerx - sprite.hitbox.centerx <= 0:
                             self.direction_vector.y = -1
@@ -287,6 +313,9 @@ class Player(Entity):
                             self.direction_vector.y = 1
                             self.hitbox.y += self.current_speed
                         self.health -= sprite.collision_damage
+                        if self.health <= PLAYER_HEALTH_PER_HEART and not self.is_low_health:
+                            self.low_health_sound.play(loops=-1)
+                            self.is_low_health = True
 
             for sprite in self.obstacle_sprites:
                 if sprite.hitbox.colliderect(self.hitbox):
@@ -305,7 +334,8 @@ class Player(Entity):
                                  or (self.direction_label == 'down' and particle.direction_vector.y < 0)
                                  or (self.direction_label == 'left' and particle.direction_vector.x > 0)
                                  or (self.direction_label == 'right' and particle.direction_vector.x < 0))):
-                        # Successful block ! Should add a sound
+                        # Successful block !
+                        self.shield_block_sound.play()
                         particle.kill()
                     else:
                         if particle.collision_damage != 0:
@@ -313,10 +343,14 @@ class Player(Entity):
                             self.hurt_starting_time = pygame.time.get_ticks()
                             self.hurt_animation_starting_time = self.hurt_starting_time
                             self.invulnerable = True
+                            self.player_hurt_sound.play()
                             self.direction_vector = particle.direction_vector
                             self.hitbox.x += self.current_speed*self.direction_vector.x
                             self.hitbox.y += self.current_speed*self.direction_vector.y
                             self.health -= particle.collision_damage
+                            if self.health <= PLAYER_HEALTH_PER_HEART and not self.is_low_health:
+                                self.low_health_sound.play(loops=-1)
+                                self.is_low_health = True
                         else:
                             particle.effect()
                         particle.kill()
@@ -351,6 +385,7 @@ class Player(Entity):
             self.state = state
         elif state == 'despawn':
             self.state = state
+            self.despawn_sound.play()
             self.despawn_animation_starting_time = current_time
         else:
             debug(f'trying to change player state in death to : {state}. Does not exist')
@@ -449,11 +484,15 @@ class Player(Entity):
     def heal(self, amount):
         if amount >= 0:
             self.health += amount * PLAYER_HEALTH_PER_HEART
+            if self.health > PLAYER_HEALTH_PER_HEART and self.is_low_health:
+                self.low_health_sound.stop()
+                self.is_low_health = False
             if self.health > self.current_max_health:
                 self.health = self.current_max_health
 
     def add_money(self, amount):
         if amount >= 0:
+            self.rupee_acquired_sound.play()
             self.money += amount
             if self.money > 999:
                 self.health = 999
@@ -498,6 +537,7 @@ class Player(Entity):
             self.cooldowns()
             if self.health <= 0:
                 self.isDead = True
+                self.low_health_sound.stop()
         else:
             self.animate()
 

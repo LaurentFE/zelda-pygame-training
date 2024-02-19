@@ -121,6 +121,10 @@ class WoodenSword(Particle):
         self.affects_enemy = True
         self.collision_damage = WOOD_SWORD_DMG
 
+        self.sword_attack_sound = pygame.mixer.Sound(SOUND_SWORD_ATTACK)
+        self.sword_attack_sound.set_volume(0.5)
+        self.sword_attack_sound.play()
+
         self.is_active = True
 
     def load_animation_frames(self, particle_tileset):
@@ -263,6 +267,9 @@ class Heart(Particle):
         self.bypasses_shield = True
         self.collision_damage = 0
 
+        self.heart_pickup_sound = pygame.mixer.Sound(SOUND_TINY_PICKUP)
+        self.heart_pickup_sound.set_volume(0.3)
+
         self.is_active = True
 
     def load_animation_frames(self, particle_tileset):
@@ -292,6 +299,7 @@ class Heart(Particle):
         pass
 
     def effect(self):
+        self.heart_pickup_sound.play()
         self.level.heal_player(1)
 
     def update(self):
@@ -325,6 +333,9 @@ class Rupee(Particle):
         self.bypasses_shield = True
         self.collision_damage = 0
 
+        self.rupee_pickup_sound = pygame.mixer.Sound(SOUND_TINY_PICKUP)
+        self.rupee_pickup_sound.set_volume(0.3)
+
         self.is_active = True
 
     def load_animation_frames(self, particle_tileset):
@@ -354,6 +365,7 @@ class Rupee(Particle):
         pass
 
     def effect(self):
+        self.rupee_pickup_sound.play()
         self.level.add_money(1)
 
     def update(self):
@@ -387,6 +399,9 @@ class CBomb(Particle):
         self.bypasses_shield = True
         self.collision_damage = 0
 
+        self.bomb_pickup_sound = pygame.mixer.Sound(SOUND_SMALL_PICKUP)
+        self.bomb_pickup_sound.set_volume(0.3)
+
         self.is_active = True
 
     def load_animation_frames(self, particle_tileset):
@@ -406,6 +421,7 @@ class CBomb(Particle):
         pass
 
     def effect(self):
+        self.bomb_pickup_sound.play()
         self.level.add_bombs(PLAYER_BOMB_LOOT_AMOUNT)
 
     def update(self):
@@ -441,6 +457,9 @@ class Fairy(Particle):
 
         self.direction_starting_time = 0
         self.direction_cooldown = random.randrange(500, 2000, 100)
+
+        self.fairy_pickup_sound = pygame.mixer.Sound(SOUND_SMALL_PICKUP)
+        self.fairy_pickup_sound.set_volume(0.3)
 
         self.is_active = True
 
@@ -500,6 +519,7 @@ class Fairy(Particle):
         self.rect.center = self.hitbox.center
 
     def effect(self):
+        self.fairy_pickup_sound.play()
         self.level.heal_player(PLAYER_HEALTH_MAX)
 
     def update(self):
@@ -527,6 +547,12 @@ class Bomb(Particle):
         self.hitbox.center = self.rect.center
 
         self.collision_damage = 0
+
+        self.bomb_drop_sound = pygame.mixer.Sound(SOUND_BOMB_DROP)
+        self.bomb_drop_sound.set_volume(0.3)
+        self.bomb_drop_sound.play()
+        self.bomb_explode_sound = pygame.mixer.Sound(SOUND_BOMB_EXPLODE)
+        self.bomb_explode_sound.set_volume(0.3)
 
         self.is_active = True
 
@@ -560,6 +586,7 @@ class Bomb(Particle):
         pass
 
     def effect(self):
+        self.bomb_explode_sound.play()
         # Generate smoke effect
         BombSmoke((self.pos_x - 16, self.pos_y), self.groups, self.particle_tileset)
         BombSmoke((self.pos_x + 16, self.pos_y + 16), self.groups, self.particle_tileset)

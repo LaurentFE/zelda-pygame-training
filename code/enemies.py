@@ -45,6 +45,12 @@ class Enemy(Entity):
         self.despawn_animation_starting_time = 0
         self.despawn_animation_cooldown = MONSTER_DEATH_ANIMATION_COOLDOWN
 
+        # Sounds
+        self.monster_hurt_sound = pygame.mixer.Sound(SOUND_MONSTER_HURT)
+        self.monster_hurt_sound.set_volume(0.3)
+        self.monster_despawn_sound = pygame.mixer.Sound(SOUND_MONSTER_DESPAWN)
+        self.monster_despawn_sound.set_volume(0.3)
+
         # Monster stats
         self.health = 0
         self.collision_damage = 0
@@ -154,6 +160,8 @@ class Enemy(Entity):
                         self.hitbox.y += self.current_speed
                         self.direction_label = 'up'
                     self.health -= particle.collision_damage
+                    if self.health > 0:
+                        self.monster_hurt_sound.play()
 
     @abc.abstractmethod
     def move(self):
@@ -213,6 +221,7 @@ class Enemy(Entity):
             if self.health <= 0:
                 self.despawn_animation_starting_time = pygame.time.get_ticks()
                 self.isDead = True
+                self.monster_despawn_sound.play()
 
         self.animate()
         self.cooldowns()
