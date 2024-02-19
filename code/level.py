@@ -18,6 +18,9 @@ class Level:
         self.player = None
         self.current_level = 'level0'
         self.death_played = False
+        self.death_floors = GAME_OVER_DEATH_FLOORS
+        self.number_of_death_floors = len(self.death_floors)
+        self.death_floor_index = 0
         self.in_menu = False
         self.kill_count = 0
 
@@ -73,15 +76,13 @@ class Level:
                 (SCREEN_HEIGHT // 2) + ((HUD_TILE_HEIGHT * TILE_SIZE) // 2) - (TILE_SIZE // 2)
         )
 
-        # Set up spin player timers
         self.key_pressed_start_timer = 0
         self.key_pressed_cooldown = LEVEL_KEY_PRESSED_COOLDOWN
-        self.spin_start_timer = 0
-        self.full_spin_duration = PLAYER_DEATH_SPIN_DURATION
-        self.spin_status = 'todo'
-        self.total_spin_amount = PLAYER_DEATH_SPIN_AMOUNT
-        self.current_spin_amount = 0
+
+        # Set Game Over animation variables & timers
         self.death_motion_index = 0
+        self.death_spin_starting_time = 0
+        self.death_spin_cooldown = PLAYER_DEATH_SPIN_AMOUNT * PLAYER_DEATH_SPIN_DURATION
         self.death_floor_switch_cooldown = MAP_DEATH_FADE_COOLDOWN
         self.death_floor_switch_starting_time = 0
         self.death_gray_cooldown = PLAYER_GRAY_COOLDOWN
@@ -424,23 +425,11 @@ class Level:
         self.load_enemies()
         self.load_player()
 
-    def spin_player(self):
-        self.player.direction_vector = (0, 0)
-        self.player.state = 'walking'
-        self.player.direction_label = 'down'
-        elapsed_spin_time = pygame.time.get_ticks() - self.spin_start_timer
-        if elapsed_spin_time < self.full_spin_duration * 0.25:
-            self.player.direction_label = 'right'
-        elif elapsed_spin_time < self.full_spin_duration * 0.5:
-            self.player.direction_label = 'up'
-        elif elapsed_spin_time < self.full_spin_duration * 0.75:
-            self.player.direction_label = 'left'
-        elif elapsed_spin_time >= self.full_spin_duration:
-            self.spin_status = 'done'
-
     def death(self):
         self.draw_hud()
         self.draw_floor()
+        current_time = pygame.time.get_ticks()
+
         # Kill every enemy sprite and every particle sprite
         if self.death_motion_index == 1:
             for enemy in self.enemy_sprites:
@@ -449,81 +438,64 @@ class Level:
                 particle.kill()
             self.death_motion_index += 1
 
-        # Call player.hurt_animation(3 seconds)
-        if 1 <= self.death_motion_index <= 3:
+        # Player is in a hurt state for death_hurt_cooldown, by default 3 cycles of the hurt animation
+        if self.death_motion_index == 2:
             if self.death_hurt_starting_time == 0:
-                self.death_hurt_starting_time = pygame.time.get_ticks()
-                self.player.set_player_death_state('hurt')
-            if pygame.time.get_ticks() - self.death_hurt_starting_time >= self.death_hurt_cooldown:
+                self.death_hurt_starting_time = current_time
+                self.player.set_player_death_state('dying')
+            elif current_time - self.death_hurt_starting_time >= self.death_hurt_cooldown:
                 self.death_motion_index += 1
+                self.death_spin_starting_time = current_time
 
         # Set map img to red version
-        if self.death_motion_index == 4:
-            self.draw_floor('red0')
-            # Spin three times
-            if self.current_spin_amount < self.total_spin_amount:
-                if self.spin_status == 'todo':
-                    self.spin_start_timer = pygame.time.get_ticks()
-                    self.spin_status = 'doing'
-                if self.spin_status == 'doing':
-                    self.spin_player()
-                if self.spin_status == 'done':
-                    self.current_spin_amount += 1
-                    self.spin_status = 'todo'
-            if self.current_spin_amount >= self.total_spin_amount:
+        if self.death_motion_index == 3:
+            self.draw_floor(self.death_floors[self.death_floor_index])
+            # Spin ! By default, 3 times (cf init of self.death_spin_cooldown)
+            if current_time - self.death_spin_starting_time < self.death_spin_cooldown:
+                self.player.set_player_death_state('spinning')
+            else:
                 self.death_motion_index += 1
+                self.death_floor_index += 1
+                self.player.set_player_death_state('idle')
 
         # Switch map img to 3 darker shades successively
-        # Can be refactored (copied - pasted code with only index & map name changing)
-        if self.death_motion_index == 5:
+        if self.death_motion_index == 4 and self.death_floor_index < self.number_of_death_floors:
             if self.death_floor_switch_starting_time == 0:
-                self.death_floor_switch_starting_time = pygame.time.get_ticks()
-            self.draw_floor('red1')
-            if pygame.time.get_ticks() - self.death_floor_switch_starting_time >= self.death_floor_switch_cooldown:
+                self.death_floor_switch_starting_time = current_time
+            self.draw_floor(self.death_floors[self.death_floor_index])
+            if current_time - self.death_floor_switch_starting_time >= self.death_floor_switch_cooldown:
                 self.death_floor_switch_starting_time = 0
-                self.death_motion_index += 1
-        if self.death_motion_index == 6:
-            if self.death_floor_switch_starting_time == 0:
-                self.death_floor_switch_starting_time = pygame.time.get_ticks()
-            self.draw_floor('red2')
-            if pygame.time.get_ticks() - self.death_floor_switch_starting_time >= self.death_floor_switch_cooldown:
-                self.death_floor_switch_starting_time = 0
-                self.death_motion_index += 1
-        if self.death_motion_index == 7:
-            if self.death_floor_switch_starting_time == 0:
-                self.death_floor_switch_starting_time = pygame.time.get_ticks()
-            self.draw_floor('red3')
-            if pygame.time.get_ticks() - self.death_floor_switch_starting_time >= self.death_floor_switch_cooldown:
-                self.death_floor_switch_starting_time = 0
-                self.death_motion_index += 1
+                self.death_floor_index += 1
+        elif self.death_motion_index == 4 and self.death_floor_index == self.number_of_death_floors:
+            self.death_motion_index += 1
 
         # No more floor, just black
-        if self.death_motion_index > 7:
+        if self.death_motion_index > 4:
             self.draw_floor('black')
 
         # Put player in gray state for animation
-        if self.death_motion_index == 8:
+        if self.death_motion_index == 5:
             if self.death_gray_starting_time == 0:
-                self.death_gray_starting_time = pygame.time.get_ticks()
+                self.death_gray_starting_time = current_time
                 self.player.set_player_death_state('gray')
-            if pygame.time.get_ticks() - self.death_gray_starting_time >= self.death_gray_cooldown:
+            if current_time - self.death_gray_starting_time >= self.death_gray_cooldown:
                 self.death_motion_index += 1
 
         # Put player in despawn state for animation
-        if self.death_motion_index == 9:
+        if self.death_motion_index == 6:
             if self.death_despawn_starting_time == 0:
-                self.death_despawn_starting_time = pygame.time.get_ticks()
+                self.death_despawn_starting_time = current_time
                 self.player.set_player_death_state('despawn')
-            if pygame.time.get_ticks() - self.death_despawn_starting_time >= self.death_despawn_cooldown:
+            if current_time - self.death_despawn_starting_time >= self.death_despawn_cooldown:
                 self.death_motion_index += 1
 
         # Kill player sprite
-        if self.death_motion_index == 10:
+        if self.death_motion_index == 7:
             self.player.kill()
             self.death_motion_index += 1
 
         # Print GAME OVER in middle of screen until key is pressed to exit game
-        if self.death_motion_index == 11:
+        if self.death_motion_index == 8:
             self.display_surface.blit(self.game_over_message, self.game_over_message_pos)
             keys = pygame.key.get_pressed()
             if is_action_a_key_pressed(keys):
