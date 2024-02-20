@@ -368,7 +368,7 @@ class Player(Entity):
             self.rect.top = self.hitbox.top - 12
             self.rect.left = self.hitbox.left - 4
 
-    def set_player_death_state(self, state):
+    def set_state(self, state):
         current_time = pygame.time.get_ticks()
         if state == 'dying':
             self.state = state
@@ -378,8 +378,8 @@ class Player(Entity):
                 self.state = state
                 self.spin_animation_starting_time = current_time
             self.is_spinning = True
-        elif state == 'idle':
-            self.state = state
+        elif state == 'idle_d':
+            self.state = 'idle'
             self.direction_label = 'down'
         elif state == 'gray':
             self.state = state
@@ -387,6 +387,10 @@ class Player(Entity):
             self.state = state
             self.despawn_sound.play()
             self.despawn_animation_starting_time = current_time
+        elif state == 'warping':
+            self.state = state
+        elif state == 'idle':
+            self.state = state
         else:
             debug(f'trying to change player state in death to : {state}. Does not exist')
 
@@ -395,7 +399,7 @@ class Player(Entity):
         if self.state == 'idle':
             # Stops all animation, resetting to 1st walking frame of the current direction
             self.image = self.walking_animations[self.direction_label][0]
-        elif self.state == 'walking':
+        elif self.state == 'walking' or self.state == 'warping':
             # Going through the motions of multiple frames, with a timer per frame
             self.image = self.walking_animations[self.direction_label][self.walking_animation_frame_count]
             if current_time - self.walking_animation_starting_time >= self.walking_animation_cooldown:
@@ -525,6 +529,31 @@ class Player(Entity):
         if self.has_item(label):
             self.itemB = label
 
+    def offset_position(self, offset_x, offset_y):
+        new_x = self.hitbox.x + offset_x
+        new_y = self.hitbox.y + offset_y
+
+        if TILE_SIZE >= new_x:
+            new_x = TILE_SIZE + 1
+        elif new_x >= SCREEN_WIDTH - TILE_SIZE * 3:
+            new_x = SCREEN_WIDTH - TILE_SIZE * 3 - 1
+
+        if TILE_SIZE + TILE_SIZE * HUD_TILE_HEIGHT >= new_y:
+            new_y = TILE_SIZE + TILE_SIZE * HUD_TILE_HEIGHT + 1
+        elif new_y >= SCREEN_HEIGHT - TILE_SIZE * 3:
+            new_y = SCREEN_HEIGHT - TILE_SIZE * 3 - 1
+
+        self.hitbox.x = new_x
+        self.hitbox.y = new_y
+        self.rect.top = self.hitbox.top - 12
+        self.rect.left = self.hitbox.left - 4
+
+    def set_position(self, pos):
+        self.hitbox.x = pos[0]
+        self.hitbox.y = pos[1]
+        self.rect.top = self.hitbox.top - 12
+        self.rect.left = self.hitbox.left - 4
+
     def update(self):
         if not self.isDead:
             if 'hurt' not in self.state:
@@ -532,7 +561,9 @@ class Player(Entity):
                 self.current_speed = self.speed
             else:
                 self.current_speed = (PLAYER_HURT_FRAMES - self.hurt_animation_frame_count)
-            self.move()
+
+            if self.state != 'warping':
+                self.move()
             self.animate()
             self.cooldowns()
             if self.health <= 0:

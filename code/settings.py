@@ -210,3 +210,29 @@ SOUND_TINY_PICKUP = '../audio/Tiny_Pick_Up.wav'
 SOUND_SMALL_PICKUP = '../audio/Small_Pick_Up.wav'
 SOUND_BOMB_DROP = '../audio/Bomb_Drop.wav'
 SOUND_BOMB_EXPLODE = '../audio/Bomb_Explode.wav'
+
+# Underworld map id
+NEW_LEVEL_BOTTOM_CENTER_POS = (SCREEN_WIDTH / 2 - TILE_SIZE, SCREEN_HEIGHT - TILE_SIZE * 3 - 1)
+UNDERWORLD = [
+    {'map': 'level', 'screen': '10', 'player_pos': (128, 32 + HUD_TILE_HEIGHT * TILE_SIZE + TILE_SIZE + 1)},
+    {'map': 'sword_cave', 'screen': '0', 'player_pos': NEW_LEVEL_BOTTOM_CENTER_POS},
+    {'map': 'level', 'screen': '6', 'player_pos': (192, HUD_TILE_HEIGHT * TILE_SIZE + 160)},
+    {'map': 'pay_for_my_door', 'screen': '0', 'player_pos': NEW_LEVEL_BOTTOM_CENTER_POS},
+    {'map': 'level', 'screen': '0', 'player_pos': (200, 200)},
+    {'map': 'shop0', 'screen': '0', 'player_pos': NEW_LEVEL_BOTTOM_CENTER_POS},
+    {'map': 'level', 'screen': '0', 'player_pos': (200, 200)},
+    {'map': 'dungeon0_', 'screen': '0', 'player_pos': NEW_LEVEL_BOTTOM_CENTER_POS},
+    {'map': 'level', 'screen': '0', 'player_pos': (200, 200)}
+]
+
+# Map system
+NB_MAPS_PER_ROW = {
+    'Overworld': 4,
+    'Dungeon': 3
+}
+NB_MAPS_PER_COL = {
+    'Overworld': 4,
+    'Dungeon': 3
+}
+
+MAP_SCROLL_FRAMES_COUNT = 100
