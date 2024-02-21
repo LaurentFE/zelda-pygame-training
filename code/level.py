@@ -71,8 +71,10 @@ class Level:
         self.particle_tile_set = Tileset('particles')
         self.consumables_tile_set = Tileset('consumables')
 
-        self.overworld_background_theme = pygame.mixer.Sound(SOUND_OVERWORLD)
+        self.overworld_background_theme = pygame.mixer.Sound(THEME_OVERWORLD)
         self.overworld_background_theme.set_volume(0.2)
+        self.dungeon_background_theme = pygame.mixer.Sound(THEME_DUNGEON)
+        self.dungeon_background_theme.set_volume(0.2)
         self.game_over_sound = pygame.mixer.Sound(SOUND_GAME_OVER)
         self.game_over_sound.set_volume(0.4)
 
@@ -89,7 +91,9 @@ class Level:
         self.create_map(self.current_map + self.current_map_screen)
         self.in_map_transition = None
         self.map_scroll_animation_counter = 0
+        self.next_map = None
         self.next_map_screen = None
+        self.player_new_position = None
 
         self.game_over_text = 'game over'
         self.game_over_message = self.draw_message(self.game_over_text, len(self.game_over_text), 1)
@@ -101,6 +105,9 @@ class Level:
         self.key_pressed_start_timer = 0
         self.key_pressed_cooldown = LEVEL_KEY_PRESSED_COOLDOWN
 
+        # Set Stairs animation timer
+        self.stairs_animation_starting_time = 0
+        self.stairs_animation_duration = PLAYER_STAIRS_DURATION
         # Set Game Over animation variables & timers
         self.death_motion_index = 0
         self.death_spin_starting_time = 0
@@ -535,19 +542,16 @@ class Level:
                     # Animate slide - will be done in update
                 case _:
                     if change_id - 4 < len(UNDERWORLD):
-                        self.in_map_transition = 'Stairs'
-                        # self.player.set_state('Stairs') that plays sound also
-                        self.current_map = UNDERWORLD[change_id - 4]['map']
-                        self.current_map_screen = UNDERWORLD[change_id - 4]['screen']
-                        # New floor will be automatically loaded in update() with draw_floor() of the current_level
-                        # Map sprites should be generated after screen transition, and stair animation, so not here ?
-                        self.create_map(self.current_map + self.current_map_screen)
-                        if 'level' in self.current_map:
-                            self.overworld_background_theme.play(loops=-1)
+                        if UNDERWORLD[change_id - 4]['stairs']:
+                            self.in_map_transition = 'Stairs'
+                            self.player.set_state('stairs')
+                            self.stairs_animation_starting_time = pygame.time.get_ticks()
                         else:
-                            self.overworld_background_theme.stop()
-                        self.player.set_position(UNDERWORLD[change_id - 4]['player_pos'])
-                        # Play dungeon music if in dungeon
+                            self.in_map_transition = 'Silent'
+
+                        self.next_map = UNDERWORLD[change_id - 4]['map']
+                        self.next_map_screen = UNDERWORLD[change_id - 4]['screen']
+                        self.player_new_position = UNDERWORLD[change_id - 4]['player_pos']
 
     def animate_map_transition(self):
         self.map_scroll_animation_counter += 1
@@ -693,11 +697,11 @@ class Level:
             self.key_pressed_start_timer = current_time
 
             # Toggle pause menu on/off
-            if self.is_menu_key_pressed_out_of_menu(keys):
+            if self.is_menu_key_pressed_out_of_menu(keys) and not self.player.isDead:
                 self.in_menu = True
                 self.current_selected_item = self.player.itemB
                 self.draw_selector()
-            elif self.is_menu_key_pressed_in_menu(keys):
+            elif self.is_menu_key_pressed_in_menu(keys) and not self.player.isDead:
                 self.in_menu = False
                 self.player.change_item_b(self.current_selected_item)
                 for sprite in self.menu_sprites:
@@ -769,14 +773,13 @@ class Level:
                 monster.attack_starting_time = pygame.time.get_ticks()
 
         if not self.player.isDead:
+            self.draw_hud()
             # Update and draw the game
             if not self.in_menu:
-                self.draw_hud()
                 self.draw_floor()
             # Update and draw the pause menu
             else:
                 self.draw_menu()
-                self.draw_hud()
 
         elif not self.death_played:
             # Play death & game over animation
@@ -790,6 +793,7 @@ class Level:
             pygame.quit()
             sys.exit()
 
+        # Sprites are updated until map transitions
         if self.in_map_transition is None:
             if not self.in_menu:
                 self.visible_sprites.update()
@@ -797,9 +801,9 @@ class Level:
             else:
                 # While in menu, enemies sprites are not updated, thus "paused"
                 self.menu_sprites.update()
+        # During map transition, all existing sprite is paused, not being updated until the transition is over
         else:
-            # Map transition is being animated, and Player should also be moved, so they need updates
-            # Also update HUD !
+            # Warp makes a scrolling transition of the screen level
             if 'Warp' in self.in_map_transition:
                 if self.map_scroll_animation_counter <= MAP_SCROLL_FRAMES_COUNT:
                     self.animate_map_transition()
@@ -810,9 +814,32 @@ class Level:
                     self.player.set_state('idle')
                     self.map_scroll_animation_counter = 0
                     self.in_map_transition = None
-            elif self.in_map_transition == 'Stairs':
-                # wait for stair animation timer
-                # self.in_map_transition = None
-                # do not draw_map() in this case, it will be drawn when the transition is over
-                self.in_map_transition = None
+            # Other transitions (caves with stairs animation, or secret stairs with no animation
+            # Which, I know, is strange, but how the NES game operates from the player POV
+            else:
+                # Wait for the stairs animation (and sound) to be over with, if any
+                if self.in_map_transition == 'Stairs':
+                    current_time = pygame.time.get_ticks()
+                    if current_time - self.stairs_animation_starting_time >= self.stairs_animation_duration:
+                        self.in_map_transition = 'Done'
+                # Generate new map's sprites (enemies, borders, ...), use appropriate music (if any), move the player
+                else:
+                    self.current_map = self.next_map
+                    self.current_map_screen = self.next_map_screen
+                    self.create_map(self.current_map + self.current_map_screen)
+                    if 'level' in self.current_map:
+                        self.overworld_background_theme.play(loops=-1)
+                    else:
+                        self.overworld_background_theme.stop()
+                    # Play dungeon music if in dungeon
+                    if 'dungeon' in self.current_map:
+                        self.dungeon_background_theme.play(loops=-1)
+                    else:
+                        self.dungeon_background_theme.stop()
+                    self.player.set_position(self.player_new_position)
+                    self.next_map = None
+                    self.next_map_screen = None
+                    self.player_new_position = None
+                    self.in_map_transition = None
+            # Only visible sprites left at this point are the Player, and all the HUD sprites
             self.visible_sprites.update()

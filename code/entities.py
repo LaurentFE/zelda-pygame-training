@@ -37,6 +37,8 @@ class Entity(pygame.sprite.Sprite, ABC):
         }
         self.spawn_animation = []
         self.despawn_animation = []
+        self.stairs_animation = []
+
         self.direction_vector = pygame.math.Vector2()
         self.direction_label = ''
         self.state = ''
@@ -73,6 +75,8 @@ class Entity(pygame.sprite.Sprite, ABC):
         self.spawn_frame_id = 0
         self.despawn_frames = 0
         self.despawn_frame_id = 0
+        self.stairs_frames = 0
+        self.stairs_frame_id = 0
 
         # All cooldowns are in milliseconds
         # Cooldown between animation frames
@@ -187,6 +191,11 @@ class Entity(pygame.sprite.Sprite, ABC):
             tiles_offset = SPRITE_SIZE // TILE_SIZE * i
             self.despawn_animation.append(entity_tile_set.get_sprite_image(self.despawn_frame_id + tiles_offset))
 
+    def load_stairs_frames(self, entity_tile_set):
+        for i in range(self.stairs_frames):
+            tiles_offset = SPRITE_SIZE // TILE_SIZE * i
+            self.stairs_animation.append(entity_tile_set.get_sprite_image(self.stairs_frame_id + tiles_offset))
+
     @abc.abstractmethod
     def load_animation_frames(self, entity_tile_set):
 
@@ -203,6 +212,8 @@ class Entity(pygame.sprite.Sprite, ABC):
         self.load_spawn_frames(entity_tile_set)
 
         self.load_despawn_frames(entity_tile_set)
+
+        self.load_stairs_frames(entity_tile_set)
 
     @abc.abstractmethod
     def cooldowns(self):

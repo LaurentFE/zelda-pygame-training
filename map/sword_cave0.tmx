@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <map version="1.10" tiledversion="1.10.2" orientation="orthogonal" renderorder="right-down" width="32" height="22" tilewidth="16" tileheight="16" infinite="0" nextlayerid="7" nextobjectid="1">
  <editorsettings>
-  <export target="../../map/sword_cave0.csv" format="csv"/>
+  <export target="sword_cave0.csv" format="csv"/>
  </editorsettings>
- <tileset firstgid="1" source="terrain_red.tsx"/>
- <tileset firstgid="161" source="../enemies/enemies.tsx"/>
- <tileset firstgid="337" source="../font/font.tsx"/>
+ <tileset firstgid="1" source="../graphics/levels/terrain_red.tsx"/>
+ <tileset firstgid="161" source="../graphics/enemies/enemies.tsx"/>
+ <tileset firstgid="337" source="../graphics/font/font.tsx"/>
  <layer id="1" name="level" width="32" height="22">
   <data encoding="csv">
 109,110,109,110,109,110,109,110,109,110,109,110,109,110,109,110,109,110,109,110,109,110,109,110,109,110,109,110,109,110,109,110,
