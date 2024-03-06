@@ -8,6 +8,7 @@ from support import *
 from inputs import *
 from tileset import Tileset
 from tile import Tile
+from obstacle import Obstacle
 from player import Player
 from enemies import RedOctorock
 from particles import Heart, Rupee, CBomb, Fairy
@@ -405,19 +406,18 @@ class Level:
     def load_limits(self, level_id):
         layout = import_csv_layout(f'../map/{level_id}_Limits.csv')
         # Draw lines of obstacles so no one gets into the menu or off the screen at the bottom
-        nb_tiles_width = SCREEN_WIDTH//TILE_SIZE
-        nb_tiles_height = SCREEN_HEIGHT//TILE_SIZE
-        for col in range(0, nb_tiles_width):
+        for col in range(0, NB_TILE_WIDTH):
             y_top = (HUD_TILE_HEIGHT-1)*TILE_SIZE
             y_bottom = SCREEN_HEIGHT
-            Tile((col*TILE_SIZE, y_top), [self.obstacle_sprites, self.border_sprites])
-            Tile((col*TILE_SIZE, y_bottom), [self.obstacle_sprites, self.border_sprites])
+            Obstacle((col*TILE_SIZE, y_top), [self.obstacle_sprites], self.border_sprites)
+            Obstacle((col*TILE_SIZE, y_bottom), [self.obstacle_sprites, self.border_sprites])
         # Draw lines of obstacles so no one gets out of the sides of the screen
-        for row in range(HUD_TILE_HEIGHT, nb_tiles_height):
+        for row in range(HUD_TILE_HEIGHT, NB_TILE_HEIGHT):
             x_left = - TILE_SIZE
             x_right = SCREEN_WIDTH
-            Tile((x_left, row*TILE_SIZE), [self.obstacle_sprites])
-            Tile((x_right, row*TILE_SIZE), [self.obstacle_sprites])
+            Obstacle((x_left, row*TILE_SIZE), [self.obstacle_sprites])
+            Obstacle((x_right, row*TILE_SIZE), [self.obstacle_sprites])
+
         # Draw obstacles inside the level layout
         for row_index, row in enumerate(layout):
             for col_index, col in enumerate(row):
@@ -425,7 +425,7 @@ class Level:
                 y = row_index * TILE_SIZE + HUD_TILE_HEIGHT * TILE_SIZE  # skipping menu tiles at the top of screen
                 sprite_id = int(col)
                 if sprite_id != -1:
-                    Tile((x, y), [self.obstacle_sprites])
+                    Obstacle((x, y), [self.obstacle_sprites], sprite_id)
 
     def load_enemies(self, level_id):
         layout = import_csv_layout(f'../map/{level_id}_Enemies.csv')
