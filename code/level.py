@@ -409,14 +409,14 @@ class Level:
         for col in range(0, NB_TILE_WIDTH):
             y_top = (HUD_TILE_HEIGHT-1)*TILE_SIZE
             y_bottom = SCREEN_HEIGHT
-            Obstacle((col*TILE_SIZE, y_top), [self.obstacle_sprites], self.border_sprites)
+            Obstacle((col*TILE_SIZE, y_top), [self.obstacle_sprites, self.border_sprites])
             Obstacle((col*TILE_SIZE, y_bottom), [self.obstacle_sprites, self.border_sprites])
         # Draw lines of obstacles so no one gets out of the sides of the screen
         for row in range(HUD_TILE_HEIGHT, NB_TILE_HEIGHT):
             x_left = - TILE_SIZE
             x_right = SCREEN_WIDTH
-            Obstacle((x_left, row*TILE_SIZE), [self.obstacle_sprites])
-            Obstacle((x_right, row*TILE_SIZE), [self.obstacle_sprites])
+            Obstacle((x_left, row*TILE_SIZE), [self.obstacle_sprites, self.border_sprites])
+            Obstacle((x_right, row*TILE_SIZE), [self.obstacle_sprites, self.border_sprites])
 
         # Draw obstacles inside the level layout
         for row_index, row in enumerate(layout):
