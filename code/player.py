@@ -3,6 +3,7 @@ import pygame.mixer
 from settings import *
 from inputs import *
 from debug import debug
+from tile import Tile
 from entities import Entity
 from particles import WoodenSword, Bomb
 
@@ -21,7 +22,7 @@ from particles import WoodenSword, Bomb
 #
 # NOTE : Behavior observed on NES videos :
 #    ATTACK :
-#       Original allows player to change direction of attack during animation (framerate is lower though,
+#       Original allows player to change direction of attack during animation (frame rate is lower though,
 #         so "on cooldown" I guess)
 #       My version : probably won't allow it, because player won't really 'attack' or 'cast', but most likely
 #         'cast' every item, sword included, and I don't want to change directions in middle of candle for instance,
@@ -157,6 +158,8 @@ class Player(Entity):
         self.has_sword_wood = True
         self.itemA = "WoodenSword"
         self.itemB = "Bomb"
+        self.ladder_in_use = False
+        self.ladder = None
 
     def load_animation_frames(self, player_tile_set):
         super().load_animation_frames(player_tile_set)
@@ -266,6 +269,7 @@ class Player(Entity):
     # collision (direction) detects collision with both enemies and obstacle sprites
     def collision(self, direction):
         if direction == 'horizontal':
+            # Collision with Enemies
             for sprite in self.enemy_sprites:
                 if sprite.hitbox.colliderect(self.hitbox):
                     if 'hurt' not in self.state and not self.invulnerable and not sprite.invulnerable:
@@ -285,12 +289,38 @@ class Player(Entity):
                             self.low_health_sound.play(loops=-1)
                             self.is_low_health = True
 
+            # Collision with an Obstacle
             for sprite in self.obstacle_sprites:
-                if sprite.hitbox.colliderect(self.hitbox):
-                    if self.direction_vector.x > 0:
-                        self.hitbox.right = sprite.hitbox.left
-                    if self.direction_vector.x < 0:
-                        self.hitbox.left = sprite.hitbox.right
+                if sprite.type == LIMIT_WATER_INDEX and self.has_ladder and not self.ladder_in_use:
+                    if sprite.hitbox.colliderect(self.hitbox):
+                        # Place ladder on top of the water the player's willing to cross, if the ladder is available
+                        self.ladder_in_use = True
+                        ladder_image = self.item_tileset.get_sprite_image(LADDER_FRAME_ID)
+                        self.ladder = Tile(sprite.pos, self.visible_sprites, ladder_image)
+                        sprite.type = LIMIT_LADDER_INDEX
+                elif sprite.type == LIMIT_WATER_INDEX and self.has_ladder and self.ladder_in_use:
+                    if sprite.hitbox.colliderect(self.ladder.hitbox):
+                        # Change obstacle type if it's water, and under the ladder
+                        sprite.type = LIMIT_LADDER_INDEX
+
+                elif sprite.type != LIMIT_LADDER_INDEX:
+                    # All other cases, an obstacle sprite blocks the player's path
+                    if sprite.hitbox.colliderect(self.hitbox):
+                        if self.direction_vector.x > 0:
+                            self.hitbox.right = sprite.hitbox.left
+                        if self.direction_vector.x < 0:
+                            self.hitbox.left = sprite.hitbox.right
+
+                elif sprite.type == LIMIT_LADDER_INDEX:
+                    if self.ladder_in_use:
+                        # Delete ladder if the Player is not on top of it anymore
+                        if not self.ladder.hitbox.colliderect(self.hitbox):
+                            sprite.type = LIMIT_WATER_INDEX
+                            self.ladder.kill()
+                            self.ladder = None
+                            self.ladder_in_use = False
+                        else:
+                            sprite.type = LIMIT_WATER_INDEX
 
         elif direction == 'vertical':
             for sprite in self.enemy_sprites:
@@ -313,11 +343,36 @@ class Player(Entity):
                             self.is_low_health = True
 
             for sprite in self.obstacle_sprites:
-                if sprite.hitbox.colliderect(self.hitbox):
-                    if self.direction_vector.y > 0:
-                        self.hitbox.bottom = sprite.hitbox.top
-                    if self.direction_vector.y < 0:
-                        self.hitbox.top = sprite.hitbox.bottom
+                if sprite.type == LIMIT_WATER_INDEX and self.has_ladder and not self.ladder_in_use:
+                    if sprite.hitbox.colliderect(self.hitbox):
+                        # Place ladder on top of the water the player's willing to cross, if the ladder is available
+                        self.ladder_in_use = True
+                        ladder_image = self.item_tileset.get_sprite_image(LADDER_FRAME_ID)
+                        self.ladder = Tile(sprite.pos, self.visible_sprites, ladder_image)
+                        sprite.type = LIMIT_LADDER_INDEX
+                elif sprite.type == LIMIT_WATER_INDEX and self.has_ladder and self.ladder_in_use:
+                    if sprite.hitbox.colliderect(self.ladder.hitbox):
+                        # Change obstacle type if it's water, and under the ladder
+                        sprite.type = LIMIT_LADDER_INDEX
+
+                elif sprite.type != LIMIT_LADDER_INDEX:
+                    # All other cases, an obstacle sprite blocks the player's path
+                    if sprite.hitbox.colliderect(self.hitbox):
+                        if self.direction_vector.y > 0:
+                            self.hitbox.bottom = sprite.hitbox.top
+                        if self.direction_vector.y < 0:
+                            self.hitbox.top = sprite.hitbox.bottom
+
+                elif sprite.type == LIMIT_LADDER_INDEX:
+                    if self.ladder_in_use:
+                        # Delete ladder if the Player is not on top of it anymore
+                        if not self.ladder.hitbox.colliderect(self.hitbox):
+                            sprite.type = LIMIT_WATER_INDEX
+                            self.ladder.kill()
+                            self.ladder = None
+                            self.ladder_in_use = False
+                        else:
+                            sprite.type = LIMIT_WATER_INDEX
 
         for particle in self.particle_sprites:
             if particle.hitbox.colliderect(self.hitbox):
