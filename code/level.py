@@ -12,6 +12,7 @@ from player import Player
 from enemies import RedOctorock
 from particles import Heart, Rupee, CBomb, Fairy
 from selector import Selector
+from warp import Warp
 
 
 # Will need someday to SINGLETON-ify this
@@ -19,7 +20,6 @@ class Level:
     def __init__(self):
         # Set up variables
         self.player = None
-        self.current_level = 'level0'
         self.death_played = False
         self.death_floors = GAME_OVER_DEATH_FLOORS
         self.number_of_death_floors = len(self.death_floors)
@@ -31,6 +31,7 @@ class Level:
         self.display_surface = pygame.display.get_surface()
         self.floor_surface = None
         self.floor_rect = None
+        self.transition_surface = None
         self.menu_surface = None
         self.menu_rect = None
         self.game_over_message = None
@@ -70,13 +71,30 @@ class Level:
         self.particle_tile_set = Tileset('particles')
         self.consumables_tile_set = Tileset('consumables')
 
-        self.overworld_background_theme = pygame.mixer.Sound(SOUND_OVERWORLD)
+        self.overworld_background_theme = pygame.mixer.Sound(THEME_OVERWORLD)
         self.overworld_background_theme.set_volume(0.2)
+        self.dungeon_background_theme = pygame.mixer.Sound(THEME_DUNGEON)
+        self.dungeon_background_theme.set_volume(0.2)
         self.game_over_sound = pygame.mixer.Sound(SOUND_GAME_OVER)
         self.game_over_sound.set_volume(0.4)
 
         # Sprite setup
-        self.create_map()
+
+        # Player spawns at the center of the game surface
+        player_x = SCREEN_WIDTH // 2 - TILE_SIZE
+        player_y = SCREEN_HEIGHT // 2 + HUD_TILE_HEIGHT * TILE_SIZE // 2 - TILE_SIZE
+        self.load_player((player_x, player_y))
+        self.overworld_background_theme.play(loops=-1)
+
+        self.current_map = 'level'
+        self.current_map_screen = '10'
+        self.create_map(self.current_map + self.current_map_screen)
+        self.in_map_transition = None
+        self.map_scroll_animation_counter = 0
+        self.next_map = None
+        self.next_map_screen = None
+        self.player_new_position = None
+
         self.game_over_text = 'game over'
         self.game_over_message = self.draw_message(self.game_over_text, len(self.game_over_text), 1)
         self.game_over_message_pos = (
@@ -87,6 +105,9 @@ class Level:
         self.key_pressed_start_timer = 0
         self.key_pressed_cooldown = LEVEL_KEY_PRESSED_COOLDOWN
 
+        # Set Stairs animation timer
+        self.stairs_animation_starting_time = 0
+        self.stairs_animation_duration = PLAYER_STAIRS_DURATION
         # Set Game Over animation variables & timers
         self.death_motion_index = 0
         self.death_spin_starting_time = 0
@@ -293,7 +314,7 @@ class Level:
             self.floor_surface = pygame.image.load('../graphics/levels/black.png').convert()
         else:
             self.floor_surface = pygame.image.load(
-                f'../graphics/levels/{self.current_level}{death_color}.png').convert()
+                f'../graphics/levels/{self.current_map}{self.current_map_screen}{death_color}.png').convert()
         self.floor_rect = self.floor_surface.get_rect(topleft=(0, 0))
         self.display_surface.blit(self.floor_surface, (0, HUD_TILE_HEIGHT*TILE_SIZE))
 
@@ -368,8 +389,21 @@ class Level:
                                                sprite_groups,
                                                self.items_tile_set.get_sprite_image(item_frame_id))
 
-    def load_limits(self):
-        layout = import_csv_layout(f'../map/{self.current_level}_Limits.csv')
+    def load_warps(self, level_id):
+        layout = import_csv_layout(f'../map/{level_id}_Warps.csv')
+        # Warp tiles are invisible, and either induce a scrolling animation on the sides of the screen, or a
+        # stairs animation anywhere else
+        # No graphics, only collisions
+        for row_index, row in enumerate(layout):
+            for col_index, col in enumerate(row):
+                x = col_index * TILE_SIZE
+                y = row_index * TILE_SIZE + HUD_TILE_HEIGHT * TILE_SIZE  # Skipping the HUD tiles at the top of screen
+                sprite_id = int(col)
+                if sprite_id != -1:
+                    Warp((x, y), [self.warp_sprites], sprite_id, self.player, self)
+
+    def load_limits(self, level_id):
+        layout = import_csv_layout(f'../map/{level_id}_Limits.csv')
         # Draw lines of obstacles so no one gets into the menu or off the screen at the bottom
         nb_tiles_width = SCREEN_WIDTH//TILE_SIZE
         nb_tiles_height = SCREEN_HEIGHT//TILE_SIZE
@@ -393,8 +427,8 @@ class Level:
                 if sprite_id != -1:
                     Tile((x, y), [self.obstacle_sprites])
 
-    def load_enemies(self):
-        layout = import_csv_layout(f'../map/{self.current_level}_Enemies.csv')
+    def load_enemies(self, level_id):
+        layout = import_csv_layout(f'../map/{level_id}_Enemies.csv')
         for row_index, row in enumerate(layout):
             for col_index, col in enumerate(row):
                 x = col_index * TILE_SIZE
@@ -409,30 +443,139 @@ class Level:
                                 self.enemies_tile_set,
                                 self.particle_tile_set)
 
-    def load_player(self):
-        layout = import_csv_layout(f'../map/{self.current_level}_Player.csv')
-        for row_index, row in enumerate(layout):
-            for col_index, col in enumerate(row):
-                x = col_index * TILE_SIZE
-                y = row_index * TILE_SIZE + HUD_TILE_HEIGHT * TILE_SIZE  # Skipping menu tiles at the top of screen
-                sprite_id = int(col)
-                if sprite_id != -1:
-                    self.player = Player((x, y),
-                                         [self.visible_sprites],
-                                         self.obstacle_sprites,
-                                         self.enemy_sprites,
-                                         self.visible_sprites,
-                                         self.particle_sprites,
-                                         self.player_tile_set,
-                                         self.particle_tile_set,
-                                         self.items_tile_set)
+    def load_player(self, pos):
+        self.player = Player(pos,
+                             [self.visible_sprites],
+                             self.obstacle_sprites,
+                             self.enemy_sprites,
+                             self.visible_sprites,
+                             self.particle_sprites,
+                             self.player_tile_set,
+                             self.particle_tile_set,
+                             self.items_tile_set)
 
-    def create_map(self):
-        # Lacks a proper level management, with screen changes for the over-world, and access to underworld sections
-        self.load_limits()
-        self.load_enemies()
-        self.load_player()
-        self.overworld_background_theme.play(loops=-1)
+    def create_map(self, level_id):
+        # This creates all Sprites of the new map
+        # This is done AFTER any map change animation
+        self.load_limits(level_id)
+        self.load_warps(level_id)
+        self.load_enemies(level_id)
+
+    def create_transition_surface(self):
+        # Only Overworld and Dungeon maps will have warp tiles to border scroll
+        # No loop from max right to max left as if the world was a sphere
+        next_level_id = 0
+        next_floor_x = 0
+        next_floor_y = 0
+        current_floor_x = 0
+        current_floor_y = 0
+        match self.in_map_transition:
+            case 'Warp_U':
+                if 'level' in self.current_map:
+                    next_level_id = int(self.current_map_screen) - NB_MAPS_PER_ROW['Overworld']
+                else:
+                    next_level_id = int(self.current_map_screen) - NB_MAPS_PER_ROW['Dungeon']
+                self.transition_surface = pygame.Surface(
+                    (self.floor_rect.width, 2 * self.floor_rect.height))
+                current_floor_y = self.floor_rect.height
+            case 'Warp_R':
+                next_level_id = int(self.current_map_screen) + 1
+                self.transition_surface = pygame.Surface(
+                    (2 * self.floor_rect.width, self.floor_rect.height))
+                next_floor_x = self.floor_rect.width
+            case 'Warp_D':
+                if 'level' in self.current_map:
+                    next_level_id = int(self.current_map_screen) + NB_MAPS_PER_ROW['Overworld']
+                else:
+                    next_level_id = int(self.current_map_screen) + NB_MAPS_PER_ROW['Dungeon']
+                self.transition_surface = pygame.Surface(
+                    (self.floor_rect.width, 2 * self.floor_rect.height))
+                next_floor_y = self.floor_rect.height
+            case 'Warp_L':
+                next_level_id = int(self.current_map_screen) - 1
+                self.transition_surface = pygame.Surface(
+                    (2 * self.floor_rect.width, self.floor_rect.height))
+                current_floor_x = self.floor_rect.width
+
+        next_floor = pygame.image.load(f'../graphics/levels/{self.current_map}{next_level_id}.png').convert()
+        self.transition_surface.blit(next_floor, (next_floor_x, next_floor_y))
+        self.transition_surface.blit(self.floor_surface, (current_floor_x, current_floor_y))
+        self.next_map_screen = next_level_id
+
+    def change_map(self, change_id):
+        if change_id >= 0:
+            self.map_scroll_animation_counter = 0
+            for warp in self.warp_sprites:
+                warp.kill()
+            for enemy in self.enemy_sprites:
+                enemy.kill()
+            for particle in self.particle_sprites:
+                particle.kill()
+            for obstacle in self.obstacle_sprites:
+                obstacle.kill()
+            # change_id 0 -> 3 is a side scrolling map change, respectively Up/Right/Down/Left
+            # change_id > 3 is a stairs map change, with sound and a completely different map
+            match change_id:
+                case 0:
+                    # Up
+                    self.in_map_transition = 'Warp_U'
+                    self.create_transition_surface()
+                    self.player.set_state('warping')
+                    # Animate slide - will be done in update
+                case 1:
+                    # Right
+                    self.in_map_transition = 'Warp_R'
+                    self.create_transition_surface()
+                    self.player.set_state('warping')
+                    # Animate slide - will be done in update
+                case 2:
+                    # Down
+                    self.in_map_transition = 'Warp_D'
+                    self.create_transition_surface()
+                    self.player.set_state('warping')
+                    # Animate slide - will be done in update
+                case 3:
+                    # Left
+                    self.in_map_transition = 'Warp_L'
+                    self.create_transition_surface()
+                    self.player.set_state('warping')
+                    # Animate slide - will be done in update
+                case _:
+                    if change_id - 4 < len(UNDERWORLD):
+                        if UNDERWORLD[change_id - 4]['stairs']:
+                            self.in_map_transition = 'Stairs'
+                            self.player.set_state('stairs')
+                            self.stairs_animation_starting_time = pygame.time.get_ticks()
+                        else:
+                            self.in_map_transition = 'Silent'
+
+                        self.next_map = UNDERWORLD[change_id - 4]['map']
+                        self.next_map_screen = UNDERWORLD[change_id - 4]['screen']
+                        self.player_new_position = UNDERWORLD[change_id - 4]['player_pos']
+
+    def animate_map_transition(self):
+        self.map_scroll_animation_counter += 1
+        x_fixed_offset = self.floor_rect.width / MAP_SCROLL_FRAMES_COUNT
+        y_fixed_offset = self.floor_rect.height / MAP_SCROLL_FRAMES_COUNT
+        x_offset = x_fixed_offset * self.map_scroll_animation_counter
+        y_offset = y_fixed_offset * self.map_scroll_animation_counter
+        hud_offset = HUD_TILE_HEIGHT*TILE_SIZE
+
+        match self.in_map_transition:
+            case 'Warp_U':
+                self.display_surface.blit(self.transition_surface, (0, hud_offset - self.floor_rect.height + y_offset))
+                self.draw_hud()
+                self.player.offset_position(0, y_fixed_offset)
+            case 'Warp_R':
+                self.display_surface.blit(self.transition_surface, (-x_offset, hud_offset))
+                self.player.offset_position(-x_fixed_offset, 0)
+            case 'Warp_D':
+                self.display_surface.blit(self.transition_surface, (0, hud_offset - y_offset))
+                self.draw_hud()
+                self.player.offset_position(0, -y_fixed_offset)
+            case 'Warp_L':
+                self.display_surface.blit(self.transition_surface, (x_offset - self.floor_rect.width, hud_offset))
+                self.player.offset_position(x_fixed_offset, 0)
 
     def death(self):
         self.draw_hud()
@@ -451,7 +594,7 @@ class Level:
         if self.death_motion_index == 2:
             if self.death_hurt_starting_time == 0:
                 self.death_hurt_starting_time = current_time
-                self.player.set_player_death_state('dying')
+                self.player.set_state('dying')
             elif current_time - self.death_hurt_starting_time >= self.death_hurt_cooldown:
                 self.death_motion_index += 1
                 self.game_over_sound.play()
@@ -462,11 +605,11 @@ class Level:
             self.draw_floor(self.death_floors[self.death_floor_index])
             # Spin ! By default, 3 times (cf init of self.death_spin_cooldown)
             if current_time - self.death_spin_starting_time < self.death_spin_cooldown:
-                self.player.set_player_death_state('spinning')
+                self.player.set_state('spinning')
             else:
                 self.death_motion_index += 1
                 self.death_floor_index += 1
-                self.player.set_player_death_state('idle')
+                self.player.set_state('idle_d')
 
         # Switch map img to 3 darker shades successively
         if self.death_motion_index == 4 and self.death_floor_index < self.number_of_death_floors:
@@ -487,7 +630,7 @@ class Level:
         if self.death_motion_index == 5:
             if self.death_gray_starting_time == 0:
                 self.death_gray_starting_time = current_time
-                self.player.set_player_death_state('gray')
+                self.player.set_state('gray')
             if current_time - self.death_gray_starting_time >= self.death_gray_cooldown:
                 self.death_motion_index += 1
 
@@ -495,7 +638,7 @@ class Level:
         if self.death_motion_index == 6:
             if self.death_despawn_starting_time == 0:
                 self.death_despawn_starting_time = current_time
-                self.player.set_player_death_state('despawn')
+                self.player.set_state('despawn')
             if current_time - self.death_despawn_starting_time >= self.death_despawn_cooldown:
                 self.death_motion_index += 1
 
@@ -554,11 +697,11 @@ class Level:
             self.key_pressed_start_timer = current_time
 
             # Toggle pause menu on/off
-            if self.is_menu_key_pressed_out_of_menu(keys):
+            if self.is_menu_key_pressed_out_of_menu(keys) and not self.player.isDead:
                 self.in_menu = True
                 self.current_selected_item = self.player.itemB
                 self.draw_selector()
-            elif self.is_menu_key_pressed_in_menu(keys):
+            elif self.is_menu_key_pressed_in_menu(keys) and not self.player.isDead:
                 self.in_menu = False
                 self.player.change_item_b(self.current_selected_item)
                 for sprite in self.menu_sprites:
@@ -619,6 +762,7 @@ class Level:
 
     def run(self):
         self.input()
+
         for monster in self.enemy_sprites:
             if monster.isDead and monster.deathPlayed:
                 # Delete monsters that have played their death animation
@@ -627,28 +771,75 @@ class Level:
             elif self.in_menu:
                 # Reset attack cooldown timer until game is resumed
                 monster.attack_starting_time = pygame.time.get_ticks()
+
         if not self.player.isDead:
+            self.draw_hud()
             # Update and draw the game
             if not self.in_menu:
-                self.draw_hud()
                 self.draw_floor()
             # Update and draw the pause menu
             else:
                 self.draw_menu()
-                self.draw_hud()
+
         elif not self.death_played:
             # Play death & game over animation
             if self.death_motion_index == 0:
                 self.overworld_background_theme.stop()
                 self.death_motion_index = 1
             self.death()
+
         elif self.death_played:
             # Close game
             pygame.quit()
             sys.exit()
 
-        if not self.in_menu:
-            self.visible_sprites.update()
+        # Sprites are updated until map transitions
+        if self.in_map_transition is None:
+            if not self.in_menu:
+                self.visible_sprites.update()
+                self.warp_sprites.update()
+            else:
+                # While in menu, enemies sprites are not updated, thus "paused"
+                self.menu_sprites.update()
+        # During map transition, all existing sprite is paused, not being updated until the transition is over
         else:
-            # While in menu, enemies sprites are not updated, thus "paused"
-            self.menu_sprites.update()
+            # Warp makes a scrolling transition of the screen level
+            if 'Warp' in self.in_map_transition:
+                if self.map_scroll_animation_counter <= MAP_SCROLL_FRAMES_COUNT:
+                    self.animate_map_transition()
+                else:
+                    self.current_map_screen = self.next_map_screen
+                    self.draw_floor()
+                    self.create_map(self.current_map + str(self.current_map_screen))
+                    self.player.set_state('idle')
+                    self.map_scroll_animation_counter = 0
+                    self.in_map_transition = None
+            # Other transitions (caves with stairs animation, or secret stairs with no animation
+            # Which, I know, is strange, but how the NES game operates from the player POV
+            else:
+                # Wait for the stairs animation (and sound) to be over with, if any
+                if self.in_map_transition == 'Stairs':
+                    current_time = pygame.time.get_ticks()
+                    if current_time - self.stairs_animation_starting_time >= self.stairs_animation_duration:
+                        self.in_map_transition = 'Done'
+                # Generate new map's sprites (enemies, borders, ...), use appropriate music (if any), move the player
+                else:
+                    self.current_map = self.next_map
+                    self.current_map_screen = self.next_map_screen
+                    self.create_map(self.current_map + self.current_map_screen)
+                    if 'level' in self.current_map:
+                        self.overworld_background_theme.play(loops=-1)
+                    else:
+                        self.overworld_background_theme.stop()
+                    # Play dungeon music if in dungeon
+                    if 'dungeon' in self.current_map:
+                        self.dungeon_background_theme.play(loops=-1)
+                    else:
+                        self.dungeon_background_theme.stop()
+                    self.player.set_position(self.player_new_position)
+                    self.next_map = None
+                    self.next_map_screen = None
+                    self.player_new_position = None
+                    self.in_map_transition = None
+            # Only visible sprites left at this point are the Player, and all the HUD sprites
+            self.visible_sprites.update()

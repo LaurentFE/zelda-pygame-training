@@ -40,18 +40,6 @@ class Player(Entity):
 
         self.item_tileset = item_tileset
 
-        self.action_animations = {
-            'up': [],
-            'right': [],
-            'down': [],
-            'left': []
-        }
-        self.pickup_minor_animation = []
-        self.pickup_major_animation = []
-        self.gray_animation = {
-            'down': []
-        }
-
         # Initialisation of the values used to load the different animations
         self.is_right_flipped = True
         self.walking_frames = PLAYER_WALKING_FRAMES
@@ -77,6 +65,8 @@ class Player(Entity):
         self.hurt_right_frame_id = PLAYER_HURT_RIGHT_FRAME_ID
         self.despawn_frames = PLAYER_DEATH_FRAMES
         self.despawn_frame_id = PLAYER_DEATH_FRAME_ID
+        self.stairs_frames = PLAYER_STAIRS_FRAMES
+        self.stairs_frame_id = PLAYER_STAIRS_FRAME_ID
         self.load_animation_frames(player_tile_set)
 
         # Sounds
@@ -91,6 +81,8 @@ class Player(Entity):
         self.low_health_sound.set_volume(0.3)
         self.despawn_sound = pygame.mixer.Sound(SOUND_PLAYER_DESPAWN)
         self.despawn_sound.set_volume(0.4)
+        self.stairs_sound = pygame.mixer.Sound(SOUND_STAIRS)
+        self.stairs_sound.set_volume(0.4)
 
         self.direction_label = 'down'
         self.state = 'idle'
@@ -110,6 +102,7 @@ class Player(Entity):
         self.pickup_major_animation_cooldown = PLAYER_PICKUP_MAJOR_ANIMATION_COOLDOWN
         self.hurt_animation_cooldown = PLAYER_HURT_ANIMATION_COOLDOWN
         self.despawn_animation_cooldown = PLAYER_DEATH_ANIMATION_COOLDOWN
+        self.stairs_animation_cooldown = PLAYER_STAIRS_ANIMATION_COOLDOWN
         # Time at which animation frame started
         self.walking_animation_starting_time = 0
         self.action_animation_starting_time = 0
@@ -118,6 +111,7 @@ class Player(Entity):
         self.hurt_animation_starting_time = 0
         self.spin_animation_starting_time = 0
         self.despawn_animation_starting_time = 0
+        self.stairs_animation_starting_time = 0
         # Index of animation being played
         self.walking_animation_frame_count = 0
         self.action_animation_frame_count = 0
@@ -125,6 +119,7 @@ class Player(Entity):
         self.pickup_major_animation_frame_count = 0
         self.hurt_animation_frame_count = 0
         self.despawn_animation_frame_count = 0
+        self.stairs_animation_frame_count = 0
         # Animation reset
         self.idle_time = 0
 
@@ -368,7 +363,7 @@ class Player(Entity):
             self.rect.top = self.hitbox.top - 12
             self.rect.left = self.hitbox.left - 4
 
-    def set_player_death_state(self, state):
+    def set_state(self, state):
         current_time = pygame.time.get_ticks()
         if state == 'dying':
             self.state = state
@@ -378,8 +373,8 @@ class Player(Entity):
                 self.state = state
                 self.spin_animation_starting_time = current_time
             self.is_spinning = True
-        elif state == 'idle':
-            self.state = state
+        elif state == 'idle_d':
+            self.state = 'idle'
             self.direction_label = 'down'
         elif state == 'gray':
             self.state = state
@@ -387,6 +382,14 @@ class Player(Entity):
             self.state = state
             self.despawn_sound.play()
             self.despawn_animation_starting_time = current_time
+        elif state == 'warping':
+            self.state = state
+        elif state == 'stairs':
+            self.state = state
+            self.stairs_sound.play()
+            self.stairs_animation_starting_time = current_time
+        elif state == 'idle':
+            self.state = state
         else:
             debug(f'trying to change player state in death to : {state}. Does not exist')
 
@@ -395,7 +398,7 @@ class Player(Entity):
         if self.state == 'idle':
             # Stops all animation, resetting to 1st walking frame of the current direction
             self.image = self.walking_animations[self.direction_label][0]
-        elif self.state == 'walking':
+        elif self.state == 'walking' or self.state == 'warping':
             # Going through the motions of multiple frames, with a timer per frame
             self.image = self.walking_animations[self.direction_label][self.walking_animation_frame_count]
             if current_time - self.walking_animation_starting_time >= self.walking_animation_cooldown:
@@ -438,7 +441,16 @@ class Player(Entity):
                 self.hurt_animation_starting_time = current_time
                 if self.hurt_animation_frame_count < PLAYER_HURT_FRAMES-1:
                     self.hurt_animation_frame_count += 1
-
+        elif self.state == 'stairs':
+            # Going through the motions of multiple frames, with a timer per frame
+            self.image = self.stairs_animation[self.stairs_animation_frame_count]
+            if current_time - self.stairs_animation_starting_time >= self.stairs_animation_cooldown:
+                self.stairs_animation_starting_time = current_time
+                if self.stairs_animation_frame_count < PLAYER_STAIRS_FRAMES-1:
+                    self.stairs_animation_frame_count += 1
+                else:
+                    self.stairs_animation_frame_count = 0
+                    self.state = 'idle'
         elif self.state == 'dying':
             # Going through the motions of multiple frames, with a timer per frame
             self.image = self.hurt_animations[self.direction_label][self.hurt_animation_frame_count]
@@ -525,6 +537,31 @@ class Player(Entity):
         if self.has_item(label):
             self.itemB = label
 
+    def offset_position(self, offset_x, offset_y):
+        new_x = self.hitbox.x + offset_x
+        new_y = self.hitbox.y + offset_y
+
+        if TILE_SIZE >= new_x:
+            new_x = TILE_SIZE + 1
+        elif new_x >= SCREEN_WIDTH - TILE_SIZE * 3:
+            new_x = SCREEN_WIDTH - TILE_SIZE * 3 - 1
+
+        if TILE_SIZE + TILE_SIZE * HUD_TILE_HEIGHT >= new_y:
+            new_y = TILE_SIZE + TILE_SIZE * HUD_TILE_HEIGHT + 1
+        elif new_y >= SCREEN_HEIGHT - TILE_SIZE * 3:
+            new_y = SCREEN_HEIGHT - TILE_SIZE * 3 - 1
+
+        self.hitbox.x = new_x
+        self.hitbox.y = new_y
+        self.rect.top = self.hitbox.top - 12
+        self.rect.left = self.hitbox.left - 4
+
+    def set_position(self, pos):
+        self.hitbox.x = pos[0]
+        self.hitbox.y = pos[1]
+        self.rect.top = self.hitbox.top - 12
+        self.rect.left = self.hitbox.left - 4
+
     def update(self):
         if not self.isDead:
             if 'hurt' not in self.state:
@@ -532,7 +569,9 @@ class Player(Entity):
                 self.current_speed = self.speed
             else:
                 self.current_speed = (PLAYER_HURT_FRAMES - self.hurt_animation_frame_count)
-            self.move()
+
+            if self.state != 'warping':
+                self.move()
             self.animate()
             self.cooldowns()
             if self.health <= 0:

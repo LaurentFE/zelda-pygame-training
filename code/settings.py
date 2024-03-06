@@ -68,6 +68,10 @@ PLAYER_DEATH_ANIMATION_COOLDOWN = 150
 PLAYER_DEATH_SPIN_AMOUNT = 3
 PLAYER_DEATH_SPIN_DURATION = 500
 PLAYER_DEATH_HURT_COOLDOWN = 3 * PLAYER_HURT_FRAMES * PLAYER_HURT_ANIMATION_COOLDOWN
+PLAYER_STAIRS_FRAMES = 4
+PLAYER_STAIRS_FRAME_ID = 148
+PLAYER_STAIRS_ANIMATION_COOLDOWN = 150
+PLAYER_STAIRS_DURATION = PLAYER_STAIRS_FRAMES * PLAYER_STAIRS_ANIMATION_COOLDOWN
 WOOD_SWORD_FRAMES = 3
 WOOD_SWORD_UP_FRAME_ID = 0
 WOOD_SWORD_RIGHT_FRAME_ID = 6
@@ -196,7 +200,8 @@ FONT_NUMBER_OF_SPECIALS = 9
 FONT_CHARS = '0123456789abcdefghijklmnopqrstuvwxyz,!\'&."?- '
 
 # SOUNDS
-SOUND_OVERWORLD = '../audio/overworld.mp3'
+THEME_OVERWORLD = '../audio/Overworld.mp3'
+THEME_DUNGEON = '../audio/Dungeon.mp3'
 SOUND_GAME_OVER = '../audio/Game_Over.wav'
 SOUND_SHIELD_BLOCK = '../audio/Shield_Block.wav'
 SOUND_PLAYER_HURT = '../audio/Player_Hurt.wav'
@@ -210,3 +215,57 @@ SOUND_TINY_PICKUP = '../audio/Tiny_Pick_Up.wav'
 SOUND_SMALL_PICKUP = '../audio/Small_Pick_Up.wav'
 SOUND_BOMB_DROP = '../audio/Bomb_Drop.wav'
 SOUND_BOMB_EXPLODE = '../audio/Bomb_Explode.wav'
+SOUND_STAIRS = '../audio/Stairs.wav'
+
+# Underworld map id
+NEW_LEVEL_BOTTOM_CENTER_POS = (SCREEN_WIDTH / 2 - TILE_SIZE, SCREEN_HEIGHT - TILE_SIZE * 3 - 1)
+UNDERWORLD = [
+    {'map': 'level',
+     'screen': '10',
+     'player_pos': (128, 32 + HUD_TILE_HEIGHT * TILE_SIZE + TILE_SIZE + 1),
+     'stairs': False},
+    {'map': 'sword_cave',
+     'screen': '0',
+     'player_pos': NEW_LEVEL_BOTTOM_CENTER_POS,
+     'stairs': True},
+    {'map': 'level',
+     'screen': '6',
+     'player_pos': (192, HUD_TILE_HEIGHT * TILE_SIZE + 160),
+     'stairs': False},
+    {'map': 'pay_for_my_door',
+     'screen': '0',
+     'player_pos': NEW_LEVEL_BOTTOM_CENTER_POS,
+     'stairs': False},
+    {'map': 'level',
+     'screen': '0',
+     'player_pos': (200, 200),
+     'stairs': False},
+    {'map': 'shop0',
+     'screen': '0',
+     'player_pos': NEW_LEVEL_BOTTOM_CENTER_POS,
+     'stairs': True},
+    {'map': 'level',
+     'screen': '0',
+     'player_pos': (200, 200),
+     'stairs': False},
+    {'map': 'dungeon0_',
+     'screen': '0',
+     'player_pos': NEW_LEVEL_BOTTOM_CENTER_POS,
+     'stairs': True},
+    {'map': 'level',
+     'screen': '0',
+     'player_pos': (200, 200),
+     'stairs': False}
+]
+
+# Map system
+NB_MAPS_PER_ROW = {
+    'Overworld': 4,
+    'Dungeon': 3
+}
+NB_MAPS_PER_COL = {
+    'Overworld': 4,
+    'Dungeon': 3
+}
+
+MAP_SCROLL_FRAMES_COUNT = 100
