@@ -65,37 +65,42 @@ class Particle(pygame.sprite.Sprite, ABC):
 
 
 class PWoodenSword(Particle):
-    def __init__(self, owner_pos, owner_direction_vector, owner_direction_label,
-                 groups, particle_tileset):
+    def __init__(self,
+                 owner_pos,
+                 owner_direction_vector,
+                 owner_direction_label,
+                 groups,
+                 enemy_sprites,
+                 particle_sprites,
+                 particle_tileset):
         super().__init__(owner_pos, owner_direction_vector, groups)
 
         self.owner_pos = owner_pos
         self.pos_x = owner_pos[0]
         self.pos_y = owner_pos[1]
+        self.enemy_sprites = enemy_sprites
+        self.particle_sprites = particle_sprites
 
+        self.direction_label = owner_direction_label
         match owner_direction_label:
             case 'up':
                 self.pos_x += 6
                 self.pos_y -= 22
-                self.direction_label = owner_direction_label
                 self.direction_vector.x = 0
                 self.direction_vector.y = -1
             case 'right':
                 self.pos_x += 20
                 self.pos_y += 2
-                self.direction_label = owner_direction_label
                 self.direction_vector.x = 1
                 self.direction_vector.y = 0
             case 'down':
                 self.pos_x += 14
                 self.pos_y += 22
-                self.direction_label = owner_direction_label
                 self.direction_vector.x = 0
                 self.direction_vector.y = 1
             case 'left':
                 self.pos_x -= 20
                 self.pos_y += 2
-                self.direction_label = owner_direction_label
                 self.direction_vector.x = -1
                 self.direction_vector.y = 0
 
@@ -153,7 +158,18 @@ class PWoodenSword(Particle):
                 self.move_animation_frame_count += 1
 
     def collision(self, direction):
-        pass
+        # Collision with a monster
+        for enemy in self.enemy_sprites:
+            if enemy.hitbox.colliderect(self.hitbox):
+                enemy.take_damage(self.collision_damage, self.direction_label)
+
+        # Collision with a lootable particle
+        for particle in self.particle_sprites:
+            if (particle.hitbox.colliderect(self.hitbox)
+                    and particle.affects_player
+                    and particle.collision_damage == 0):
+                particle.effect()
+                particle.kill()
 
     def move(self):
         # This particle is animated, but doesn't move.
@@ -165,11 +181,152 @@ class PWoodenSword(Particle):
 
     def update(self):
         self.animate()
+        self.collision('')
         pygame.display.get_surface().blit(self.image, self.rect.topleft)
 
 
-class Rock(Particle):
+class PBoomerang(Particle):
     def __init__(self, owner_pos,
+                 owner_direction_vector,
+                 owner_direction_label,
+                 groups,
+                 item_tileset,
+                 enemy_sprites,
+                 particle_sprites,
+                 border_sprites,
+                 player):
+        super().__init__(owner_pos, owner_direction_vector, groups)
+
+        self.owner_pos = owner_pos
+        self.pos_x = owner_pos[0]
+        self.pos_y = owner_pos[1]
+        self.direction_vector = pygame.math.Vector2(owner_direction_vector)
+        self.direction_label = owner_direction_label
+        self.enemy_sprites = enemy_sprites
+        self.particle_sprites = particle_sprites
+        self.border_sprites = border_sprites
+        self.player_ref = player
+
+        if self.direction_vector.x == 0 and self.direction_vector.y == 0:
+            match self.direction_label:
+                case 'up':
+                    self.direction_vector.x = 0
+                    self.direction_vector.y = -1
+                case 'right':
+                    self.direction_vector.x = 1
+                    self.direction_vector.y = 0
+                case 'down':
+                    self.direction_vector.x = 0
+                    self.direction_vector.y = 1
+                case 'left':
+                    self.direction_vector.x = -1
+                    self.direction_vector.y = 0
+
+        self.move_animation_cooldown = 100
+        self.move_animation_timer_start = pygame.time.get_ticks()
+        self.move_animation_frame_count = 0
+        self.move_animations = []
+
+        self.load_animation_frames(item_tileset)
+
+        self.image = self.move_animations[0]
+        self.rect = self.image.get_rect(topleft=(self.pos_x, self.pos_y))
+
+        self.hitbox = self.rect.inflate(-22, -16)
+        self.hitbox.center = self.rect.center
+
+        self.affects_enemy = True
+        self.collision_damage = BOOMERANG_DMG
+
+        self.boomerang_attack_sound = pygame.mixer.Sound(SOUND_BOOMERANG_ATTACK)
+        self.boomerang_attack_sound.set_volume(0.5)
+        self.boomerang_attack_sound.play(loops=-1)
+
+        self.is_active = True
+        self.go_back = False
+
+    def load_animation_frames(self, item_tileset):
+        self.move_animations.append(
+            item_tileset.get_sprite_image(BOOMERANG_FRAME_ID))
+        self.move_animations.append(
+            pygame.transform.flip(
+                item_tileset.get_sprite_image(BOOMERANG_FRAME_ID),
+                True,
+                False))
+
+    def animate(self):
+        current_time = pygame.time.get_ticks()
+
+        # Going through the motions of multiple frames, with a timer per frame
+        self.image = self.move_animations[self.move_animation_frame_count]
+        if current_time - self.move_animation_timer_start >= self.move_animation_cooldown:
+            self.move_animation_timer_start = pygame.time.get_ticks()
+            if self.move_animation_frame_count < BOOMERANG_FRAMES - 1:
+                self.move_animation_frame_count += 1
+            else:
+                self.move_animation_frame_count = 0
+
+    def collision(self, direction):
+        # Collision with a monster
+        for enemy in self.enemy_sprites:
+            if (not self.go_back
+                    and enemy.hitbox.colliderect(self.hitbox)):
+                self.go_back = True
+                self.affects_enemy = False
+                enemy.take_damage(self.collision_damage, self.direction_label)
+
+        # Collision with a lootable particle
+        for particle in self.particle_sprites:
+            if (not self.go_back
+                    and particle.hitbox.colliderect(self.hitbox)
+                    and particle.affects_player
+                    and particle.collision_damage == 0):
+                particle.effect()
+                particle.kill()
+                self.go_back = True
+                self.affects_enemy = False
+
+        # Collision with screen borders
+        for border in self.border_sprites:
+            if not self.go_back and border.hitbox.colliderect(self.hitbox):
+                self.go_back = True
+                self.affects_enemy = False
+
+        if self.go_back and self.player_ref.hitbox.colliderect(self.hitbox):
+            self.kill()
+
+    def move(self):
+        if self.go_back:
+            x_displacement = self.rect.left - self.player_ref.rect.left
+            y_displacement = self.rect.top - self.player_ref.rect.top
+            self.direction_vector = pygame.math.Vector2(-x_displacement, -y_displacement)
+            if self.direction_vector.magnitude() != 0:
+                self.direction_vector = self.direction_vector.normalize()
+
+        self.hitbox.x += self.direction_vector.x * BOOMERANG_SPEED
+        self.rect.x += self.direction_vector.x * BOOMERANG_SPEED
+        self.hitbox.y += self.direction_vector.y * BOOMERANG_SPEED
+        self.rect.y += self.direction_vector.y * BOOMERANG_SPEED
+
+    def effect(self):
+        # None, it's a damaging particle
+        pass
+
+    def update(self):
+        self.move()
+        self.animate()
+        self.collision('')
+        pygame.display.get_surface().blit(self.image, self.rect.topleft)
+
+    def kill(self):
+        self.boomerang_attack_sound.stop()
+        self.player_ref.boomerang_thrown = False
+        super().kill()
+
+
+class Rock(Particle):
+    def __init__(self,
+                 owner_pos,
                  owner_direction_vector,
                  groups,
                  owner_direction_label,

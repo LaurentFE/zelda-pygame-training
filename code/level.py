@@ -495,6 +495,7 @@ class Level:
                              self.visible_sprites,
                              self.particle_sprites,
                              self.lootable_items_sprites,
+                             self.border_sprites,
                              self.player_tile_set,
                              self.particle_tile_set,
                              self.items_tile_set)
@@ -812,36 +813,26 @@ class Level:
         y_offset = - TILE_SIZE * 2
         if item_label == HEARTRECEPTACLE_LABEL:
             item_image = self.consumables_tile_set.get_sprite_image(HEARTRECEPTACLE_FRAME_ID)
-            self.player.add_max_health()
-            self.player.set_state('pickup_two_handed')
             x_offset -= 2
             y_offset += 4
         elif item_label == WOOD_SWORD_LABEL:
             item_image = self.items_tile_set.get_sprite_image(WOOD_SWORD_FRAME_ID)
-            self.player.has_wood_sword = True
-            self.player.equip_best_sword()
-            self.player.set_state('pickup_one_handed')
             x_offset -= 12
         elif item_label == CANDLE_LABEL:
             item_image = self.items_tile_set.get_sprite_image(RED_CANDLE_FRAME_ID)
-            self.player.has_candle = True
-            self.player.set_state('pickup_one_handed')
             x_offset -= 12
         elif item_label == BOOMERANG_LABEL:
             item_image = self.items_tile_set.get_sprite_image(BOOMERANG_FRAME_ID)
-            self.player.has_boomerang = True
-            self.player.set_state('pickup_one_handed')
             x_offset -= 12
             y_offset += 9
         elif item_label == LADDER_LABEL:
             item_image = self.items_tile_set.get_sprite_image(LADDER_FRAME_ID)
-            self.player.has_ladder = True
-            self.player.set_state('pickup_two_handed')
             x_offset = 3
         else:
             # Item not implemented yet ? abort
             return
 
+        self.player.add_item(item_label)
         item_pos = (self.player.rect.left + x_offset, self.player.rect.top + y_offset)
         self.item_picked_up = Tile(item_pos, [self.visible_sprites], item_image)
 
