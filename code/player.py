@@ -575,7 +575,6 @@ class Player(Entity):
                 self.health = self.current_max_health
 
     def add_max_health(self):
-        self.set_state('pickup_two_handed')
         if self.current_max_health < PLAYER_HEALTH_MAX:
             self.current_max_health += PLAYER_HEALTH_PER_HEART
             self.heal(PLAYER_HEALTH_PER_HEART)
@@ -601,6 +600,7 @@ class Player(Entity):
 
     def add_item(self, label):
         if label == HEARTRECEPTACLE_LABEL:
+            self.set_state('pickup_two_handed')
             self.add_max_health()
         elif label == WOOD_SWORD_LABEL:
             self.has_wood_sword = True
