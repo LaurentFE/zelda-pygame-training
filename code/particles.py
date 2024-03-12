@@ -663,11 +663,12 @@ class BombSmoke(Particle):
 
 
 class HeartReceptacle(Particle):
-    def __init__(self, owner_pos, groups, consumable_tileset, level):
+    def __init__(self, owner_pos, groups, consumable_tileset, level_id, level):
 
         owner_direction_vector = pygame.math.Vector2()
         super().__init__(owner_pos, owner_direction_vector, groups)
 
+        self.level_id = level_id
         self.level = level
 
         self.owner_pos = owner_pos
@@ -707,6 +708,7 @@ class HeartReceptacle(Particle):
         pass
 
     def effect(self):
+        MAP_ITEMS[self.level_id][HEARTRECEPTACLE_LABEL] = False
         self.level.player_pick_up(HEARTRECEPTACLE_LABEL)
 
     def update(self):
@@ -714,11 +716,12 @@ class HeartReceptacle(Particle):
 
 
 class Ladder(Particle):
-    def __init__(self, owner_pos, groups, items_tileset, level):
+    def __init__(self, owner_pos, groups, items_tileset, level_id, level):
 
         owner_direction_vector = pygame.math.Vector2()
         super().__init__(owner_pos, owner_direction_vector, groups)
 
+        self.level_id = level_id
         self.level = level
 
         self.owner_pos = owner_pos
@@ -758,6 +761,7 @@ class Ladder(Particle):
         pass
 
     def effect(self):
+        MAP_ITEMS[self.level_id][LADDER_LABEL] = False
         self.level.player_pick_up(LADDER_LABEL)
 
     def update(self):
@@ -765,11 +769,12 @@ class Ladder(Particle):
 
 
 class RedCandle(Particle):
-    def __init__(self, owner_pos, groups, items_tileset, level):
+    def __init__(self, owner_pos, groups, items_tileset, level_id, level):
 
         owner_direction_vector = pygame.math.Vector2()
         super().__init__(owner_pos, owner_direction_vector, groups)
 
+        self.level_id = level_id
         self.level = level
 
         self.owner_pos = owner_pos
@@ -809,6 +814,7 @@ class RedCandle(Particle):
         pass
 
     def effect(self):
+        MAP_ITEMS[self.level_id][CANDLE_LABEL] = False
         self.level.player_pick_up(CANDLE_LABEL)
 
     def update(self):
@@ -816,11 +822,12 @@ class RedCandle(Particle):
 
 
 class Boomerang(Particle):
-    def __init__(self, owner_pos, groups, items_tileset, level):
+    def __init__(self, owner_pos, groups, items_tileset, level_id, level):
 
         owner_direction_vector = pygame.math.Vector2()
         super().__init__(owner_pos, owner_direction_vector, groups)
 
+        self.level_id = level_id
         self.level = level
 
         self.owner_pos = owner_pos
@@ -860,6 +867,7 @@ class Boomerang(Particle):
         pass
 
     def effect(self):
+        MAP_ITEMS[self.level_id][BOOMERANG_LABEL] = False
         self.level.player_pick_up(BOOMERANG_LABEL)
 
     def update(self):
@@ -867,11 +875,12 @@ class Boomerang(Particle):
 
 
 class WoodenSword(Particle):
-    def __init__(self, owner_pos, groups, items_tileset, level):
+    def __init__(self, owner_pos, groups, items_tileset, level_id, level):
 
         owner_direction_vector = pygame.math.Vector2()
         super().__init__(owner_pos, owner_direction_vector, groups)
 
+        self.level_id = level_id
         self.level = level
 
         self.owner_pos = owner_pos
@@ -911,6 +920,7 @@ class WoodenSword(Particle):
         pass
 
     def effect(self):
+        MAP_ITEMS[self.level_id][WOOD_SWORD_LABEL] = False
         self.level.player_pick_up(WOOD_SWORD_LABEL)
 
     def update(self):

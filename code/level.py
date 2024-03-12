@@ -432,37 +432,45 @@ class Level:
 
     def load_items(self, level_id):
         layout = import_csv_layout(f'../map/{level_id}_Items.csv')
-        for row_index, row in enumerate(layout):
-            for col_index, col in enumerate(row):
-                x = col_index * TILE_SIZE
-                y = row_index * TILE_SIZE + HUD_TILE_HEIGHT * TILE_SIZE  # Skipping menu tiles at the top of screen
-                sprite_id = int(col)
-                if sprite_id == HEARTRECEPTACLE_FRAME_ID:
-                    HeartReceptacle((x, y),
+        if level_id in MAP_ITEMS.keys():
+            map_items = MAP_ITEMS[level_id].keys()
+            for row_index, row in enumerate(layout):
+                for col_index, col in enumerate(row):
+                    x = col_index * TILE_SIZE
+                    y = row_index * TILE_SIZE + HUD_TILE_HEIGHT * TILE_SIZE  # Skipping menu tiles at the top of screen
+                    sprite_id = int(col)
+                    if (sprite_id == HEARTRECEPTACLE_FRAME_ID
+                            and HEARTRECEPTACLE_LABEL in map_items
+                            and MAP_ITEMS[level_id][HEARTRECEPTACLE_LABEL]):
+                        HeartReceptacle((x, y),
+                                        [self.visible_sprites, self.lootable_items_sprites],
+                                        self.consumables_tile_set,
+                                        level_id,
+                                        self)
+                    elif sprite_id == LADDER_FRAME_ID and MAP_ITEMS[level_id][LADDER_LABEL]:
+                        Ladder((x, y),
+                               [self.visible_sprites, self.lootable_items_sprites],
+                               self.items_tile_set,
+                               level_id,
+                               self)
+                    elif sprite_id == RED_CANDLE_FRAME_ID and MAP_ITEMS[level_id][CANDLE_LABEL]:
+                        RedCandle((x, y),
+                                  [self.visible_sprites, self.lootable_items_sprites],
+                                  self.items_tile_set,
+                                  level_id,
+                                  self)
+                    elif sprite_id == BOOMERANG_FRAME_ID and MAP_ITEMS[level_id][BOOMERANG_LABEL]:
+                        Boomerang((x, y),
+                                  [self.visible_sprites, self.lootable_items_sprites],
+                                  self.items_tile_set,
+                                  level_id,
+                                  self)
+                    elif sprite_id == WOOD_SWORD_FRAME_ID and MAP_ITEMS[level_id][WOOD_SWORD_LABEL]:
+                        WoodenSword((x, y),
                                     [self.visible_sprites, self.lootable_items_sprites],
-                                    self.consumables_tile_set,
+                                    self.items_tile_set,
+                                    level_id,
                                     self)
-                elif sprite_id == LADDER_FRAME_ID:
-                    Ladder((x, y),
-                           [self.visible_sprites, self.lootable_items_sprites],
-                           self.items_tile_set,
-                           self)
-                elif sprite_id == RED_CANDLE_FRAME_ID:
-                    RedCandle((x, y),
-                              [self.visible_sprites, self.lootable_items_sprites],
-                              self.items_tile_set,
-                              self)
-                elif sprite_id == BOOMERANG_FRAME_ID:
-                    Boomerang((x, y),
-                              [self.visible_sprites, self.lootable_items_sprites],
-                              self.items_tile_set,
-                              self)
-                elif sprite_id == WOOD_SWORD_FRAME_ID:
-                    WoodenSword((x, y),
-                                [self.visible_sprites, self.lootable_items_sprites],
-                                self.items_tile_set,
-                                self)
-
 
     def load_enemies(self, level_id):
         layout = import_csv_layout(f'../map/{level_id}_Enemies.csv')
@@ -583,17 +591,17 @@ class Level:
                     self.player.set_state('warping')
                     # Animate slide - will be done in update
                 case _:
-                    if change_id - 4 < len(UNDERWORLD):
-                        if UNDERWORLD[change_id - 4]['stairs']:
+                    if change_id - 4 < len(UNDERWORLD_STAIRS):
+                        if UNDERWORLD_STAIRS[change_id - 4]['stairs']:
                             self.in_map_transition = 'Stairs'
                             self.player.set_state('stairs')
                             self.stairs_animation_starting_time = pygame.time.get_ticks()
                         else:
                             self.in_map_transition = 'Silent'
 
-                        self.next_map = UNDERWORLD[change_id - 4]['map']
-                        self.next_map_screen = UNDERWORLD[change_id - 4]['screen']
-                        self.player_new_position = UNDERWORLD[change_id - 4]['player_pos']
+                        self.next_map = UNDERWORLD_STAIRS[change_id - 4]['map']
+                        self.next_map_screen = UNDERWORLD_STAIRS[change_id - 4]['screen']
+                        self.player_new_position = UNDERWORLD_STAIRS[change_id - 4]['player_pos']
 
     def animate_map_transition(self):
         self.map_scroll_animation_counter += 1
@@ -799,7 +807,7 @@ class Level:
     def player_pick_up(self, item_label):
 
         item_pos = (self.player.rect.left, self.player.rect.top - 32)
-        item_image = None
+
         if item_label == HEARTRECEPTACLE_LABEL:
             item_image = self.consumables_tile_set.get_sprite_image(HEARTRECEPTACLE_FRAME_ID)
             self.player.add_max_health()

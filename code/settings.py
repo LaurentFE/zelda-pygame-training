@@ -236,7 +236,7 @@ SOUND_STAIRS = AUDIO_PATH + 'Stairs.wav'
 
 # Underworld map id
 NEW_LEVEL_BOTTOM_CENTER_POS = (SCREEN_WIDTH / 2 - TILE_SIZE, SCREEN_HEIGHT - TILE_SIZE * 3 - 1)
-UNDERWORLD = [
+UNDERWORLD_STAIRS = [
     {'map': 'level',
      'screen': '10',
      'player_pos': (128, 32 + HUD_TILE_HEIGHT * TILE_SIZE + TILE_SIZE + 1),
@@ -287,10 +287,17 @@ NB_MAPS_PER_COL = {
 
 MAP_SCROLL_FRAMES_COUNT = 100
 
-# MAP CSV indexes
+# Map CSV indexes
 #
 LIMIT_BORDER_INDEX = 10
 LIMIT_TREE_INDEX = 20
 LIMIT_WATER_INDEX = 30
 LIMIT_ROCK_INDEX = 40
 LIMIT_LADDER_INDEX = 50
+
+# Item content in maps
+MAP_ITEMS = {
+    'level9': {HEARTRECEPTACLE_LABEL: True},
+    'level11': {LADDER_LABEL: True},
+    'sword_cave0': {WOOD_SWORD_LABEL: True}
+}
