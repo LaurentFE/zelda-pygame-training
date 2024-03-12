@@ -158,7 +158,6 @@ class Player(Entity):
         self.has_candle = PLAYER_INITIAL_HAS_RED_CANDLE
         self.has_bombs = PLAYER_INITIAL_HAS_BOMB
         self.has_ladder = PLAYER_INITIAL_HAS_LADDER
-        self.has_raft = PLAYER_INITIAL_HAS_RAFT
         self.has_wood_sword = PLAYER_INITIAL_HAS_WOOD_SWORD
         self.itemA = PLAYER_INITIAL_ITEM_A
         self.itemB = PLAYER_INITIAL_ITEM_B
@@ -585,8 +584,6 @@ class Player(Entity):
             return self.has_candle
         elif label == LADDER_LABEL:
             return self.has_ladder
-        elif label == RAFT_LABEL:
-            return self.has_raft
         else:
             return False
 

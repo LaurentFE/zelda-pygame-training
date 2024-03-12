@@ -153,8 +153,6 @@ class Level:
                                                  self.menu_item_coord_and_frame_id[self.current_selected_item][1]))
 
         # Passive Items
-        if self.player.has_item(RAFT_LABEL):
-            Tile(MENU_RAFT_TOPLEFT, [self.menu_sprites], self.items_tile_set.get_sprite_image(RAFT_FRAME_ID))
         if self.player.has_item(LADDER_LABEL):
             Tile(MENU_LADDER_TOPLEFT, [self.menu_sprites], self.items_tile_set.get_sprite_image(LADDER_FRAME_ID))
 
