@@ -5,7 +5,7 @@ from inputs import *
 from debug import debug
 from tile import Tile
 from entities import Entity
-from particles import WoodenSword, Bomb
+from particles import PWoodenSword, Bomb
 
 
 # NOTE : Behaviour difference between original NES version, and mine :
@@ -32,12 +32,13 @@ from particles import WoodenSword, Bomb
 
 class Player(Entity):
     def __init__(self, pos, groups, obstacle_sprites, enemy_sprites, visible_sprites, particle_sprites,
-                 player_tile_set, particle_tileset, item_tileset):
+                 lootable_items_sprites, player_tile_set, particle_tileset, item_tileset):
         super().__init__(groups, visible_sprites, obstacle_sprites, particle_sprites, particle_tileset)
 
         self.enemy_sprites = enemy_sprites
         self.visible_sprites = visible_sprites
         self.particle_sprites = particle_sprites
+        self.lootable_items_sprites = lootable_items_sprites
 
         self.item_tileset = item_tileset
 
@@ -153,14 +154,14 @@ class Player(Entity):
         self.current_speed = self.speed
 
         # Items flags
-        self.has_boomerang = True
-        self.has_candle = True
-        self.has_bombs = True
-        self.has_ladder = True
-        self.has_raft = True
-        self.has_sword_wood = True
-        self.itemA = "WoodenSword"
-        self.itemB = "Bomb"
+        self.has_boomerang = PLAYER_INITIAL_HAS_BOOMERANG
+        self.has_candle = PLAYER_INITIAL_HAS_RED_CANDLE
+        self.has_bombs = PLAYER_INITIAL_HAS_BOMB
+        self.has_ladder = PLAYER_INITIAL_HAS_LADDER
+        self.has_raft = PLAYER_INITIAL_HAS_RAFT
+        self.has_wood_sword = PLAYER_INITIAL_HAS_WOOD_SWORD
+        self.itemA = PLAYER_INITIAL_ITEM_A
+        self.itemB = PLAYER_INITIAL_ITEM_B
         self.ladder_in_use = False
         self.ladder = None
 
@@ -202,14 +203,16 @@ class Player(Entity):
 
         # ActionA input has prio over Move input
         # Can't move during sword use
-        if is_action_a_key_pressed(keys) and self.can_action():
+        if is_action_a_key_pressed(keys) and self.can_action() and self.itemA != "None":
             self.state = 'actionA'
             self.action_starting_time = pygame.time.get_ticks()
             self.direction_vector.x = 0
             self.direction_vector.y = 0
-            self.action_a_particle = WoodenSword(self.rect.topleft, self.direction_vector, self.direction_label,
-                                                 [self.visible_sprites, self.particle_sprites],
-                                                 self.particle_tileset)
+            # Define here all different item A weapons implemented
+            if self.itemA == WOOD_SWORD_LABEL:
+                self.action_a_particle = PWoodenSword(self.rect.topleft, self.direction_vector, self.direction_label,
+                                                      [self.visible_sprites, self.particle_sprites],
+                                                      self.particle_tileset)
 
         # Can't move during item use
         if is_action_b_key_pressed(keys) and self.can_action():
@@ -384,6 +387,13 @@ class Player(Entity):
                         else:
                             particle.effect()
                         particle.kill()
+
+        # Collision with a lootable item
+        for item in self.lootable_items_sprites:
+            if item.hitbox.colliderect(self.rect):
+                if 'hurt' not in self.state:
+                    item.effect()
+                    item.kill()
 
     def move(self):
         if self.direction_vector.magnitude() != 0:
@@ -578,6 +588,13 @@ class Player(Entity):
             return self.has_raft
         else:
             return False
+
+    def equip_best_sword(self):
+        # If new sword types are implemented, define here new cases, from best to worst option
+        if self.has_wood_sword:
+            self.itemA = WOOD_SWORD_LABEL
+        else:
+            self.itemA = 'None'
 
     def change_item_b(self, label):
         if self.has_item(label):

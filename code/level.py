@@ -11,7 +11,7 @@ from tile import Tile
 from obstacle import Obstacle
 from player import Player
 from enemies import RedOctorock
-from particles import Heart, Rupee, CBomb, Fairy
+from particles import Heart, Rupee, CBomb, Fairy, HeartReceptacle, Ladder, RedCandle, Boomerang, WoodenSword
 from selector import Selector
 from warp import Warp
 
@@ -49,6 +49,7 @@ class Level:
         self.health_sprites = pygame.sprite.Group()
         self.menu_sprites = pygame.sprite.Group()
         self.border_sprites = pygame.sprite.Group()
+        self.lootable_items_sprites = pygame.sprite.Group()
 
         self.equipped_item_a_sprite = None
         self.equipped_item_b_sprite = None
@@ -347,7 +348,8 @@ class Level:
                       self.menu_rect.y + 48)
 
         item_a_id = None
-        if self.player.has_sword_wood:
+        # Define here all swords implemented
+        if self.player.itemA == WOOD_SWORD_LABEL:
             item_a_id = WOOD_SWORD_FRAME_ID
 
         if self.equipped_item_a_sprite:
@@ -428,6 +430,40 @@ class Level:
                 if sprite_id != -1:
                     Obstacle((x, y), [self.obstacle_sprites], sprite_id)
 
+    def load_items(self, level_id):
+        layout = import_csv_layout(f'../map/{level_id}_Items.csv')
+        for row_index, row in enumerate(layout):
+            for col_index, col in enumerate(row):
+                x = col_index * TILE_SIZE
+                y = row_index * TILE_SIZE + HUD_TILE_HEIGHT * TILE_SIZE  # Skipping menu tiles at the top of screen
+                sprite_id = int(col)
+                if sprite_id == HEARTRECEPTACLE_FRAME_ID:
+                    HeartReceptacle((x, y),
+                                    [self.visible_sprites, self.lootable_items_sprites],
+                                    self.consumables_tile_set,
+                                    self)
+                elif sprite_id == LADDER_FRAME_ID:
+                    Ladder((x, y),
+                           [self.visible_sprites, self.lootable_items_sprites],
+                           self.items_tile_set,
+                           self)
+                elif sprite_id == RED_CANDLE_FRAME_ID:
+                    RedCandle((x, y),
+                              [self.visible_sprites, self.lootable_items_sprites],
+                              self.items_tile_set,
+                              self)
+                elif sprite_id == BOOMERANG_FRAME_ID:
+                    Boomerang((x, y),
+                              [self.visible_sprites, self.lootable_items_sprites],
+                              self.items_tile_set,
+                              self)
+                elif sprite_id == WOOD_SWORD_FRAME_ID:
+                    WoodenSword((x, y),
+                                [self.visible_sprites, self.lootable_items_sprites],
+                                self.items_tile_set,
+                                self)
+
+
     def load_enemies(self, level_id):
         layout = import_csv_layout(f'../map/{level_id}_Enemies.csv')
         for row_index, row in enumerate(layout):
@@ -451,6 +487,7 @@ class Level:
                              self.enemy_sprites,
                              self.visible_sprites,
                              self.particle_sprites,
+                             self.lootable_items_sprites,
                              self.player_tile_set,
                              self.particle_tile_set,
                              self.items_tile_set)
@@ -460,6 +497,7 @@ class Level:
         # This is done AFTER any map change animation
         self.load_limits(level_id)
         self.load_warps(level_id)
+        self.load_items(level_id)
         self.load_enemies(level_id)
 
     def create_transition_surface(self):
@@ -514,6 +552,9 @@ class Level:
                 particle.kill()
             for obstacle in self.obstacle_sprites:
                 obstacle.kill()
+            for item in self.lootable_items_sprites:
+                item.kill()
+
             # change_id 0 -> 3 is a side scrolling map change, respectively Up/Right/Down/Left
             # change_id > 3 is a stairs map change, with sound and a completely different map
             match change_id:
@@ -764,7 +805,8 @@ class Level:
             self.player.add_max_health()
         elif item_label == WOOD_SWORD_LABEL:
             item_image = self.items_tile_set.get_sprite_image(WOOD_SWORD_FRAME_ID)
-            self.player.has_sword_wood = True
+            self.player.has_wood_sword = True
+            self.player.equip_best_sword()
         elif item_label == CANDLE_LABEL:
             item_image = self.items_tile_set.get_sprite_image(RED_CANDLE_FRAME_ID)
             self.player.has_candle = True
