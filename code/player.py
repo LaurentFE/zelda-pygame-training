@@ -318,9 +318,9 @@ class Player(Entity):
                     self.visible_sprites.add(self)
 
             elif (sprite.type == LIMIT_WATER_INDEX and
-                        self.has_ladder and
-                        self.ladder_in_use and
-                        sprite.hitbox.colliderect(self.ladder.hitbox)):
+                  self.has_ladder and
+                  self.ladder_in_use and
+                  sprite.hitbox.colliderect(self.ladder.hitbox)):
                 # If it's water under the ladder, make it walkable
                 sprite.type = LIMIT_LADDER_INDEX
 
