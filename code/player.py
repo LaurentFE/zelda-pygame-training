@@ -2,7 +2,6 @@ import pygame.mixer
 
 from settings import *
 from inputs import *
-from debug import debug
 from tile import Tile
 from entities import Entity
 from particles import PWoodenSword, Bomb
@@ -202,23 +201,22 @@ class Player(Entity):
 
         # ActionA input has prio over Move input
         # Can't move during sword use
-        if is_action_a_key_pressed(keys) and self.can_action() and self.itemA != "None":
-            self.state = 'actionA'
-            self.action_starting_time = pygame.time.get_ticks()
-            self.direction_vector.x = 0
-            self.direction_vector.y = 0
+        if is_action_a_key_pressed(keys) and self.can_action() and self.itemA != 'None':
             # Define here all different item A weapons implemented
             if self.itemA == WOOD_SWORD_LABEL:
                 self.action_a_particle = PWoodenSword(self.rect.topleft, self.direction_vector, self.direction_label,
                                                       [self.visible_sprites, self.particle_sprites],
                                                       self.particle_tileset)
-
-        # Can't move during item use
-        if is_action_b_key_pressed(keys) and self.can_action():
-            self.state = 'actionB'
+            else:
+                # ItemA used not implemented, abort
+                return
+            self.state = 'actionA'
             self.action_starting_time = pygame.time.get_ticks()
             self.direction_vector.x = 0
             self.direction_vector.y = 0
+
+        # Can't move during item use
+        if is_action_b_key_pressed(keys) and self.can_action() and self.itemB != 'None':
             if self.itemB == BOOMERANG_LABEL:
                 # Create Boomerang particle
                 pass
@@ -230,12 +228,19 @@ class Player(Entity):
                          self.particle_tileset)
                     self.bombs -= 1
                 else:
-                    self.state = 'idle'
+                    # Not enough bombs to operate, abort
+                    return
             elif self.itemB == CANDLE_LABEL:
                 # Create Flame particle
                 pass
-            elif self.itemB == 'None':
-                self.state = 'idle'
+            else:
+                # ItemB used not implemented, abort
+                return
+
+            self.state = 'actionB'
+            self.action_starting_time = pygame.time.get_ticks()
+            self.direction_vector.x = 0
+            self.direction_vector.y = 0
 
     def cooldowns(self):
         current_time = pygame.time.get_ticks()
@@ -439,8 +444,6 @@ class Player(Entity):
             self.invulnerable = True
             self.pickup_major_starting_time = current_time
             self.pick_up_sound.play()
-        else:
-            debug(f'trying to change player state in death to : {state}. Does not exist')
 
     def animate(self):
         current_time = pygame.time.get_ticks()
@@ -539,8 +542,6 @@ class Player(Entity):
                     self.despawn_animation_frame_count += 1
                 else:
                     self.despawn_animation_frame_count = 0
-        else:
-            debug(f'Error : animate({self.state}) does not exist')
 
     def heal(self, amount):
         if amount >= 0:
