@@ -775,10 +775,12 @@ class Level:
             loot = self.kill_count % 10
             match loot:
                 case 0 | 2 | 4 | 8:
+                    rupee_amount = 5 if random.randint(1, 100) <= LOOT_BIG_RUPEE_PERCENTAGE else 1
                     Rupee(pos,
                           [self.visible_sprites, self.particle_sprites],
                           self.consumables_tile_set,
                           self.obstacle_sprites,
+                          rupee_amount,
                           self)
                 case 1 | 7:
                     CBomb(pos,

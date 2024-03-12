@@ -308,12 +308,13 @@ class Heart(Particle):
 
 
 class Rupee(Particle):
-    def __init__(self, owner_pos, groups, particle_tileset, obstacle_sprites, level):
+    def __init__(self, owner_pos, groups, particle_tileset, obstacle_sprites, amount, level):
 
         owner_direction_vector = pygame.math.Vector2()
         super().__init__(owner_pos, owner_direction_vector, groups)
 
         self.obstacle_sprites = obstacle_sprites
+        self.amount = amount
         self.level = level
 
         self.owner_pos = owner_pos
@@ -366,7 +367,7 @@ class Rupee(Particle):
 
     def effect(self):
         self.rupee_pickup_sound.play()
-        self.level.add_money(1)
+        self.level.add_money(self.amount)
 
     def update(self):
         self.animate()
