@@ -27,8 +27,8 @@ class Entity(pygame.sprite.Sprite, ABC):
             'down': [],
             'left': []
         }
-        self.pickup_minor_animation = []
-        self.pickup_major_animation = []
+        self.pickup_one_handed_animation = []
+        self.pickup_two_handed_animation = []
         self.hurt_animations = {
             'up': [],
             'right': [],
@@ -62,10 +62,10 @@ class Entity(pygame.sprite.Sprite, ABC):
         self.action_down_frame_id = 0
         self.action_left_frame_id = 0
         self.action_right_frame_id = 0
-        self.pickup_minor_frames = 0
-        self.pickup_minor_frame_id = 0
-        self.pickup_major_frames = 0
-        self.pickup_major_frame_id = 0
+        self.pickup_one_handed_frames = 0
+        self.pickup_one_handed_frame_id = 0
+        self.pickup_two_handed_frames = 0
+        self.pickup_two_handed_frame_id = 0
         self.hurt_frames = 0
         self.hurt_up_frame_id = 0
         self.hurt_down_frame_id = 0
@@ -143,17 +143,17 @@ class Entity(pygame.sprite.Sprite, ABC):
                     True,
                     False))
 
-    def load_pickup_minor_frames(self, entity_tile_set):
-        for i in range(self.pickup_minor_frames):
+    def load_pickup_one_handed_frames(self, entity_tile_set):
+        for i in range(self.pickup_one_handed_frames):
             tiles_offset = SPRITE_SIZE // TILE_SIZE * i
-            self.pickup_minor_animation.append(
-                entity_tile_set.get_sprite_image(self.pickup_minor_frame_id + tiles_offset))
+            self.pickup_one_handed_animation.append(
+                entity_tile_set.get_sprite_image(self.pickup_one_handed_frame_id + tiles_offset))
 
-    def load_pickup_major_frames(self, entity_tile_set):
-        for i in range(self.pickup_major_frames):
+    def load_pickup_two_handed_frames(self, entity_tile_set):
+        for i in range(self.pickup_two_handed_frames):
             tiles_offset = SPRITE_SIZE // TILE_SIZE * i
-            self.pickup_major_animation.append(
-                entity_tile_set.get_sprite_image(self.pickup_major_frame_id + tiles_offset))
+            self.pickup_two_handed_animation.append(
+                entity_tile_set.get_sprite_image(self.pickup_two_handed_frame_id + tiles_offset))
 
     def load_hurt_frames(self, entity_tile_set):
         for i in range(self.hurt_frames):
@@ -203,9 +203,9 @@ class Entity(pygame.sprite.Sprite, ABC):
 
         self.load_action_frames(entity_tile_set)
 
-        self.load_pickup_minor_frames(entity_tile_set)
+        self.load_pickup_one_handed_frames(entity_tile_set)
 
-        self.load_pickup_major_frames(entity_tile_set)
+        self.load_pickup_two_handed_frames(entity_tile_set)
 
         self.load_hurt_frames(entity_tile_set)
 

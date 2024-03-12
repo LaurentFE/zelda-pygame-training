@@ -55,10 +55,10 @@ class Player(Entity):
         self.action_down_frame_id = PLAYER_ACTION_DOWN_FRAME_ID
         self.action_left_frame_id = PLAYER_ACTION_RIGHT_FRAME_ID
         self.action_right_frame_id = PLAYER_ACTION_RIGHT_FRAME_ID
-        self.pickup_minor_frames = PLAYER_PICKUP_MINOR_FRAMES
-        self.pickup_minor_frame_id = PLAYER_PICKUP_MINOR_FRAME_ID
-        self.pickup_major_frames = PLAYER_PICKUP_MAJOR_FRAMES
-        self.pickup_major_frame_id = PLAYER_PICKUP_MAJOR_FRAME_ID
+        self.pickup_one_handed_frames = PLAYER_PICKUP_ONE_HANDED_FRAMES
+        self.pickup_one_handed_frame_id = PLAYER_PICKUP_ONE_HANDED_FRAME_ID
+        self.pickup_two_handed_frames = PLAYER_PICKUP_TWO_HANDED_FRAMES
+        self.pickup_two_handed_frame_id = PLAYER_PICKUP_TWO_HANDED_FRAME_ID
         self.hurt_frames = PLAYER_HURT_FRAMES
         self.hurt_up_frame_id = PLAYER_HURT_UP_FRAME_ID
         self.hurt_down_frame_id = PLAYER_HURT_DOWN_FRAME_ID
@@ -102,16 +102,16 @@ class Player(Entity):
         # Cooldown between animation frames
         self.walking_animation_cooldown = PLAYER_WALKING_ANIMATION_COOLDOWN
         self.action_animation_cooldown = PLAYER_ACTION_ANIMATION_COOLDOWN
-        self.pickup_minor_animation_cooldown = PLAYER_PICKUP_MINOR_ANIMATION_COOLDOWN
-        self.pickup_major_animation_cooldown = PLAYER_PICKUP_MAJOR_ANIMATION_COOLDOWN
+        self.pickup_one_handed_animation_cooldown = PLAYER_PICKUP_ONE_HANDED_ANIMATION_COOLDOWN
+        self.pickup_two_handed_animation_cooldown = PLAYER_PICKUP_TWO_HANDED_ANIMATION_COOLDOWN
         self.hurt_animation_cooldown = PLAYER_HURT_ANIMATION_COOLDOWN
         self.despawn_animation_cooldown = PLAYER_DEATH_ANIMATION_COOLDOWN
         self.stairs_animation_cooldown = PLAYER_STAIRS_ANIMATION_COOLDOWN
         # Time at which animation frame started
         self.walking_animation_starting_time = 0
         self.action_animation_starting_time = 0
-        self.pickup_minor_animation_starting_time = 0
-        self.pickup_major_animation_starting_time = 0
+        self.pickup_one_handed_animation_starting_time = 0
+        self.pickup_two_handed_animation_starting_time = 0
         self.hurt_animation_starting_time = 0
         self.spin_animation_starting_time = 0
         self.despawn_animation_starting_time = 0
@@ -119,8 +119,8 @@ class Player(Entity):
         # Index of animation being played
         self.walking_animation_frame_count = 0
         self.action_animation_frame_count = 0
-        self.pickup_minor_animation_frame_count = 0
-        self.pickup_major_animation_frame_count = 0
+        self.pickup_one_handed_animation_frame_count = 0
+        self.pickup_two_handed_animation_frame_count = 0
         self.hurt_animation_frame_count = 0
         self.despawn_animation_frame_count = 0
         self.stairs_animation_frame_count = 0
@@ -129,13 +129,13 @@ class Player(Entity):
 
         # Player actions cooldowns
         self.action_cooldown = PLAYER_ACTION_ANIMATION_COOLDOWN
-        self.pickup_minor_cooldown = 1500
-        self.pickup_major_cooldown = PLAYER_PICKUP_MAJOR_COOLDOWN
+        self.pickup_one_handed_cooldown = PLAYER_PICKUP_ONE_HANDED_COOLDOWN
+        self.pickup_two_handed_cooldown = PLAYER_PICKUP_TWO_HANDED_COOLDOWN
         self.hurt_cooldown = PLAYER_HURT_FRAMES * self.hurt_animation_cooldown
         self.invulnerability_cooldown = 1.5 * self.hurt_cooldown
         self.action_starting_time = 0
-        self.pickup_minor_starting_time = 0
-        self.pickup_major_starting_time = 0
+        self.pickup_one_handed_starting_time = 0
+        self.pickup_two_handed_starting_time = 0
         self.hurt_starting_time = 0
 
         self.action_a_particle = None
@@ -256,11 +256,12 @@ class Player(Entity):
         elif self.state == 'walking':
             if current_time - self.idle_time >= self.walking_animation_cooldown:
                 self.state = 'idle'
-        elif self.state == 'pickup_minor':
-            if current_time - self.pickup_minor_starting_time >= self.pickup_minor_cooldown:
+        elif self.state == 'pickup_one_handed':
+            if current_time - self.pickup_one_handed_starting_time >= self.pickup_one_handed_cooldown:
                 self.state = 'idle'
-        elif self.state == 'pickup_major':
-            if current_time - self.pickup_major_starting_time >= self.pickup_major_cooldown:
+                self.invulnerable = False
+        elif self.state == 'pickup_two_handed':
+            if current_time - self.pickup_two_handed_starting_time >= self.pickup_two_handed_cooldown:
                 self.state = 'idle'
                 self.invulnerable = False
         elif 'hurt' in self.state:
@@ -439,10 +440,15 @@ class Player(Entity):
             self.stairs_animation_starting_time = current_time
         elif state == 'idle':
             self.state = state
-        elif state == 'pickup_major':
-            self.state = 'pickup_major'
+        elif state == 'pickup_two_handed':
+            self.state = 'pickup_two_handed'
             self.invulnerable = True
-            self.pickup_major_starting_time = current_time
+            self.pickup_two_handed_starting_time = current_time
+            self.pick_up_sound.play()
+        elif state == 'pickup_one_handed':
+            self.state = 'pickup_one_handed'
+            self.invulnerable = True
+            self.pickup_one_handed_starting_time = current_time
             self.pick_up_sound.play()
 
     def animate(self):
@@ -468,24 +474,25 @@ class Player(Entity):
                     self.action_animation_frame_count += 1
                 else:
                     self.action_animation_frame_count = 0
-        elif self.state == 'pickup_minor':
+        elif self.state == 'pickup_one_handed':
             # Going through the motions of multiple frames, with a timer per frame
-            self.image = self.pickup_minor_animation[self.pickup_minor_animation_frame_count]
-            if current_time - self.pickup_minor_animation_starting_time >= self.pickup_minor_animation_cooldown:
-                self.pickup_minor_animation_starting_time = current_time
-                if self.pickup_minor_animation_frame_count < PLAYER_PICKUP_MINOR_FRAMES-1:
-                    self.pickup_minor_animation_frame_count += 1
+            self.image = self.pickup_one_handed_animation[self.pickup_one_handed_animation_frame_count]
+            if (current_time - self.pickup_one_handed_animation_starting_time
+                    >= self.pickup_one_handed_animation_cooldown):
+                self.pickup_one_handed_animation_starting_time = current_time
+                if self.pickup_one_handed_animation_frame_count < PLAYER_PICKUP_ONE_HANDED_FRAMES-1:
+                    self.pickup_one_handed_animation_frame_count += 1
                 else:
-                    self.pickup_minor_animation_frame_count = 0
-        elif self.state == 'pickup_major':
+                    self.pickup_one_handed_animation_frame_count = 0
+        elif self.state == 'pickup_two_handed':
             # Going through the motions of multiple frames, with a timer per frame
-            self.image = self.pickup_major_animation[self.pickup_major_animation_frame_count]
-            if current_time - self.pickup_major_animation_starting_time >= self.pickup_major_animation_cooldown:
-                self.pickup_major_animation_starting_time = current_time
-                if self.pickup_major_animation_frame_count < PLAYER_PICKUP_MAJOR_FRAMES-1:
-                    self.pickup_major_animation_frame_count += 1
+            self.image = self.pickup_two_handed_animation[self.pickup_two_handed_animation_frame_count]
+            if current_time - self.pickup_two_handed_animation_starting_time >= self.pickup_two_handed_animation_cooldown:
+                self.pickup_two_handed_animation_starting_time = current_time
+                if self.pickup_two_handed_animation_frame_count < PLAYER_PICKUP_TWO_HANDED_FRAMES-1:
+                    self.pickup_two_handed_animation_frame_count += 1
                 else:
-                    self.pickup_major_animation_frame_count = 0
+                    self.pickup_two_handed_animation_frame_count = 0
         elif 'hurt' in self.state:
             # Going through the motions of multiple frames, with a timer per frame
             self.image = self.hurt_animations[self.direction_label][self.hurt_animation_frame_count]
