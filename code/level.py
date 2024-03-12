@@ -510,7 +510,6 @@ class Level:
     def create_transition_surface(self):
         # Only Overworld and Dungeon maps will have warp tiles to border scroll
         # No loop from max right to max left as if the world was a sphere
-        next_level_id = 0
         next_floor_x = 0
         next_floor_y = 0
         current_floor_x = 0

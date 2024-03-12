@@ -487,7 +487,8 @@ class Player(Entity):
         elif self.state == 'pickup_two_handed':
             # Going through the motions of multiple frames, with a timer per frame
             self.image = self.pickup_two_handed_animation[self.pickup_two_handed_animation_frame_count]
-            if current_time - self.pickup_two_handed_animation_starting_time >= self.pickup_two_handed_animation_cooldown:
+            if (current_time - self.pickup_two_handed_animation_starting_time
+                    >= self.pickup_two_handed_animation_cooldown):
                 self.pickup_two_handed_animation_starting_time = current_time
                 if self.pickup_two_handed_animation_frame_count < PLAYER_PICKUP_TWO_HANDED_FRAMES-1:
                     self.pickup_two_handed_animation_frame_count += 1
