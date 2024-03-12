@@ -2,7 +2,6 @@ import abc
 import pygame
 import random
 from settings import *
-from debug import debug
 from entities import Entity
 from particles import Rock
 
@@ -180,7 +179,8 @@ class Enemy(Entity):
                     self.direction_vector.x = 1
                     self.direction_vector.y = 0
                 case _:
-                    debug(f"Monster tried to move {self.direction_label} !")
+                    # Illegal move, ignore
+                    return
 
         self.hitbox.x += self.direction_vector.x * self.current_speed
         self.collision('horizontal')

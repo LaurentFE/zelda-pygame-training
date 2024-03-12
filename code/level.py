@@ -368,6 +368,9 @@ class Level:
         item_b_pos = (self.menu_rect.x + 248,
                       self.menu_rect.y + 48)
 
+        if self.equipped_item_b_sprite:
+            self.equipped_item_b_sprite.kill()
+
         # Get selected item B id
         match self.player.itemB:
             case 'Boomerang':
@@ -379,12 +382,8 @@ class Level:
             case 'None':
                 item_frame_id = None
             case _:
-                # Error case
-                print(f'Item {self.player.itemB} selected as action B is not implemented')
-                item_frame_id = None
-
-        if self.equipped_item_b_sprite:
-            self.equipped_item_b_sprite.kill()
+                # Item B not implemented, abort
+                return
 
         if item_frame_id is not None:
             self.equipped_item_b_sprite = Tile(item_b_pos,
@@ -430,6 +429,7 @@ class Level:
 
     def load_items(self, level_id):
         layout = import_csv_layout(f'../map/{level_id}_Items.csv')
+        # Ignore all items for levels that are not supposed to have any
         if level_id in MAP_ITEMS.keys():
             map_items = MAP_ITEMS[level_id].keys()
             for row_index, row in enumerate(layout):
@@ -437,6 +437,7 @@ class Level:
                     x = col_index * TILE_SIZE
                     y = row_index * TILE_SIZE + HUD_TILE_HEIGHT * TILE_SIZE  # Skipping menu tiles at the top of screen
                     sprite_id = int(col)
+                    # Ignore any item that has an id that is not supposed to be in this level
                     if (sprite_id == HEARTRECEPTACLE_FRAME_ID
                             and HEARTRECEPTACLE_LABEL in map_items
                             and MAP_ITEMS[level_id][HEARTRECEPTACLE_LABEL]):
@@ -541,6 +542,9 @@ class Level:
                 self.transition_surface = pygame.Surface(
                     (2 * self.floor_rect.width, self.floor_rect.height))
                 current_floor_x = self.floor_rect.width
+            case _:
+                # Undefined warp transition, abort
+                return
 
         next_floor = pygame.image.load(f'../graphics/levels/{self.current_map}{next_level_id}.png').convert()
         self.transition_surface.blit(next_floor, (next_floor_x, next_floor_y))
@@ -805,9 +809,6 @@ class Level:
         self.player.heal(amount)
 
     def player_pick_up(self, item_label):
-
-        item_pos = (self.player.rect.left, self.player.rect.top - 32)
-
         if item_label == HEARTRECEPTACLE_LABEL:
             item_image = self.consumables_tile_set.get_sprite_image(HEARTRECEPTACLE_FRAME_ID)
             self.player.add_max_health()
@@ -825,9 +826,10 @@ class Level:
             item_image = self.items_tile_set.get_sprite_image(LADDER_FRAME_ID)
             self.player.has_ladder = True
         else:
-            # Item not implemented yet ? then nothing happens
+            # Item not implemented yet ? abort
             return
 
+        item_pos = (self.player.rect.left, self.player.rect.top - 32)
         self.item_picked_up = Tile(item_pos, [self.visible_sprites], item_image)
         self.player.set_state('pickup_major')
 
