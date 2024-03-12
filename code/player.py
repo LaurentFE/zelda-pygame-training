@@ -600,8 +600,8 @@ class Player(Entity):
 
     def add_item(self, label):
         if label == HEARTRECEPTACLE_LABEL:
-            self.set_state('pickup_two_handed')
             self.add_max_health()
+            self.set_state('pickup_two_handed')
         elif label == WOOD_SWORD_LABEL:
             self.has_wood_sword = True
             self.equip_best_sword()
