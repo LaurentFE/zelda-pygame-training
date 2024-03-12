@@ -3,6 +3,7 @@ import pygame.mixer
 from settings import *
 from inputs import *
 from debug import debug
+from tile import Tile
 from entities import Entity
 from particles import WoodenSword, Bomb
 
@@ -21,7 +22,7 @@ from particles import WoodenSword, Bomb
 #
 # NOTE : Behavior observed on NES videos :
 #    ATTACK :
-#       Original allows player to change direction of attack during animation (framerate is lower though,
+#       Original allows player to change direction of attack during animation (frame rate is lower though,
 #         so "on cooldown" I guess)
 #       My version : probably won't allow it, because player won't really 'attack' or 'cast', but most likely
 #         'cast' every item, sword included, and I don't want to change directions in middle of candle for instance,
@@ -91,8 +92,9 @@ class Player(Entity):
         self.pos = pos
         self.image = self.walking_animations[self.direction_label][0]
         self.rect = self.image.get_rect(topleft=pos)
-        self.hitbox = self.rect.inflate(-4, -16)
+        self.hitbox = self.rect.inflate(-8, -16)
         self.hitbox.top = self.rect.top + 14
+        self.hitbox.left = self.rect.left + 4
 
         # All cooldowns are in milliseconds
         # Cooldown between animation frames
@@ -157,6 +159,8 @@ class Player(Entity):
         self.has_sword_wood = True
         self.itemA = "WoodenSword"
         self.itemB = "Bomb"
+        self.ladder_in_use = False
+        self.ladder = None
 
     def load_animation_frames(self, player_tile_set):
         super().load_animation_frames(player_tile_set)
@@ -171,8 +175,6 @@ class Player(Entity):
             return True
         return False
 
-    # input() detects which key is pressed, and modifies player direction_label & direction_vector,
-    # and/or player_state, and starts cooldown on actions if used.
     def input(self):
         keys = pygame.key.get_pressed()
 
@@ -263,16 +265,16 @@ class Player(Entity):
                 self.invulnerable = False
                 self.hurt_animation_frame_count = 0
 
-    # collision (direction) detects collision with both enemies and obstacle sprites
     def collision(self, direction):
-        if direction == 'horizontal':
-            for sprite in self.enemy_sprites:
-                if sprite.hitbox.colliderect(self.hitbox):
-                    if 'hurt' not in self.state and not self.invulnerable and not sprite.invulnerable:
+        # Collision with Enemies
+        for sprite in self.enemy_sprites:
+            if sprite.hitbox.colliderect(self.hitbox):
+                if 'hurt' not in self.state and not self.invulnerable and not sprite.invulnerable:
+                    self.hurt_starting_time = pygame.time.get_ticks()
+                    self.invulnerable = True
+                    self.player_hurt_sound.play()
+                    if direction == 'horizontal':
                         self.state = 'hurt_h'
-                        self.hurt_starting_time = pygame.time.get_ticks()
-                        self.invulnerable = True
-                        self.player_hurt_sound.play()
                         self.direction_vector.y = 0
                         if self.hitbox.centerx - sprite.hitbox.centerx <= 0:
                             self.direction_vector.x = -1
@@ -280,26 +282,8 @@ class Player(Entity):
                         else:
                             self.direction_vector.x = 1
                             self.hitbox.x += self.current_speed
-                        self.health -= sprite.collision_damage
-                        if self.health <= PLAYER_HEALTH_PER_HEART and not self.is_low_health:
-                            self.low_health_sound.play(loops=-1)
-                            self.is_low_health = True
-
-            for sprite in self.obstacle_sprites:
-                if sprite.hitbox.colliderect(self.hitbox):
-                    if self.direction_vector.x > 0:
-                        self.hitbox.right = sprite.hitbox.left
-                    if self.direction_vector.x < 0:
-                        self.hitbox.left = sprite.hitbox.right
-
-        elif direction == 'vertical':
-            for sprite in self.enemy_sprites:
-                if sprite.hitbox.colliderect(self.hitbox):
-                    if 'hurt' not in self.state and not self.invulnerable and not sprite.invulnerable:
+                    else:
                         self.state = 'hurt_v'
-                        self.hurt_starting_time = pygame.time.get_ticks()
-                        self.invulnerable = True
-                        self.player_hurt_sound.play()
                         self.direction_vector.x = 0
                         if self.hitbox.centerx - sprite.hitbox.centerx <= 0:
                             self.direction_vector.y = -1
@@ -307,18 +291,66 @@ class Player(Entity):
                         else:
                             self.direction_vector.y = 1
                             self.hitbox.y += self.current_speed
-                        self.health -= sprite.collision_damage
-                        if self.health <= PLAYER_HEALTH_PER_HEART and not self.is_low_health:
-                            self.low_health_sound.play(loops=-1)
-                            self.is_low_health = True
+                    self.health -= sprite.collision_damage
+                    if self.health <= PLAYER_HEALTH_PER_HEART and not self.is_low_health:
+                        self.low_health_sound.play(loops=-1)
+                        self.is_low_health = True
 
-            for sprite in self.obstacle_sprites:
+        # Collision with Obstacles
+        for sprite in self.obstacle_sprites:
+            if sprite.type == LIMIT_WATER_INDEX and self.has_ladder and not self.ladder_in_use:
                 if sprite.hitbox.colliderect(self.hitbox):
-                    if self.direction_vector.y > 0:
-                        self.hitbox.bottom = sprite.hitbox.top
-                    if self.direction_vector.y < 0:
-                        self.hitbox.top = sprite.hitbox.bottom
+                    self.ladder_in_use = True
+                    ladder_image = self.item_tileset.get_sprite_image(LADDER_FRAME_ID)
+                    ladder_pos_x = sprite.pos[0]
+                    ladder_pos_y = sprite.pos[1]
+                    if direction == 'horizontal':
+                        if self.direction_vector.x < 0:
+                            ladder_pos_x -= 16
+                    else:
+                        if self.direction_vector.y < 0:
+                            ladder_pos_y -= 16
+                    self.ladder = Tile((ladder_pos_x, ladder_pos_y), self.visible_sprites, ladder_image)
+                    sprite.type = LIMIT_LADDER_INDEX
 
+                    # Put player above the ladder by being the last visible sprite added
+                    self.visible_sprites.remove(self)
+                    self.visible_sprites.add(self)
+
+            elif (sprite.type == LIMIT_WATER_INDEX and
+                        self.has_ladder and
+                        self.ladder_in_use and
+                        sprite.hitbox.colliderect(self.ladder.hitbox)):
+                # If it's water under the ladder, make it walkable
+                sprite.type = LIMIT_LADDER_INDEX
+
+            elif sprite.type != LIMIT_LADDER_INDEX:
+                # If it's anything but a walkable water, block Player's path
+                if sprite.hitbox.colliderect(self.hitbox):
+                    if direction == 'horizontal':
+                        if self.direction_vector.x > 0:
+                            self.hitbox.right = sprite.hitbox.left
+                        if self.direction_vector.x < 0:
+                            self.hitbox.left = sprite.hitbox.right
+                    else:
+                        if self.direction_vector.y > 0:
+                            self.hitbox.bottom = sprite.hitbox.top
+                        if self.direction_vector.y < 0:
+                            self.hitbox.top = sprite.hitbox.bottom
+
+            else:
+                # If it's a walkable water tile, delete it (and the ladder also) if the ladder is not being used.
+                if self.ladder_in_use:
+                    # Delete ladder if the Player is not on top of it anymore
+                    if not self.ladder.rect.colliderect(self.hitbox):
+                        sprite.type = LIMIT_WATER_INDEX
+                        self.ladder.kill()
+                        self.ladder = None
+                        self.ladder_in_use = False
+                else:
+                    sprite.type = LIMIT_WATER_INDEX
+
+        # Collision with Particles
         for particle in self.particle_sprites:
             if particle.hitbox.colliderect(self.hitbox):
                 if 'hurt' not in self.state and not self.invulnerable and particle.affects_player:

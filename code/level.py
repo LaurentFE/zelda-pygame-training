@@ -842,4 +842,6 @@ class Level:
                     self.player_new_position = None
                     self.in_map_transition = None
             # Only visible sprites left at this point are the Player, and all the HUD sprites
+
+            # Put the player on top of all other visible sprites
             self.visible_sprites.update()
