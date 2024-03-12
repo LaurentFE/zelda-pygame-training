@@ -84,6 +84,8 @@ class Player(Entity):
         self.despawn_sound.set_volume(0.4)
         self.stairs_sound = pygame.mixer.Sound(SOUND_STAIRS)
         self.stairs_sound.set_volume(0.4)
+        self.pick_up_sound = pygame.mixer.Sound(SOUND_PICKUP)
+        self.pick_up_sound.set_volume(0.3)
 
         self.direction_label = 'down'
         self.state = 'idle'
@@ -128,7 +130,7 @@ class Player(Entity):
         # Player actions cooldowns
         self.action_cooldown = PLAYER_ACTION_ANIMATION_COOLDOWN
         self.pickup_minor_cooldown = 1500
-        self.pickup_major_cooldown = 2500
+        self.pickup_major_cooldown = PLAYER_PICKUP_MAJOR_COOLDOWN
         self.hurt_cooldown = PLAYER_HURT_FRAMES * self.hurt_animation_cooldown
         self.invulnerability_cooldown = 1.5 * self.hurt_cooldown
         self.action_starting_time = 0
@@ -253,6 +255,7 @@ class Player(Entity):
         elif self.state == 'pickup_major':
             if current_time - self.pickup_major_starting_time >= self.pickup_major_cooldown:
                 self.state = 'idle'
+                self.invulnerable = False
         elif 'hurt' in self.state:
             if self.action_a_particle is not None:
                 self.action_a_particle.kill()
@@ -422,6 +425,11 @@ class Player(Entity):
             self.stairs_animation_starting_time = current_time
         elif state == 'idle':
             self.state = state
+        elif state == 'pickup_major':
+            self.state = 'pickup_major'
+            self.invulnerable = True
+            self.pickup_major_starting_time = current_time
+            self.pick_up_sound.play()
         else:
             debug(f'trying to change player state in death to : {state}. Does not exist')
 
@@ -534,12 +542,18 @@ class Player(Entity):
             if self.health > self.current_max_health:
                 self.health = self.current_max_health
 
+    def add_max_health(self):
+        if self.current_max_health < PLAYER_HEALTH_MAX:
+            self.current_max_health += PLAYER_HEALTH_PER_HEART
+        else:
+            self.current_max_health = PLAYER_HEALTH_MAX
+
     def add_money(self, amount):
         if amount >= 0:
             self.rupee_acquired_sound.play()
             self.money += amount
             if self.money > 999:
-                self.health = 999
+                self.money = 999
 
     def add_bombs(self, amount):
         if amount >= 0:

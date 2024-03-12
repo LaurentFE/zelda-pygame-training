@@ -60,6 +60,7 @@ class Level:
         }
         self.item_selector = None
         self.item_selected_sprite = None
+        self.item_picked_up = None
 
         # Set up tile sets
         self.enemies_tile_set = Tileset('enemies')
@@ -72,6 +73,7 @@ class Level:
         self.particle_tile_set = Tileset('particles')
         self.consumables_tile_set = Tileset('consumables')
 
+        # Set up sounds
         self.overworld_background_theme = pygame.mixer.Sound(THEME_OVERWORLD)
         self.overworld_background_theme.set_volume(0.2)
         self.dungeon_background_theme = pygame.mixer.Sound(THEME_DUNGEON)
@@ -80,7 +82,6 @@ class Level:
         self.game_over_sound.set_volume(0.4)
 
         # Sprite setup
-
         # Player spawns at the center of the game surface
         player_x = SCREEN_WIDTH // 2 - TILE_SIZE
         player_y = SCREEN_HEIGHT // 2 + HUD_TILE_HEIGHT * TILE_SIZE // 2 - TILE_SIZE
@@ -347,7 +348,7 @@ class Level:
 
         item_a_id = None
         if self.player.has_sword_wood:
-            item_a_id = WOOD_SWORD_ID
+            item_a_id = WOOD_SWORD_FRAME_ID
 
         if self.equipped_item_a_sprite:
             self.equipped_item_a_sprite.kill()
@@ -754,6 +755,32 @@ class Level:
     def heal_player(self, amount):
         self.player.heal(amount)
 
+    def player_pick_up(self, item_label):
+
+        item_pos = (self.player.rect.left, self.player.rect.top - 32)
+        item_image = None
+        if item_label == HEARTRECEPTACLE_LABEL:
+            item_image = self.consumables_tile_set.get_sprite_image(HEARTRECEPTACLE_FRAME_ID)
+            self.player.add_max_health()
+        elif item_label == WOOD_SWORD_LABEL:
+            item_image = self.items_tile_set.get_sprite_image(WOOD_SWORD_FRAME_ID)
+            self.player.has_sword_wood = True
+        elif item_label == CANDLE_LABEL:
+            item_image = self.items_tile_set.get_sprite_image(RED_CANDLE_FRAME_ID)
+            self.player.has_candle = True
+        elif item_label == BOOMERANG_LABEL:
+            item_image = self.items_tile_set.get_sprite_image(BOOMERANG_FRAME_ID)
+            self.player.has_boomerang = True
+        elif item_label == LADDER_LABEL:
+            item_image = self.items_tile_set.get_sprite_image(LADDER_FRAME_ID)
+            self.player.has_ladder = True
+        else:
+            # Item not implemented yet ? then nothing happens
+            return
+
+        self.item_picked_up = Tile(item_pos, [self.visible_sprites], item_image)
+        self.player.set_state('pickup_major')
+
     def add_money(self, amount):
         self.player.add_money(amount)
 
@@ -771,6 +798,10 @@ class Level:
             elif self.in_menu:
                 # Reset attack cooldown timer until game is resumed
                 monster.attack_starting_time = pygame.time.get_ticks()
+
+        if self.item_picked_up is not None and self.player.state != 'pickup_major':
+            self.item_picked_up.kill()
+            self.item_picked_up = None
 
         if not self.player.isDead:
             self.draw_hud()

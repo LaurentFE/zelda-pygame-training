@@ -660,3 +660,211 @@ class BombSmoke(Particle):
         else:
             self.animate()
             pygame.display.get_surface().blit(self.image, (self.pos_x, self.pos_y))
+
+
+class HeartReceptacle(Particle):
+    def __init__(self, owner_pos, groups, consumable_tileset, obstacle_sprites, level):
+
+        owner_direction_vector = pygame.math.Vector2()
+        super().__init__(owner_pos, owner_direction_vector, groups)
+
+        self.obstacle_sprites = obstacle_sprites
+        self.level = level
+
+        self.owner_pos = owner_pos
+        self.pos_x = owner_pos[0]
+        self.pos_y = owner_pos[1]
+
+        self.move_animation_frame_count = 0
+        self.move_animations = []
+
+        self.load_animation_frames(consumable_tileset)
+
+        self.image = self.move_animations[0]
+        self.rect = self.image.get_rect(topleft=(self.pos_x, self.pos_y))
+        self.hitbox = self.rect.inflate(-16, -16)
+
+        self.affects_player = True
+        self.bypasses_shield = True
+        self.collision_damage = 0
+
+        self.is_active = True
+
+    def load_animation_frames(self, particle_tileset):
+        # Only one frame
+        self.move_animations.append(particle_tileset.get_sprite_image(HEARTRECEPTACLE_FRAME_ID))
+
+    def animate(self):
+        # No animation
+        pass
+
+    def collision(self, direction):
+        # This doesn't move, so it won't collide with things.
+        # But things will collide with it, and they will handle the collision
+        pass
+
+    def move(self):
+        # This doesn't move
+        pass
+
+    def effect(self):
+        self.level.player_pick_up(HEARTRECEPTACLE_LABEL)
+
+    def update(self):
+        pygame.display.get_surface().blit(self.image, self.rect.topleft)
+
+
+class Ladder(Particle):
+    def __init__(self, owner_pos, groups, items_tileset, obstacle_sprites, level):
+
+        owner_direction_vector = pygame.math.Vector2()
+        super().__init__(owner_pos, owner_direction_vector, groups)
+
+        self.obstacle_sprites = obstacle_sprites
+        self.level = level
+
+        self.owner_pos = owner_pos
+        self.pos_x = owner_pos[0]
+        self.pos_y = owner_pos[1]
+
+        self.move_animation_frame_count = 0
+        self.move_animations = []
+
+        self.load_animation_frames(items_tileset)
+
+        self.image = self.move_animations[0]
+        self.rect = self.image.get_rect(topleft=(self.pos_x, self.pos_y))
+        self.hitbox = self.rect.inflate(-16, -16)
+
+        self.affects_player = True
+        self.bypasses_shield = True
+        self.collision_damage = 0
+
+        self.is_active = True
+
+    def load_animation_frames(self, items_tileset):
+        # Only one frame
+        self.move_animations.append(items_tileset.get_sprite_image(LADDER_FRAME_ID))
+
+    def animate(self):
+        # No animation
+        pass
+
+    def collision(self, direction):
+        # This doesn't move, so it won't collide with things.
+        # But things will collide with it, and they will handle the collision
+        pass
+
+    def move(self):
+        # This doesn't move
+        pass
+
+    def effect(self):
+        self.level.player_pick_up(LADDER_LABEL)
+
+    def update(self):
+        pygame.display.get_surface().blit(self.image, self.rect.topleft)
+
+
+class RedCandle(Particle):
+    def __init__(self, owner_pos, groups, items_tileset, obstacle_sprites, level):
+
+        owner_direction_vector = pygame.math.Vector2()
+        super().__init__(owner_pos, owner_direction_vector, groups)
+
+        self.obstacle_sprites = obstacle_sprites
+        self.level = level
+
+        self.owner_pos = owner_pos
+        self.pos_x = owner_pos[0]
+        self.pos_y = owner_pos[1]
+
+        self.move_animation_frame_count = 0
+        self.move_animations = []
+
+        self.load_animation_frames(items_tileset)
+
+        self.image = self.move_animations[0]
+        self.rect = self.image.get_rect(topleft=(self.pos_x, self.pos_y))
+        self.hitbox = self.rect.inflate(-16, -16)
+
+        self.affects_player = True
+        self.bypasses_shield = True
+        self.collision_damage = 0
+
+        self.is_active = True
+
+    def load_animation_frames(self, items_tileset):
+        # Only one frame
+        self.move_animations.append(items_tileset.get_sprite_image(RED_CANDLE_FRAME_ID))
+
+    def animate(self):
+        # No animation
+        pass
+
+    def collision(self, direction):
+        # This doesn't move, so it won't collide with things.
+        # But things will collide with it, and they will handle the collision
+        pass
+
+    def move(self):
+        # This doesn't move
+        pass
+
+    def effect(self):
+        self.level.player_pick_up(CANDLE_LABEL)
+
+    def update(self):
+        pygame.display.get_surface().blit(self.image, self.rect.topleft)
+
+
+class Boomerang(Particle):
+    def __init__(self, owner_pos, groups, items_tileset, obstacle_sprites, level):
+
+        owner_direction_vector = pygame.math.Vector2()
+        super().__init__(owner_pos, owner_direction_vector, groups)
+
+        self.obstacle_sprites = obstacle_sprites
+        self.level = level
+
+        self.owner_pos = owner_pos
+        self.pos_x = owner_pos[0]
+        self.pos_y = owner_pos[1]
+
+        self.move_animation_frame_count = 0
+        self.move_animations = []
+
+        self.load_animation_frames(items_tileset)
+
+        self.image = self.move_animations[0]
+        self.rect = self.image.get_rect(topleft=(self.pos_x, self.pos_y))
+        self.hitbox = self.rect.inflate(-16, -16)
+
+        self.affects_player = True
+        self.bypasses_shield = True
+        self.collision_damage = 0
+
+        self.is_active = True
+
+    def load_animation_frames(self, items_tileset):
+        # Only one frame
+        self.move_animations.append(items_tileset.get_sprite_image(BOOMERANG_FRAME_ID))
+
+    def animate(self):
+        # No animation
+        pass
+
+    def collision(self, direction):
+        # This doesn't move, so it won't collide with things.
+        # But things will collide with it, and they will handle the collision
+        pass
+
+    def move(self):
+        # This doesn't move
+        pass
+
+    def effect(self):
+        self.level.player_pick_up(BOOMERANG_LABEL)
+
+    def update(self):
+        pygame.display.get_surface().blit(self.image, self.rect.topleft)
