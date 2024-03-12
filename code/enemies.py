@@ -129,7 +129,6 @@ class Enemy(Entity):
                     if self.direction_vector.y < 0:
                         self.hitbox.top = sprite.hitbox.bottom
 
-
     @abc.abstractmethod
     def move(self):
         if self.state == 'walking':
