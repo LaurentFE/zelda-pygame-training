@@ -11,7 +11,7 @@ from tile import Tile
 from obstacle import Obstacle
 from player import Player
 from enemies import RedOctorock
-from particles import Heart, Rupee, CBomb, Fairy
+from particles import Heart, Rupee, CBomb, Fairy, HeartReceptacle, Ladder, RedCandle, Boomerang, WoodenSword
 from selector import Selector
 from warp import Warp
 
@@ -49,6 +49,7 @@ class Level:
         self.health_sprites = pygame.sprite.Group()
         self.menu_sprites = pygame.sprite.Group()
         self.border_sprites = pygame.sprite.Group()
+        self.lootable_items_sprites = pygame.sprite.Group()
 
         self.equipped_item_a_sprite = None
         self.equipped_item_b_sprite = None
@@ -60,6 +61,7 @@ class Level:
         }
         self.item_selector = None
         self.item_selected_sprite = None
+        self.item_picked_up = None
 
         # Set up tile sets
         self.enemies_tile_set = Tileset('enemies')
@@ -72,6 +74,7 @@ class Level:
         self.particle_tile_set = Tileset('particles')
         self.consumables_tile_set = Tileset('consumables')
 
+        # Set up sounds
         self.overworld_background_theme = pygame.mixer.Sound(THEME_OVERWORLD)
         self.overworld_background_theme.set_volume(0.2)
         self.dungeon_background_theme = pygame.mixer.Sound(THEME_DUNGEON)
@@ -80,7 +83,6 @@ class Level:
         self.game_over_sound.set_volume(0.4)
 
         # Sprite setup
-
         # Player spawns at the center of the game surface
         player_x = SCREEN_WIDTH // 2 - TILE_SIZE
         player_y = SCREEN_HEIGHT // 2 + HUD_TILE_HEIGHT * TILE_SIZE // 2 - TILE_SIZE
@@ -346,8 +348,9 @@ class Level:
                       self.menu_rect.y + 48)
 
         item_a_id = None
-        if self.player.has_sword_wood:
-            item_a_id = WOOD_SWORD_ID
+        # Define here all swords implemented
+        if self.player.itemA == WOOD_SWORD_LABEL:
+            item_a_id = WOOD_SWORD_FRAME_ID
 
         if self.equipped_item_a_sprite:
             self.equipped_item_a_sprite.kill()
@@ -427,6 +430,48 @@ class Level:
                 if sprite_id != -1:
                     Obstacle((x, y), [self.obstacle_sprites], sprite_id)
 
+    def load_items(self, level_id):
+        layout = import_csv_layout(f'../map/{level_id}_Items.csv')
+        if level_id in MAP_ITEMS.keys():
+            map_items = MAP_ITEMS[level_id].keys()
+            for row_index, row in enumerate(layout):
+                for col_index, col in enumerate(row):
+                    x = col_index * TILE_SIZE
+                    y = row_index * TILE_SIZE + HUD_TILE_HEIGHT * TILE_SIZE  # Skipping menu tiles at the top of screen
+                    sprite_id = int(col)
+                    if (sprite_id == HEARTRECEPTACLE_FRAME_ID
+                            and HEARTRECEPTACLE_LABEL in map_items
+                            and MAP_ITEMS[level_id][HEARTRECEPTACLE_LABEL]):
+                        HeartReceptacle((x, y),
+                                        [self.visible_sprites, self.lootable_items_sprites],
+                                        self.consumables_tile_set,
+                                        level_id,
+                                        self)
+                    elif sprite_id == LADDER_FRAME_ID and MAP_ITEMS[level_id][LADDER_LABEL]:
+                        Ladder((x, y),
+                               [self.visible_sprites, self.lootable_items_sprites],
+                               self.items_tile_set,
+                               level_id,
+                               self)
+                    elif sprite_id == RED_CANDLE_FRAME_ID and MAP_ITEMS[level_id][CANDLE_LABEL]:
+                        RedCandle((x, y),
+                                  [self.visible_sprites, self.lootable_items_sprites],
+                                  self.items_tile_set,
+                                  level_id,
+                                  self)
+                    elif sprite_id == BOOMERANG_FRAME_ID and MAP_ITEMS[level_id][BOOMERANG_LABEL]:
+                        Boomerang((x, y),
+                                  [self.visible_sprites, self.lootable_items_sprites],
+                                  self.items_tile_set,
+                                  level_id,
+                                  self)
+                    elif sprite_id == WOOD_SWORD_FRAME_ID and MAP_ITEMS[level_id][WOOD_SWORD_LABEL]:
+                        WoodenSword((x, y),
+                                    [self.visible_sprites, self.lootable_items_sprites],
+                                    self.items_tile_set,
+                                    level_id,
+                                    self)
+
     def load_enemies(self, level_id):
         layout = import_csv_layout(f'../map/{level_id}_Enemies.csv')
         for row_index, row in enumerate(layout):
@@ -450,6 +495,7 @@ class Level:
                              self.enemy_sprites,
                              self.visible_sprites,
                              self.particle_sprites,
+                             self.lootable_items_sprites,
                              self.player_tile_set,
                              self.particle_tile_set,
                              self.items_tile_set)
@@ -459,6 +505,7 @@ class Level:
         # This is done AFTER any map change animation
         self.load_limits(level_id)
         self.load_warps(level_id)
+        self.load_items(level_id)
         self.load_enemies(level_id)
 
     def create_transition_surface(self):
@@ -513,6 +560,9 @@ class Level:
                 particle.kill()
             for obstacle in self.obstacle_sprites:
                 obstacle.kill()
+            for item in self.lootable_items_sprites:
+                item.kill()
+
             # change_id 0 -> 3 is a side scrolling map change, respectively Up/Right/Down/Left
             # change_id > 3 is a stairs map change, with sound and a completely different map
             match change_id:
@@ -541,17 +591,17 @@ class Level:
                     self.player.set_state('warping')
                     # Animate slide - will be done in update
                 case _:
-                    if change_id - 4 < len(UNDERWORLD):
-                        if UNDERWORLD[change_id - 4]['stairs']:
+                    if change_id - 4 < len(UNDERWORLD_STAIRS):
+                        if UNDERWORLD_STAIRS[change_id - 4]['stairs']:
                             self.in_map_transition = 'Stairs'
                             self.player.set_state('stairs')
                             self.stairs_animation_starting_time = pygame.time.get_ticks()
                         else:
                             self.in_map_transition = 'Silent'
 
-                        self.next_map = UNDERWORLD[change_id - 4]['map']
-                        self.next_map_screen = UNDERWORLD[change_id - 4]['screen']
-                        self.player_new_position = UNDERWORLD[change_id - 4]['player_pos']
+                        self.next_map = UNDERWORLD_STAIRS[change_id - 4]['map']
+                        self.next_map_screen = UNDERWORLD_STAIRS[change_id - 4]['screen']
+                        self.player_new_position = UNDERWORLD_STAIRS[change_id - 4]['player_pos']
 
     def animate_map_transition(self):
         self.map_scroll_animation_counter += 1
@@ -754,6 +804,33 @@ class Level:
     def heal_player(self, amount):
         self.player.heal(amount)
 
+    def player_pick_up(self, item_label):
+
+        item_pos = (self.player.rect.left, self.player.rect.top - 32)
+
+        if item_label == HEARTRECEPTACLE_LABEL:
+            item_image = self.consumables_tile_set.get_sprite_image(HEARTRECEPTACLE_FRAME_ID)
+            self.player.add_max_health()
+        elif item_label == WOOD_SWORD_LABEL:
+            item_image = self.items_tile_set.get_sprite_image(WOOD_SWORD_FRAME_ID)
+            self.player.has_wood_sword = True
+            self.player.equip_best_sword()
+        elif item_label == CANDLE_LABEL:
+            item_image = self.items_tile_set.get_sprite_image(RED_CANDLE_FRAME_ID)
+            self.player.has_candle = True
+        elif item_label == BOOMERANG_LABEL:
+            item_image = self.items_tile_set.get_sprite_image(BOOMERANG_FRAME_ID)
+            self.player.has_boomerang = True
+        elif item_label == LADDER_LABEL:
+            item_image = self.items_tile_set.get_sprite_image(LADDER_FRAME_ID)
+            self.player.has_ladder = True
+        else:
+            # Item not implemented yet ? then nothing happens
+            return
+
+        self.item_picked_up = Tile(item_pos, [self.visible_sprites], item_image)
+        self.player.set_state('pickup_major')
+
     def add_money(self, amount):
         self.player.add_money(amount)
 
@@ -771,6 +848,10 @@ class Level:
             elif self.in_menu:
                 # Reset attack cooldown timer until game is resumed
                 monster.attack_starting_time = pygame.time.get_ticks()
+
+        if self.item_picked_up is not None and self.player.state != 'pickup_major':
+            self.item_picked_up.kill()
+            self.item_picked_up = None
 
         if not self.player.isDead:
             self.draw_hud()
