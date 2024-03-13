@@ -111,6 +111,7 @@ class Enemy(Entity):
 
     @abc.abstractmethod
     # Monsters don't collide with other Monsters : NES compliant
+    # Monsters don't collide with particles. Particles collide with enemies
     def collision(self, direction):
         if direction == 'horizontal':
             for sprite in self.obstacle_sprites:
@@ -127,40 +128,6 @@ class Enemy(Entity):
                         self.hitbox.bottom = sprite.hitbox.top
                     if self.direction_vector.y < 0:
                         self.hitbox.top = sprite.hitbox.bottom
-
-        # Monster is repelled opposite of the direction_label of the particle that hits them
-        for particle in self.particle_sprites:
-            if particle.hitbox.colliderect(self.hitbox):
-                if 'hurt' not in self.state and not self.invulnerable and particle.affects_enemy:
-                    self.state = 'hurt'
-                    self.hurt_starting_time = pygame.time.get_ticks()
-                    self.hurt_animation_starting_time = self.hurt_starting_time
-                    self.invulnerable = True
-                    # Should I just copy particle vector ?
-                    # Maybe for boomerang ? If Player's reaction to Particle works, use it here too
-                    if particle.direction_label == 'left':
-                        self.direction_vector.x = -1
-                        self.direction_vector.y = 0
-                        self.hitbox.x -= self.current_speed
-                        self.direction_label = 'right'
-                    elif particle.direction_label == 'right':
-                        self.direction_vector.x = 1
-                        self.direction_vector.y = 0
-                        self.hitbox.x += self.current_speed
-                        self.direction_label = 'left'
-                    elif particle.direction_label == 'up':
-                        self.direction_vector.y = -1
-                        self.direction_vector.x = 0
-                        self.hitbox.y -= self.current_speed
-                        self.direction_label = 'down'
-                    else:
-                        self.direction_vector.y = 1
-                        self.direction_vector.x = 0
-                        self.hitbox.y += self.current_speed
-                        self.direction_label = 'up'
-                    self.health -= particle.collision_damage
-                    if self.health > 0:
-                        self.monster_hurt_sound.play()
 
     @abc.abstractmethod
     def move(self):
@@ -192,6 +159,39 @@ class Enemy(Entity):
     @abc.abstractmethod
     def attack(self):
         pass
+
+    @abc.abstractmethod
+    def take_damage(self, amount, direction):
+        if 'hurt' not in self.state and not self.invulnerable:
+            self.state = 'hurt'
+            self.hurt_starting_time = pygame.time.get_ticks()
+            self.hurt_animation_starting_time = self.hurt_starting_time
+            self.invulnerable = True
+
+            if direction == 'left':
+                self.direction_vector.x = -1
+                self.direction_vector.y = 0
+                self.hitbox.x -= self.current_speed
+                self.direction_label = 'right'
+            elif direction == 'right':
+                self.direction_vector.x = 1
+                self.direction_vector.y = 0
+                self.hitbox.x += self.current_speed
+                self.direction_label = 'left'
+            elif direction == 'up':
+                self.direction_vector.y = -1
+                self.direction_vector.x = 0
+                self.hitbox.y -= self.current_speed
+                self.direction_label = 'down'
+            else:
+                self.direction_vector.y = 1
+                self.direction_vector.x = 0
+                self.hitbox.y += self.current_speed
+                self.direction_label = 'up'
+
+            self.health -= amount
+            if self.health > 0:
+                self.monster_hurt_sound.play()
 
     @abc.abstractmethod
     def update(self):
@@ -314,6 +314,9 @@ class RedOctorock(Enemy):
              self.direction_label,
              self.particle_tileset,
              self.obstacle_sprites)
+
+    def take_damage(self, amount, direction):
+        super().take_damage(amount, direction)
 
     def update(self):
         super().update()

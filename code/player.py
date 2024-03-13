@@ -4,7 +4,7 @@ from settings import *
 from inputs import *
 from tile import Tile
 from entities import Entity
-from particles import PWoodenSword, Bomb
+from particles import PWoodenSword, Bomb, PBoomerang
 
 
 # NOTE : Behaviour difference between original NES version, and mine :
@@ -31,13 +31,14 @@ from particles import PWoodenSword, Bomb
 
 class Player(Entity):
     def __init__(self, pos, groups, obstacle_sprites, enemy_sprites, visible_sprites, particle_sprites,
-                 lootable_items_sprites, player_tile_set, particle_tileset, item_tileset):
+                 lootable_items_sprites, border_sprites, player_tile_set, particle_tileset, item_tileset):
         super().__init__(groups, visible_sprites, obstacle_sprites, particle_sprites, particle_tileset)
 
         self.enemy_sprites = enemy_sprites
         self.visible_sprites = visible_sprites
         self.particle_sprites = particle_sprites
         self.lootable_items_sprites = lootable_items_sprites
+        self.border_sprites = border_sprites
 
         self.item_tileset = item_tileset
 
@@ -162,6 +163,7 @@ class Player(Entity):
         self.itemB = PLAYER_INITIAL_ITEM_B
         self.ladder_in_use = False
         self.ladder = None
+        self.boomerang_thrown = False
 
     def load_animation_frames(self, player_tile_set):
         super().load_animation_frames(player_tile_set)
@@ -204,8 +206,12 @@ class Player(Entity):
         if is_action_a_key_pressed(keys) and self.can_action() and self.itemA != 'None':
             # Define here all different item A weapons implemented
             if self.itemA == WOOD_SWORD_LABEL:
-                self.action_a_particle = PWoodenSword(self.rect.topleft, self.direction_vector, self.direction_label,
+                self.action_a_particle = PWoodenSword(self.rect.topleft,
+                                                      self.direction_vector,
+                                                      self.direction_label,
                                                       [self.visible_sprites, self.particle_sprites],
+                                                      self.enemy_sprites,
+                                                      self.particle_sprites,
                                                       self.particle_tileset)
             else:
                 # ItemA used not implemented, abort
@@ -217,9 +223,17 @@ class Player(Entity):
 
         # Can't move during item use
         if is_action_b_key_pressed(keys) and self.can_action() and self.itemB != 'None':
-            if self.itemB == BOOMERANG_LABEL:
-                # Create Boomerang particle
-                pass
+            if self.itemB == BOOMERANG_LABEL and not self.boomerang_thrown:
+                PBoomerang(self.rect.topleft,
+                           self.direction_vector,
+                           self.direction_label,
+                           [self.visible_sprites, self.particle_sprites],
+                           self.item_tileset,
+                           self.enemy_sprites,
+                           self.particle_sprites,
+                           self.border_sprites,
+                           self)
+                self.boomerang_thrown = True
             elif self.itemB == BOMB_LABEL:
                 if self.bombs > 0:
                     # Bombs are dropped and forgotten, won't get deleted upon timer but when they die by themselves
@@ -583,6 +597,26 @@ class Player(Entity):
             self.bombs += amount
             if self.bombs > PLAYER_BOMBS_MAX:
                 self.bombs = PLAYER_BOMBS_MAX
+
+    def add_item(self, label):
+        if label == HEARTRECEPTACLE_LABEL:
+            self.add_max_health()
+            self.set_state('pickup_two_handed')
+        elif label == WOOD_SWORD_LABEL:
+            self.has_wood_sword = True
+            self.equip_best_sword()
+            self.set_state('pickup_one_handed')
+        elif label == BOOMERANG_LABEL:
+            self.has_boomerang = True
+            self.set_state('pickup_one_handed')
+            self.change_item_b(label)
+        elif label == CANDLE_LABEL:
+            self.has_candle = True
+            self.set_state('pickup_one_handed')
+            self.change_item_b(label)
+        elif label == LADDER_LABEL:
+            self.has_ladder = True
+            self.set_state('pickup_two_handed')
 
     def has_item(self, label):
         if label == BOOMERANG_LABEL:
