@@ -93,6 +93,8 @@ class Player(Entity):
         self.speed = 3
 
         self.pos = pos
+        self.warping_x = 0
+        self.warping_y = 0
         self.image = self.walking_animations[self.direction_label][0]
         self.rect = self.image.get_rect(topleft=pos)
         self.hitbox = self.rect.inflate(-8, -16)
@@ -648,9 +650,9 @@ class Player(Entity):
         if self.has_item(label):
             self.itemB = label
 
-    def offset_position(self, offset_x, offset_y):
-        new_x = self.hitbox.x + offset_x
-        new_y = self.hitbox.y + offset_y
+    def define_warping_position(self, offset_x, offset_y):
+        new_x = self.rect.x + offset_x
+        new_y = self.rect.y + offset_y
 
         if TILE_SIZE >= new_x:
             new_x = TILE_SIZE + 1
@@ -662,18 +664,17 @@ class Player(Entity):
         elif new_y >= SCREEN_HEIGHT - TILE_SIZE * 3:
             new_y = SCREEN_HEIGHT - TILE_SIZE * 3 - 1
 
-        self.hitbox.x = new_x
-        self.hitbox.y = new_y
-        self.rect.top = self.hitbox.top - 12
-        self.rect.left = self.hitbox.left - 4
+        self.warping_x = new_x
+        self.warping_y = new_y
 
     def set_position(self, pos):
-        self.hitbox.x = pos[0]
-        self.hitbox.y = pos[1]
-        self.rect.top = self.hitbox.top - 12
-        self.rect.left = self.hitbox.left - 4
+        self.rect.x = pos[0]
+        self.rect.y = pos[1]
+        self.hitbox.top = self.rect.top + 12
+        self.hitbox.left = self.rect.left + 4
 
     def update(self):
+        player_draw_pos = self.rect.topleft
         if not self.isDead:
             if 'hurt' not in self.state:
                 self.input()
@@ -683,6 +684,8 @@ class Player(Entity):
 
             if self.state != 'warping':
                 self.move()
+            else:
+                player_draw_pos = (self.warping_x, self.warping_y)
             self.animate()
             self.cooldowns()
             if self.health <= 0:
@@ -691,4 +694,4 @@ class Player(Entity):
         else:
             self.animate()
 
-        pygame.display.get_surface().blit(self.image, self.rect.topleft)
+        pygame.display.get_surface().blit(self.image, player_draw_pos)
