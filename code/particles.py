@@ -12,7 +12,7 @@ class Particle(pygame.sprite.Sprite, ABC):
 
         self.pos_x = owner_pos[0]
         self.pos_y = owner_pos[1]
-        self.owner_direction_vector = owner_direction_vector
+        self.owner_direction_vector = pygame.math.Vector2(owner_direction_vector)
         self.direction_vector = pygame.math.Vector2()
         self.speed = 0
         self.bypasses_shield = False
@@ -320,7 +320,7 @@ class PBoomerang(Particle):
 
     def kill(self):
         self.boomerang_attack_sound.stop()
-        self.player_ref.boomerang_thrown = False
+        self.player_ref.is_boomerang_thrown = False
         super().kill()
 
 
@@ -818,6 +818,124 @@ class BombSmoke(Particle):
         else:
             self.animate()
             pygame.display.get_surface().blit(self.image, (self.pos_x, self.pos_y))
+
+
+class Flame(Particle):
+    def __init__(self, owner_pos,
+                 owner_direction_vector,
+                 owner_direction_label,
+                 groups,
+                 particle_tileset,
+                 enemy_sprites,
+                 player):
+        super().__init__(owner_pos, owner_direction_vector, groups)
+
+        self.enemy_sprites = enemy_sprites
+        self.player_ref = player
+
+        self.direction_label = owner_direction_label
+        self.direction_vector = pygame.math.Vector2()
+        match self.direction_label:
+            case 'up':
+                self.direction_vector.x = 0
+                self.direction_vector.y = -1
+                self.pos_x = owner_pos[0]
+                self.pos_y = owner_pos[1] - TILE_SIZE
+            case 'right':
+                self.direction_vector.x = 1
+                self.direction_vector.y = 0
+                self.pos_x = owner_pos[0] + TILE_SIZE
+                self.pos_y = owner_pos[1]
+            case 'down':
+                self.direction_vector.x = 0
+                self.direction_vector.y = 1
+                self.pos_x = owner_pos[0]
+                self.pos_y = owner_pos[1] + TILE_SIZE
+            case 'left':
+                self.direction_vector.x = -1
+                self.direction_vector.y = 0
+                self.pos_x = owner_pos[0] - TILE_SIZE
+                self.pos_y = owner_pos[1]
+
+        self.distance_travelled = 0
+        self.max_distance = TILE_SIZE
+
+        self.move_animation_cooldown = 100
+        self.move_animation_timer_start = pygame.time.get_ticks()
+        self.move_animation_frame_count = 0
+        self.move_animations = []
+        self.load_animation_frames(particle_tileset)
+
+        self.image = self.move_animations[0]
+        self.rect = self.image.get_rect(topleft=(self.pos_x, self.pos_y))
+        self.hitbox = self.rect
+
+        self.collision_damage = FLAME_DMG
+
+        self.bomb_drop_sound = pygame.mixer.Sound(SOUND_FLAME)
+        self.bomb_drop_sound.set_volume(0.3)
+        self.bomb_drop_sound.play()
+
+        self.is_active = True
+
+        self.ignited_starting_time = pygame.time.get_ticks()
+        self.extinction_cooldown = 600
+
+    def load_animation_frames(self, particle_tileset):
+        self.move_animations.append(
+            particle_tileset.get_sprite_image(FLAME_FRAME_ID))
+        self.move_animations.append(
+            pygame.transform.flip(
+                particle_tileset.get_sprite_image(FLAME_FRAME_ID),
+                flip_x=True,
+                flip_y=False))
+
+    def animate(self):
+        current_time = pygame.time.get_ticks()
+
+        # Going through the motions of multiple frames, with a timer per frame
+        self.image = self.move_animations[self.move_animation_frame_count]
+        if current_time - self.move_animation_timer_start >= self.move_animation_cooldown:
+            self.move_animation_timer_start = pygame.time.get_ticks()
+            if self.move_animation_frame_count < FLAME_FRAMES - 1:
+                self.move_animation_frame_count += 1
+            else:
+                self.move_animation_frame_count = 0
+
+    def collision(self, direction):
+        # Collision with a monster
+        for enemy in self.enemy_sprites:
+            if enemy.hitbox.colliderect(self.hitbox):
+                # Enemy is pushed back in the direction the flame is moving, or if it's not moving, pushed backward
+                if self.distance_travelled < self.max_distance:
+                    direction = self.direction_label
+                else:
+                    direction = ''
+                enemy.take_damage(self.collision_damage, direction)
+
+        # Collision with a flammable tile
+
+    def move(self):
+        if self.distance_travelled < self.max_distance:
+            self.hitbox.x += self.direction_vector.x * FLAME_SPEED
+            self.rect.x += self.direction_vector.x * FLAME_SPEED
+            self.hitbox.y += self.direction_vector.y * FLAME_SPEED
+            self.rect.y += self.direction_vector.y * FLAME_SPEED
+            self.distance_travelled += FLAME_SPEED
+
+    def effect(self):
+        pass
+
+    def update(self):
+        current_time = pygame.time.get_ticks()
+        if current_time - self.ignited_starting_time >= self.extinction_cooldown:
+            self.player_ref.is_candle_lit = False
+            self.kill()
+        else:
+            self.animate()
+            self.move()
+            self.collision('')
+            pygame.display.get_surface().blit(self.image, self.rect.topleft)
 
 
 class HeartReceptacle(Particle):
