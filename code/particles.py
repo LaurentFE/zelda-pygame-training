@@ -687,9 +687,16 @@ class Fairy(Particle):
 
 
 class Bomb(Particle):
-    def __init__(self, owner_pos, owner_direction_vector, owner_direction_label, groups, particle_tileset):
+    def __init__(self, owner_pos,
+                 owner_direction_vector,
+                 owner_direction_label,
+                 groups,
+                 secret_bomb_sprites,
+                 particle_tileset):
         super().__init__(owner_pos, owner_direction_vector, groups)
-        # Will later give a group of destructible sprites to check if the bomb is close enough to break it
+
+        self.secret_bomb_sprites = secret_bomb_sprites
+
         self.owner_pos = owner_pos
         self.groups = groups
 
@@ -738,7 +745,10 @@ class Bomb(Particle):
         pass
 
     def collision(self, direction):
-        pass
+        for secret_passage in self.secret_bomb_sprites:
+            if (secret_passage.rect.colliderect(self.hitbox)
+                    and not secret_passage.is_revealed):
+                secret_passage.reveal()
 
     def move(self):
         pass
@@ -752,7 +762,7 @@ class Bomb(Particle):
         BombSmoke((self.pos_x + 8, self.pos_y - 8), self.groups, self.particle_tileset)
         BombSmoke((self.pos_x - 16, self.pos_y), self.groups, self.particle_tileset)
         # Destroy fragile walls nearby
-        pass
+        self.collision('')
 
     def update(self):
         current_time = pygame.time.get_ticks()
@@ -827,10 +837,12 @@ class Flame(Particle):
                  groups,
                  particle_tileset,
                  enemy_sprites,
+                 secret_flame_sprites,
                  player):
         super().__init__(owner_pos, owner_direction_vector, groups)
 
         self.enemy_sprites = enemy_sprites
+        self.secret_flame_sprites = secret_flame_sprites
         self.player_ref = player
 
         self.direction_label = owner_direction_label
@@ -914,6 +926,10 @@ class Flame(Particle):
                 enemy.take_damage(self.collision_damage, direction)
 
         # Collision with a flammable tile
+        for secret_passage in self.secret_flame_sprites:
+            if (secret_passage.rect.colliderect(self.hitbox)
+                    and not secret_passage.is_revealed):
+                secret_passage.reveal()
 
     def move(self):
         if self.distance_travelled < self.max_distance:

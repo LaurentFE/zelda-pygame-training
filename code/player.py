@@ -30,8 +30,19 @@ from particles import PWoodenSword, Bomb, PBoomerang, Flame
 # Will need someday to SINGLETON-ify this
 
 class Player(Entity):
-    def __init__(self, pos, groups, obstacle_sprites, enemy_sprites, visible_sprites, particle_sprites,
-                 lootable_items_sprites, border_sprites, player_tile_set, particle_tileset, item_tileset):
+    def __init__(self, pos,
+                 groups,
+                 obstacle_sprites,
+                 enemy_sprites,
+                 visible_sprites,
+                 particle_sprites,
+                 lootable_items_sprites,
+                 border_sprites,
+                 secret_flame_sprites,
+                 secret_bomb_sprites,
+                 player_tile_set,
+                 particle_tileset,
+                 item_tileset):
         super().__init__(groups, visible_sprites, obstacle_sprites, particle_sprites, particle_tileset)
 
         self.enemy_sprites = enemy_sprites
@@ -39,6 +50,8 @@ class Player(Entity):
         self.particle_sprites = particle_sprites
         self.lootable_items_sprites = lootable_items_sprites
         self.border_sprites = border_sprites
+        self.secret_flame_sprites = secret_flame_sprites
+        self.secret_bomb_sprites = secret_bomb_sprites
 
         self.item_tileset = item_tileset
 
@@ -238,8 +251,11 @@ class Player(Entity):
             elif self.itemB == BOMB_LABEL:
                 if self.bombs > 0:
                     # Bombs are dropped and forgotten, won't get deleted upon timer but when they die by themselves
-                    Bomb(self.rect.topleft, self.direction_vector, self.direction_label,
+                    Bomb(self.rect.topleft,
+                         self.direction_vector,
+                         self.direction_label,
                          [self.visible_sprites, self.particle_sprites],
+                         self.secret_bomb_sprites,
                          self.particle_tileset)
                     self.bombs -= 1
                 else:
@@ -252,6 +268,7 @@ class Player(Entity):
                       [self.visible_sprites, self.particle_sprites],
                       self.particle_tileset,
                       self.enemy_sprites,
+                      self.secret_flame_sprites,
                       self)
                 self.is_candle_lit = True
             else:

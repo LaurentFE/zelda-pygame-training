@@ -13,7 +13,7 @@ from player import Player
 from enemies import RedOctorock
 from particles import Heart, Rupee, CBomb, Fairy, HeartReceptacle, Ladder, RedCandle, Boomerang, WoodenSword
 from selector import Selector
-from warp import Warp
+from warp import Warp, SecretPassage
 
 
 # Will need someday to SINGLETON-ify this
@@ -50,6 +50,8 @@ class Level:
         self.menu_sprites = pygame.sprite.Group()
         self.border_sprites = pygame.sprite.Group()
         self.lootable_items_sprites = pygame.sprite.Group()
+        self.secret_bomb_sprites = pygame.sprite.Group()
+        self.secret_flame_sprites = pygame.sprite.Group()
 
         self.equipped_item_a_sprite = None
         self.equipped_item_b_sprite = None
@@ -73,6 +75,7 @@ class Level:
         self.levels_tile_set = Tileset('levels')
         self.particle_tile_set = Tileset('particles')
         self.consumables_tile_set = Tileset('consumables')
+        self.warps_tile_set = Tileset('warps')
 
         # Set up sounds
         self.overworld_background_theme = pygame.mixer.Sound(THEME_OVERWORLD)
@@ -390,18 +393,59 @@ class Level:
                                                sprite_groups,
                                                self.items_tile_set.get_sprite_image(item_frame_id))
 
-    def load_warps(self, level_id):
-        layout = import_csv_layout(f'../map/{level_id}_Warps.csv')
-        # Warp tiles are invisible, and either induce a scrolling animation on the sides of the screen, or a
-        # stairs animation anywhere else
-        # No graphics, only collisions
-        for row_index, row in enumerate(layout):
-            for col_index, col in enumerate(row):
-                x = col_index * TILE_SIZE
-                y = row_index * TILE_SIZE + HUD_TILE_HEIGHT * TILE_SIZE  # Skipping the HUD tiles at the top of screen
-                sprite_id = int(col)
-                if sprite_id != -1:
-                    Warp((x, y), [self.warp_sprites], sprite_id, self.player, self)
+    def load_warps(self, level_id, warp_type):
+        layout = None
+        match warp_type:
+            case 'warps':
+                layout = import_csv_layout(f'../map/{level_id}_Warps.csv')
+                groups = [self.warp_sprites]
+            case 'secrets_bomb':
+                layout = import_csv_layout(f'../map/{level_id}_Secrets_Bomb.csv')
+                groups = [self.visible_sprites, self.secret_bomb_sprites]
+                image = self.warps_tile_set.get_sprite_image(SECRET_CAVE_FRAME_ID)
+                if level_id in MAP_SECRETS_REVEALED.keys():
+                    revealed = MAP_SECRETS_REVEALED[level_id]
+                else:
+                    revealed = False
+            case 'secrets_flame':
+                layout = import_csv_layout(f'../map/{level_id}_Secrets_Flame.csv')
+                groups = [self.visible_sprites, self.secret_flame_sprites]
+                image = self.warps_tile_set.get_sprite_image(SECRET_STAIRS_FRAME_ID)
+                if level_id in MAP_SECRETS_REVEALED.keys():
+                    revealed = MAP_SECRETS_REVEALED[level_id]
+                else:
+                    revealed = False
+        if layout is not None:
+            for row_index, row in enumerate(layout):
+                for col_index, col in enumerate(row):
+                    x = col_index * TILE_SIZE
+                    # Skipping the HUD tiles at the top of screen
+                    y = row_index * TILE_SIZE + HUD_TILE_HEIGHT * TILE_SIZE
+                    sprite_id = int(col)
+                    if sprite_id != -1:
+                        match warp_type:
+                            case 'warps':
+                                Warp((x, y), groups, sprite_id, self.player, self)
+                            case 'secrets_bomb':
+                                SecretPassage((x, y),
+                                              groups,
+                                              self.obstacle_sprites,
+                                              sprite_id,
+                                              level_id,
+                                              self.player,
+                                              self,
+                                              image,
+                                              revealed)
+                            case 'secrets_flame':
+                                SecretPassage((x, y),
+                                              groups,
+                                              self.obstacle_sprites,
+                                              sprite_id,
+                                              level_id,
+                                              self.player,
+                                              self,
+                                              image,
+                                              revealed)
 
     def load_limits(self, level_id):
         layout = import_csv_layout(f'../map/{level_id}_Limits.csv')
@@ -496,6 +540,8 @@ class Level:
                              self.particle_sprites,
                              self.lootable_items_sprites,
                              self.border_sprites,
+                             self.secret_flame_sprites,
+                             self.secret_bomb_sprites,
                              self.player_tile_set,
                              self.particle_tile_set,
                              self.items_tile_set)
@@ -504,7 +550,9 @@ class Level:
         # This creates all Sprites of the new map
         # This is done AFTER any map change animation
         self.load_limits(level_id)
-        self.load_warps(level_id)
+        self.load_warps(level_id, 'warps')
+        self.load_warps(level_id, 'secrets_bomb')
+        self.load_warps(level_id, 'secrets_flame')
         self.load_items(level_id)
         self.load_enemies(level_id)
 
@@ -556,6 +604,8 @@ class Level:
             self.map_scroll_animation_counter = 0
             for warp in self.warp_sprites:
                 warp.kill()
+            for secret_flame in self.secret_flame_sprites:
+                secret_flame.kill()
             for enemy in self.enemy_sprites:
                 enemy.kill()
             for particle in self.particle_sprites:
@@ -845,6 +895,10 @@ class Level:
     def run(self):
         self.input()
 
+        # Put the player on top of all other visible sprites
+        self.visible_sprites.remove(self.player)
+        self.visible_sprites.add(self.player)
+
         for monster in self.enemy_sprites:
             if monster.isDead and monster.deathPlayed:
                 # Delete monsters that have played their death animation
@@ -891,6 +945,9 @@ class Level:
         else:
             # Warp makes a scrolling transition of the screen level
             if 'Warp' in self.in_map_transition:
+                # Delete the cave stairs sprite when transitioning screen
+                for secret_bomb in self.secret_bomb_sprites:
+                    secret_bomb.kill()
                 if self.map_scroll_animation_counter <= MAP_SCROLL_FRAMES_COUNT:
                     self.animate_map_transition()
                 else:
@@ -900,7 +957,7 @@ class Level:
                     self.player.set_state('idle')
                     self.map_scroll_animation_counter = 0
                     self.in_map_transition = None
-            # Other transitions (caves with stairs animation, or secret stairs with no animation
+            # Other transitions (caves with stairs animation, or secret stairs with no animation)
             # Which, I know, is strange, but how the NES game operates from the player POV
             else:
                 # Wait for the stairs animation (and sound) to be over with, if any
@@ -908,8 +965,13 @@ class Level:
                     current_time = pygame.time.get_ticks()
                     if current_time - self.stairs_animation_starting_time >= self.stairs_animation_duration:
                         self.in_map_transition = 'Done'
+
                 # Generate new map's sprites (enemies, borders, ...), use appropriate music (if any), move the player
                 else:
+                    # Delete the cave stairs sprite when transitioning screen is done
+                    for secret_bomb in self.secret_bomb_sprites:
+                        secret_bomb.kill()
+
                     self.current_map = self.next_map
                     self.current_map_screen = self.next_map_screen
                     self.create_map(self.current_map + self.current_map_screen)
@@ -929,5 +991,4 @@ class Level:
                     self.in_map_transition = None
             # Only visible sprites left at this point are the Player, and all the HUD sprites
 
-            # Put the player on top of all other visible sprites
             self.visible_sprites.update()
