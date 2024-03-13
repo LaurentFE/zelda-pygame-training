@@ -4,7 +4,7 @@ from settings import *
 from inputs import *
 from tile import Tile
 from entities import Entity
-from particles import PWoodenSword, Bomb, PBoomerang
+from particles import PWoodenSword, Bomb, PBoomerang, Flame
 
 
 # NOTE : Behaviour difference between original NES version, and mine :
@@ -163,7 +163,8 @@ class Player(Entity):
         self.itemB = PLAYER_INITIAL_ITEM_B
         self.ladder_in_use = False
         self.ladder = None
-        self.boomerang_thrown = False
+        self.is_boomerang_thrown = False
+        self.is_candle_lit = False
 
     def load_animation_frames(self, player_tile_set):
         super().load_animation_frames(player_tile_set)
@@ -223,7 +224,7 @@ class Player(Entity):
 
         # Can't move during item use
         if is_action_b_key_pressed(keys) and self.can_action() and self.itemB != 'None':
-            if self.itemB == BOOMERANG_LABEL and not self.boomerang_thrown:
+            if self.itemB == BOOMERANG_LABEL and not self.is_boomerang_thrown:
                 PBoomerang(self.rect.topleft,
                            self.direction_vector,
                            self.direction_label,
@@ -233,7 +234,7 @@ class Player(Entity):
                            self.particle_sprites,
                            self.border_sprites,
                            self)
-                self.boomerang_thrown = True
+                self.is_boomerang_thrown = True
             elif self.itemB == BOMB_LABEL:
                 if self.bombs > 0:
                     # Bombs are dropped and forgotten, won't get deleted upon timer but when they die by themselves
@@ -244,9 +245,15 @@ class Player(Entity):
                 else:
                     # Not enough bombs to operate, abort
                     return
-            elif self.itemB == CANDLE_LABEL:
-                # Create Flame particle
-                pass
+            elif self.itemB == CANDLE_LABEL and not self.is_candle_lit:
+                Flame(self.rect.topleft,
+                      self.direction_vector,
+                      self.direction_label,
+                      [self.visible_sprites, self.particle_sprites],
+                      self.particle_tileset,
+                      self.enemy_sprites,
+                      self)
+                self.is_candle_lit = True
             else:
                 # ItemB used not implemented, abort
                 return

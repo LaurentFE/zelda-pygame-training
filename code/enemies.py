@@ -168,6 +168,18 @@ class Enemy(Entity):
             self.hurt_animation_starting_time = self.hurt_starting_time
             self.invulnerable = True
 
+            # If origin of damage is static, enemy is pushed back to where he came from
+            if direction == '':
+                match self.direction_label:
+                    case 'up':
+                        direction = 'down'
+                    case 'right':
+                        direction = 'left'
+                    case 'down':
+                        direction = 'up'
+                    case _:
+                        direction = 'right'
+
             if direction == 'left':
                 self.direction_vector.x = -1
                 self.direction_vector.y = 0
