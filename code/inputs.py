@@ -15,10 +15,10 @@ MENU_KEY = pygame.K_ESCAPE
 
 
 def is_move_key_pressed(keys):
-    if (keys[UP_KEY_1] or keys[UP_KEY_2]
-            or keys[DOWN_KEY_1] or keys[DOWN_KEY_2]
-            or keys[LEFT_KEY_1] or keys[LEFT_KEY_2]
-            or keys[RIGHT_KEY_1] or keys[RIGHT_KEY_2]):
+    if (is_up_key_pressed(keys)
+            or is_down_key_pressed(keys)
+            or is_left_key_pressed(keys)
+            or is_right_key_pressed(keys)):
         return True
     return False
 
