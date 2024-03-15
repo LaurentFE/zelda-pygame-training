@@ -895,10 +895,6 @@ class Level:
     def run(self):
         self.input()
 
-        # Put the player on top of all other visible sprites
-        self.visible_sprites.remove(self.player)
-        self.visible_sprites.add(self.player)
-
         for monster in self.enemy_sprites:
             if monster.isDead and monster.deathPlayed:
                 # Delete monsters that have played their death animation
@@ -914,6 +910,9 @@ class Level:
 
         if not self.player.isDead:
             self.draw_hud()
+            # Put the player on top of all other visible sprites
+            self.visible_sprites.remove(self.player)
+            self.visible_sprites.add(self.player)
             # Update and draw the game
             if not self.in_menu:
                 self.draw_floor()
