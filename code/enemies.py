@@ -6,14 +6,14 @@ from entities import Entity
 from particles import Rock
 
 
-# Known issue : Monster waits for 'attacking' to end before getting hurt
+# Known issue : Monster waits for 'action_attack' to end before getting hurt
 class Enemy(Entity):
     def __init__(self, groups, visible_sprites, obstacle_sprites, particle_sprites,
                  particle_tileset, uses_projectiles=False):
         super().__init__(groups, visible_sprites, obstacle_sprites, particle_sprites, particle_tileset)
 
         self.direction_label = random.choice(['up', 'down', 'left', 'right'])
-        self.state = 'walking'
+        self.state = ''
         self.speed = 1
 
         # Initialisation of values common to all Enemy used to load the different animations
@@ -73,7 +73,7 @@ class Enemy(Entity):
                 if current_time - self.attack_starting_time >= self.attack_cooldown:
                     self.has_attacked = False
                     self.attack_cooldown = random.randrange(1600, 4800, 100)
-                if self.state == 'attacking':
+                if self.state == 'action_attack':
                     if current_time - self.attack_starting_time >= self.action_animation_cooldown * 2:
                         self.state = 'walking'
         # Hurt monster is invulnerable during animation, this is reset here
@@ -84,29 +84,48 @@ class Enemy(Entity):
                 self.hurt_animation_frame_count = 0
 
     @abc.abstractmethod
+    def change_animation_frame(self,
+                               animation_list,
+                               animation_frame_count,
+                               animation_starting_time,
+                               animation_cooldown,
+                               animation_frames_nb,
+                               reset_for_loop=True,
+                               idle_after=False):
+        return super().change_animation_frame(animation_list,
+                                              animation_frame_count,
+                                              animation_starting_time,
+                                              animation_cooldown,
+                                              animation_frames_nb,
+                                              reset_for_loop,
+                                              idle_after)
+
+    @abc.abstractmethod
     def animate(self):
-        pass
-
-    @abc.abstractmethod
-    def animate_spawn(self, current_time):
-        self.image = self.spawn_animation[self.spawn_animation_frame_count]
-        if current_time - self.spawn_animation_starting_time >= self.spawn_animation_cooldown:
-            self.spawn_animation_starting_time = pygame.time.get_ticks()
-            if self.spawn_animation_frame_count < MONSTER_SPAWN_FRAMES - 1:
-                self.spawn_animation_frame_count += 1
-            else:
-                self.spawn_animation_frame_count = 0
+        if not self.isSpawned:
+            self.spawn_animation_starting_time, self.spawn_animation_frame_count = (
+                self.change_animation_frame(self.spawn_animation,
+                                            self.spawn_animation_frame_count,
+                                            self.spawn_animation_starting_time,
+                                            self.spawn_animation_cooldown,
+                                            MONSTER_SPAWN_FRAMES,
+                                            True,
+                                            True))
+            if self.state == 'idle':
                 self.isSpawned = True
-
-    @abc.abstractmethod
-    def animate_despawn(self, current_time):
-        self.image = self.despawn_animation[self.despawn_animation_frame_count]
-        self.hitbox = self.rect.inflate(-32, -32)
-        if current_time - self.despawn_animation_starting_time >= self.despawn_animation_cooldown:
-            self.despawn_animation_starting_time = pygame.time.get_ticks()
-            if self.despawn_animation_frame_count < MONSTER_DEATH_FRAMES - 1:
-                self.despawn_animation_frame_count += 1
-            else:
+                self.state = 'walking'
+        elif not self.isDead:
+            super().animate()
+        else:
+            self.despawn_animation_starting_time, self.despawn_animation_frame_count = (
+                self.change_animation_frame(self.despawn_animation,
+                                            self.despawn_animation_frame_count,
+                                            self.despawn_animation_starting_time,
+                                            self.despawn_animation_cooldown,
+                                            MONSTER_DEATH_FRAMES,
+                                            True,
+                                            True))
+            if self.state == 'idle':
                 self.deathPlayed = True
 
     @abc.abstractmethod
@@ -219,16 +238,16 @@ class Enemy(Entity):
                 self.direction_starting_time = current_time
                 self.direction_cooldown = random.randrange(500, 2000, 100)
             if self. isSpawned and self.can_attack and not self.has_attacked:
-                self.state = 'attacking'
+                self.state = 'action_attack'
                 self.attack_starting_time = current_time
         else:
             # While hurt, Monster is repelled with a fading speed
             self.current_speed = (MONSTER_HURT_FRAMES - self.hurt_animation_frame_count)
         if self.isSpawned and not self.isDead:
-            if self.state == 'attacking' and not self.has_attacked:
+            if self.state == 'action_attack' and not self.has_attacked:
                 self.attack()
                 self.has_attacked = True
-            elif self.state != 'attacking':
+            elif self.state != 'action_attack':
                 self.move()
             if self.health <= 0:
                 self.despawn_animation_starting_time = pygame.time.get_ticks()
@@ -248,12 +267,18 @@ class RedOctorock(Enemy):
                          particle_tileset, True)
 
         self.walking_frames = OCTOROCK_WALKING_FRAMES
+        self.action_frames = OCTOROCK_WALKING_FRAMES
         self.is_up_flipped = True
+        self.is_up_action_flipped = True
         self.is_right_flipped = True
         self.walking_up_frame_id = OCTOROCK_WALKING_DOWN_FRAME_ID
         self.walking_down_frame_id = OCTOROCK_WALKING_DOWN_FRAME_ID
         self.walking_left_frame_id = OCTOROCK_WALKING_LEFT_FRAME_ID
         self.walking_right_frame_id = OCTOROCK_WALKING_LEFT_FRAME_ID
+        self.action_up_frame_id = OCTOROCK_WALKING_DOWN_FRAME_ID
+        self.action_down_frame_id = OCTOROCK_WALKING_DOWN_FRAME_ID
+        self.action_left_frame_id = OCTOROCK_WALKING_LEFT_FRAME_ID
+        self.action_right_frame_id = OCTOROCK_WALKING_LEFT_FRAME_ID
         self.hurt_up_frame_id = OCTOROCK_HURT_DOWN_FRAME_ID
         self.hurt_down_frame_id = OCTOROCK_HURT_DOWN_FRAME_ID
         self.hurt_left_frame_id = OCTOROCK_HURT_LEFT_FRAME_ID
@@ -281,37 +306,24 @@ class RedOctorock(Enemy):
     def cooldowns(self):
         super().cooldowns()
 
-    def animate_spawn(self, current_time):
-        super().animate_spawn(current_time)
-
-    def animate_despawn(self, current_time):
-        super().animate_despawn(current_time)
+    def change_animation_frame(self,
+                               animation_list,
+                               animation_frame_count,
+                               animation_starting_time,
+                               animation_cooldown,
+                               animation_frames_nb,
+                               reset_for_loop=True,
+                               idle_after=False):
+        return super().change_animation_frame(animation_list,
+                                              animation_frame_count,
+                                              animation_starting_time,
+                                              animation_cooldown,
+                                              animation_frames_nb,
+                                              reset_for_loop,
+                                              idle_after)
 
     def animate(self):
-        current_time = pygame.time.get_ticks()
-
-        if not self.isSpawned:
-            self.animate_spawn(current_time)
-        elif not self.isDead:
-            if self.state == 'walking':
-                self.image = self.walking_animations[self.direction_label][self.walking_animation_frame_count]
-                if current_time - self.walking_animation_starting_time >= self.walking_animation_cooldown:
-                    self.walking_animation_starting_time = pygame.time.get_ticks()
-                    if self.walking_animation_frame_count < OCTOROCK_WALKING_FRAMES - 1:
-                        self.walking_animation_frame_count += 1
-                    else:
-                        self.walking_animation_frame_count = 0
-            elif 'hurt' in self.state:
-                self.image = self.hurt_animations[self.direction_label][self.hurt_animation_frame_count]
-                if current_time - self.hurt_animation_starting_time >= self.hurt_animation_cooldown:
-                    self.hurt_animation_starting_time = pygame.time.get_ticks()
-                    if self.hurt_animation_frame_count < MONSTER_HURT_FRAMES - 1:
-                        self.hurt_animation_frame_count += 1
-                    else:
-                        self.image = self.walking_animations[self.direction_label][0]
-
-        else:
-            self.animate_despawn(current_time)
+        super().animate()
 
     def collision(self, direction):
         super().collision(direction)

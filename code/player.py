@@ -55,6 +55,10 @@ class Player(Entity):
 
         self.item_tileset = item_tileset
 
+        self.pickup_one_handed_animation = []
+        self.pickup_two_handed_animation = []
+        self.stairs_animation = []
+
         # Initialisation of the values used to load the different animations
         self.is_right_flipped = True
         self.walking_frames = PLAYER_WALKING_FRAMES
@@ -188,8 +192,28 @@ class Player(Entity):
         self.is_boomerang_thrown = False
         self.is_candle_lit = False
 
+    def load_pickup_one_handed_frames(self, entity_tile_set):
+        for i in range(self.pickup_one_handed_frames):
+            tiles_offset = SPRITE_SIZE // TILE_SIZE * i
+            self.pickup_one_handed_animation.append(
+                entity_tile_set.get_sprite_image(self.pickup_one_handed_frame_id + tiles_offset))
+
+    def load_pickup_two_handed_frames(self, entity_tile_set):
+        for i in range(self.pickup_two_handed_frames):
+            tiles_offset = SPRITE_SIZE // TILE_SIZE * i
+            self.pickup_two_handed_animation.append(
+                entity_tile_set.get_sprite_image(self.pickup_two_handed_frame_id + tiles_offset))
+
+    def load_stairs_frames(self, entity_tile_set):
+        for i in range(self.stairs_frames):
+            tiles_offset = SPRITE_SIZE // TILE_SIZE * i
+            self.stairs_animation.append(entity_tile_set.get_sprite_image(self.stairs_frame_id + tiles_offset))
+
     def load_animation_frames(self, player_tile_set):
         super().load_animation_frames(player_tile_set)
+        self.load_pickup_one_handed_frames(player_tile_set)
+        self.load_pickup_two_handed_frames(player_tile_set)
+        self.load_stairs_frames(player_tile_set)
 
     def can_move(self):
         if self.state == 'walking' or self.state == 'idle':
