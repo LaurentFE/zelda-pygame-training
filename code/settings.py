@@ -7,10 +7,13 @@ SCREEN_HEIGHT = 464
 FPS = 60
 SPRITE_SIZE = 32
 FONT_SPRITE_SIZE = 16
+TEXT_MARGIN = 4
+MAX_CHAR_PER_ROW = SCREEN_WIDTH // FONT_SPRITE_SIZE - 2 * TEXT_MARGIN
 TILE_SIZE = 16
 NB_TILE_WIDTH = SCREEN_WIDTH//TILE_SIZE
 NB_TILE_HEIGHT = SCREEN_HEIGHT//TILE_SIZE
 COLOR_KEY = (116, 116, 116)
+GAME_OVER_TEXT = 'game over'
 
 # Health & Damages Stats
 #
@@ -107,6 +110,8 @@ BOMB_LABEL = 'Bomb'
 CANDLE_LABEL = 'Candle'
 HEARTRECEPTACLE_LABEL = 'Heart Receptacle'
 WOOD_SWORD_LABEL = 'Wood Sword'
+HEART_LABEL = 'Heart'
+RUPEE_LABEL = 'Rupee'
 
 # ITEMS SPRITES
 #
@@ -229,6 +234,7 @@ SOUND_GAME_OVER = AUDIO_PATH + 'Game_Over.wav'
 SOUND_SHIELD_BLOCK = AUDIO_PATH + 'Shield_Block.wav'
 SOUND_PLAYER_HURT = AUDIO_PATH + 'Player_Hurt.wav'
 SOUND_RUPEE_ACQUIRED = AUDIO_PATH + 'Rupee.wav'
+SOUND_RUPEES_ACQUIRED = AUDIO_PATH + 'Rupee_Multiple.wav'
 SOUND_LOW_HEALTH = AUDIO_PATH + 'Low_Health.wav'
 SOUND_PLAYER_DESPAWN = AUDIO_PATH + 'Player_Despawn.wav'
 SOUND_MONSTER_HURT = AUDIO_PATH + 'Monster_Hurt.wav'
@@ -296,8 +302,9 @@ NB_MAPS_PER_COL = {
 
 MAP_SCROLL_FRAMES_COUNT = 100
 
-# Map CSV indexes
+# Map CSV indexes and obstacle types
 #
+OBSTACLE_NPC = 0
 LIMIT_BORDER_INDEX = 10
 LIMIT_TREE_INDEX = 20
 LIMIT_WATER_INDEX = 30
@@ -308,7 +315,46 @@ LIMIT_LADDER_INDEX = 50
 MAP_ITEMS = {
     'level9': {HEARTRECEPTACLE_LABEL: True},
     'level11': {LADDER_LABEL: True},
-    'sword_cave0': {WOOD_SWORD_LABEL: True,
-                    BOOMERANG_LABEL: True,
-                    CANDLE_LABEL: True}
+}
+
+# Npc
+#
+NO_NPC_ID = 0
+OLD_MAN_ID = 2
+OLD_WOMAN_ID = 4
+MERCHANT_ID = 6
+MOBLIN_ID = 8
+NPC_FLAME_ID = 10
+
+# Shops
+#
+SHOPS = {
+    'sword_cave0': {'items': {WOOD_SWORD_LABEL: 0},
+                    'npc_id': OLD_MAN_ID,
+                    'text': 'it\'s dangerous to go alone, take this !'},
+    'shop00': {'items': {CANDLE_LABEL: 50,
+                         BOMB_LABEL: 15,
+                         BOOMERANG_LABEL: 50},
+               'npc_id': MERCHANT_ID,
+               'text': 'welcome to my shop.'},
+    'pay_for_my_door0': {'items': {RUPEE_LABEL: 25},
+                         'npc_id': OLD_WOMAN_ID,
+                         'text': 'that is for my door !'},
+    'secret_to_everybody0': {'items': {RUPEE_LABEL: 80},
+                             'npc_id': MOBLIN_ID,
+                             'text': 'it\'s a secret to everybody.'}
+}
+
+# These dicts indicate which label correspond to which
+SHOP_CONSUMABLES = {
+    BOMB_LABEL: CBOMB_FRAME_ID,
+    HEARTRECEPTACLE_LABEL: HEARTRECEPTACLE_FRAME_ID,
+    HEART_LABEL: HEART_FRAME_ID,
+    RUPEE_LABEL: RUPEE_FRAME_ID
+}
+SHOP_ITEMS = {
+    LADDER_LABEL: LADDER_FRAME_ID,
+    BOOMERANG_LABEL: BOOMERANG_FRAME_ID,
+    CANDLE_LABEL: RED_CANDLE_FRAME_ID,
+    WOOD_SWORD_LABEL: WOOD_SWORD_FRAME_ID
 }

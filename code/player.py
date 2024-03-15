@@ -31,7 +31,9 @@ from particles import PWoodenSword, Bomb, PBoomerang, Flame
 
 class Player(Entity):
     def __init__(self, pos, groups, obstacle_sprites, enemy_sprites, visible_sprites, particle_sprites,
-                 lootable_items_sprites, border_sprites, player_tile_set, particle_tileset, item_tileset):
+                 lootable_items_sprites, border_sprites, purchasable_sprites, npc_sprites, player_tile_set,
+                 particle_tileset,
+                 item_tileset):
         super().__init__(groups, visible_sprites, obstacle_sprites, particle_sprites, particle_tileset)
 
         self.enemy_sprites = enemy_sprites
@@ -39,6 +41,8 @@ class Player(Entity):
         self.particle_sprites = particle_sprites
         self.lootable_items_sprites = lootable_items_sprites
         self.border_sprites = border_sprites
+        self.purchasable_sprites = purchasable_sprites
+        self.npc_sprites = npc_sprites
 
         self.item_tileset = item_tileset
 
@@ -78,6 +82,8 @@ class Player(Entity):
         self.player_hurt_sound.set_volume(0.1)
         self.rupee_acquired_sound = pygame.mixer.Sound(SOUND_RUPEE_ACQUIRED)
         self.rupee_acquired_sound.set_volume(0.3)
+        self.rupees_acquired_sound = pygame.mixer.Sound(SOUND_RUPEES_ACQUIRED)
+        self.rupees_acquired_sound.set_volume(0.3)
         self.is_low_health = False
         self.low_health_sound = pygame.mixer.Sound(SOUND_LOW_HEALTH)
         self.low_health_sound.set_volume(0.3)
@@ -421,6 +427,28 @@ class Player(Entity):
                     item.effect()
                     item.kill()
 
+        # Collision with a purchasable item
+        for purchasable in self.purchasable_sprites:
+            if (purchasable.hitbox.colliderect(self.hitbox)
+                    and (purchasable.price < 0
+                         or (self.money >= purchasable.price or purchasable.ignore_player_money_amount))):
+                purchasable.effect()
+                purchasable.kill()
+
+        # Collision with a Npc
+        for npc in self.npc_sprites:
+            if npc.hitbox.colliderect(self.hitbox):
+                if direction == 'horizontal':
+                    if self.direction_vector.x > 0:
+                        self.hitbox.right = npc.hitbox.left
+                    if self.direction_vector.x < 0:
+                        self.hitbox.left = npc.hitbox.right
+                else:
+                    if self.direction_vector.y > 0:
+                        self.hitbox.bottom = npc.hitbox.top
+                    if self.direction_vector.y < 0:
+                        self.hitbox.top = npc.hitbox.bottom
+
     def move(self):
         if self.direction_vector.magnitude() != 0:
             self.direction_vector = self.direction_vector.normalize()
@@ -589,11 +617,16 @@ class Player(Entity):
             self.current_max_health = PLAYER_HEALTH_MAX
 
     def add_money(self, amount):
-        if amount >= 0:
-            self.rupee_acquired_sound.play()
+        if amount != 0:
+            if amount == 1:
+                self.rupee_acquired_sound.play()
+            else:
+                self.rupees_acquired_sound.play()
             self.money += amount
             if self.money > 999:
                 self.money = 999
+            elif self.money < 0:
+                self.money = 0
 
     def add_bombs(self, amount):
         if amount >= 0:
