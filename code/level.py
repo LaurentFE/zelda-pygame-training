@@ -667,17 +667,17 @@ class Level:
             case 'Warp_U':
                 self.display_surface.blit(self.transition_surface, (0, hud_offset - self.floor_rect.height + y_offset))
                 self.draw_hud()
-                self.player.offset_position(0, y_fixed_offset)
+                self.player.define_warping_position(0, y_offset)
             case 'Warp_R':
                 self.display_surface.blit(self.transition_surface, (-x_offset, hud_offset))
-                self.player.offset_position(-x_fixed_offset, 0)
+                self.player.define_warping_position(-x_offset, 0)
             case 'Warp_D':
                 self.display_surface.blit(self.transition_surface, (0, hud_offset - y_offset))
                 self.draw_hud()
-                self.player.offset_position(0, -y_fixed_offset)
+                self.player.define_warping_position(0, -y_offset)
             case 'Warp_L':
                 self.display_surface.blit(self.transition_surface, (x_offset - self.floor_rect.width, hud_offset))
-                self.player.offset_position(x_fixed_offset, 0)
+                self.player.define_warping_position(x_offset, 0)
 
     def death(self):
         self.draw_hud()
@@ -955,6 +955,7 @@ class Level:
                     self.draw_floor()
                     self.create_map(self.current_map + str(self.current_map_screen))
                     self.player.set_state('idle')
+                    self.player.set_position((self.player.warping_x, self.player.warping_y))
                     self.map_scroll_animation_counter = 0
                     self.in_map_transition = None
             # Other transitions (caves with stairs animation, or secret stairs with no animation)
