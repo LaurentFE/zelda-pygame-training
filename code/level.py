@@ -469,34 +469,44 @@ class Level:
                                 self.particle_tile_set)
 
     def load_shop(self, level_id):
-        # Shops display from 1 to 3 items max
-        if level_id in SHOPS.keys() and SHOPS[level_id]['items']:
+        # Shops display from 0 to 3 items max
+        if level_id in SHOPS.keys() and 'items' in SHOPS[level_id].keys():
             nb_items = len(SHOPS[level_id]['items'].keys())
             item_pos = []
-            hud_offset = HUD_TILE_HEIGHT * TILE_SIZE
-            text_offset = TEXT_MARGIN * FONT_SPRITE_SIZE
-            item_y = hud_offset + text_offset + 9 * TILE_SIZE
+
             match nb_items:
+                case 0:
+                    pass
                 case 1:
-                    item_pos.append((15 * TILE_SIZE, item_y))
+                    item_pos.append((15 * TILE_SIZE, ITEM_Y))
                 case 2:
-                    item_pos.append((12 * TILE_SIZE, item_y))
-                    item_pos.append((18 * TILE_SIZE, item_y))
+                    item_pos.append((12 * TILE_SIZE, ITEM_Y))
+                    item_pos.append((18 * TILE_SIZE, ITEM_Y))
                 case _:
-                    item_pos.append((10 * TILE_SIZE, item_y))
-                    item_pos.append((15 * TILE_SIZE, item_y))
-                    item_pos.append((20 * TILE_SIZE, item_y))
+                    item_pos.append((10 * TILE_SIZE, ITEM_Y))
+                    item_pos.append((15 * TILE_SIZE, ITEM_Y))
+                    item_pos.append((20 * TILE_SIZE, ITEM_Y))
                     nb_items = 3
 
-            # Caution : in python, 0 == False, so if npc_id is 0, this code is never executed
-            if SHOPS[level_id]['npc_id']:
-                npc_pos = (15 * TILE_SIZE, item_y - 4 * TILE_SIZE)
-                npc_image = self.npcs_tile_set.get_sprite_image(SHOPS[level_id]['npc_id'])
-                groups = [self.visible_sprites, self.npc_sprites]
-                Npc(npc_pos, groups, npc_image)
+            flame_images = [self.npcs_tile_set.get_sprite_image(NPC_FLAME_ID),
+                            pygame.transform.flip(self.npcs_tile_set.get_sprite_image(NPC_FLAME_ID),
+                                                  True,
+                                                  False)]
+            Npc(FLAME_1_POS, [self.visible_sprites, self.npc_sprites], flame_images)
+            Npc(FLAME_2_POS, [self.visible_sprites, self.npc_sprites], flame_images)
 
-            if SHOPS[level_id]['text']:
-                text_pos_y = text_offset + hud_offset
+            # Caution : in python, 0 == False, so if npc_id is 0, this code is never executed
+            npc_id = SHOPS[level_id]['npc_id']
+            if npc_id:
+                npc_images = [self.npcs_tile_set.get_sprite_image(npc_id)]
+                if SHOPS[level_id]['npc_id'] in ANIMATED_FLIPPED_NPCS:
+                    npc_images.append(pygame.transform.flip(npc_images[0],
+                                                            True,
+                                                            False))
+                Npc((NPC_X, NPC_Y), [self.visible_sprites, self.npc_sprites], npc_images)
+
+            if SHOPS[level_id]['text'] and nb_items > 0:
+                text_pos_y = TEXT_OFFSET + HUD_OFFSET
                 TextBlock([self.visible_sprites, self.text_sprites],
                           SHOPS[level_id]['text'],
                           self.font_tile_set,
@@ -516,13 +526,7 @@ class Level:
                     # Abort
                     return
 
-                Purchasable(item_pos[i],
-                            [self.visible_sprites, self.purchasable_sprites],
-                            item_label,
-                            item_image,
-                            item_price,
-                            self)
-
+                price_sprite = None
                 if item_label != RUPEE_LABEL and item_price > 0:
                     price_x = item_pos[i][0] + TILE_SIZE - FONT_SPRITE_SIZE // 2
                     if item_price // 100 != 0:
@@ -530,11 +534,19 @@ class Level:
                     elif item_price // 10 != 0:
                         price_x -= FONT_SPRITE_SIZE // 2
                     price_y = item_pos[i][1] + 3 * TILE_SIZE
-                    TextBlock([self.visible_sprites, self.text_sprites],
-                              str(item_price),
-                              self.font_tile_set,
-                              price_y,
-                              price_x)
+                    price_sprite = TextBlock([self.visible_sprites, self.text_sprites],
+                                             str(item_price),
+                                             self.font_tile_set,
+                                             price_y,
+                                             price_x)
+
+                Purchasable(item_pos[i],
+                            [self.visible_sprites, self.purchasable_sprites],
+                            item_label,
+                            item_image,
+                            item_price,
+                            price_sprite,
+                            self)
 
     def load_player(self, pos):
         self.player = Player(pos,

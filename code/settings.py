@@ -13,6 +13,7 @@ TILE_SIZE = 16
 NB_TILE_WIDTH = SCREEN_WIDTH//TILE_SIZE
 NB_TILE_HEIGHT = SCREEN_HEIGHT//TILE_SIZE
 COLOR_KEY = (116, 116, 116)
+TEXT_OFFSET = TEXT_MARGIN * FONT_SPRITE_SIZE
 GAME_OVER_TEXT = 'game over'
 
 # Health & Damages Stats
@@ -177,6 +178,7 @@ OCTOROCK_ACTION_ANIMATION_COOLDOWN = 250
 #
 HUD_TILE_HEIGHT = 7
 HUD_TILE_WIDTH = 32
+HUD_OFFSET = HUD_TILE_HEIGHT * TILE_SIZE
 HUD_MONEY_HUNDREDS_POSITION = (192, 32)
 HUD_MONEY_TENS_POSITION = (192+16, 32)
 HUD_MONEY_UNITS_POSITION = (192+32, 32)
@@ -254,7 +256,7 @@ NEW_LEVEL_BOTTOM_CENTER_POS = (SCREEN_WIDTH / 2 - TILE_SIZE, SCREEN_HEIGHT - TIL
 UNDERWORLD_STAIRS = [
     {'map': 'level',
      'screen': '10',
-     'player_pos': (128, 32 + HUD_TILE_HEIGHT * TILE_SIZE + TILE_SIZE + 1),
+     'player_pos': (128, 32 + HUD_OFFSET + TILE_SIZE + 1),
      'stairs': False},
     {'map': 'sword_cave',
      'screen': '0',
@@ -262,7 +264,7 @@ UNDERWORLD_STAIRS = [
      'stairs': True},
     {'map': 'level',
      'screen': '6',
-     'player_pos': (192, HUD_TILE_HEIGHT * TILE_SIZE + 160),
+     'player_pos': (192, HUD_OFFSET + 160),
      'stairs': False},
     {'map': 'pay_for_my_door',
      'screen': '0',
@@ -325,11 +327,19 @@ OLD_WOMAN_ID = 4
 MERCHANT_ID = 6
 MOBLIN_ID = 8
 NPC_FLAME_ID = 10
+ANIMATED_FLIPPED_NPCS = [MOBLIN_ID, NPC_FLAME_ID]
+
+ITEM_Y = HUD_OFFSET + TEXT_OFFSET + 9 * TILE_SIZE
+NPC_X = 15 * TILE_SIZE
+NPC_Y = ITEM_Y - 4 * TILE_SIZE
+FLAME_1_POS = (NPC_X - 6 * TILE_SIZE, NPC_Y)
+FLAME_2_POS = (NPC_X + 6 * TILE_SIZE, NPC_Y)
 
 # Shops
 #
 SHOPS = {
-    'sword_cave0': {'items': {WOOD_SWORD_LABEL: 0},
+    'sword_cave0': {'items': {WOOD_SWORD_LABEL: 10,
+                              RUPEE_LABEL: -10},
                     'npc_id': OLD_MAN_ID,
                     'text': 'it\'s dangerous to go alone, take this !'},
     'shop00': {'items': {CANDLE_LABEL: 50,
