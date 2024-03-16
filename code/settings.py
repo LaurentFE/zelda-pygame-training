@@ -391,7 +391,7 @@ SHOPS = {
                              'text': 'it\'s a secret to everybody.'}
 }
 
-# These dicts indicate which label correspond to which
+# These dicts indicate which label correspond to which tileset
 SHOP_CONSUMABLES = {
     BOMB_LABEL: CBOMB_FRAME_ID,
     HEARTRECEPTACLE_LABEL: HEARTRECEPTACLE_FRAME_ID,
