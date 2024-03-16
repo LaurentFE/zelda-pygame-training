@@ -14,9 +14,11 @@ from enemies import RedOctorock
 from particles import Heart, Rupee, CBomb, Fairy, HeartReceptacle, Ladder, RedCandle, Boomerang, WoodenSword
 from selector import Selector
 from warp import Warp, SecretPassage
+from purchasable import Purchasable
+from npc import Npc
+from textblock import TextBlock
 
 
-# Will need someday to SINGLETON-ify this
 class Level:
     def __init__(self):
         # Set up variables
@@ -35,7 +37,6 @@ class Level:
         self.transition_surface = None
         self.menu_surface = None
         self.menu_rect = None
-        self.game_over_message = None
 
         # Set up group sprites
         self.warp_sprites = pygame.sprite.Group()
@@ -50,6 +51,9 @@ class Level:
         self.menu_sprites = pygame.sprite.Group()
         self.border_sprites = pygame.sprite.Group()
         self.lootable_items_sprites = pygame.sprite.Group()
+        self.npc_sprites = pygame.sprite.Group()
+        self.purchasable_sprites = pygame.sprite.Group()
+        self.text_sprites = pygame.sprite.Group()
         self.secret_bomb_sprites = pygame.sprite.Group()
         self.secret_flame_sprites = pygame.sprite.Group()
 
@@ -70,7 +74,7 @@ class Level:
         self.font_tile_set = Tileset('font')
         self.hud_tile_set = Tileset('hud')
         self.items_tile_set = Tileset('items')
-        # self.npcs_tile_set = Tileset('npcs')
+        self.npcs_tile_set = Tileset('npcs')
         self.player_tile_set = Tileset('player')
         self.levels_tile_set = Tileset('levels')
         self.particle_tile_set = Tileset('particles')
@@ -98,13 +102,6 @@ class Level:
         self.next_map = None
         self.next_map_screen = None
         self.player_new_position = None
-
-        self.game_over_text = 'game over'
-        self.game_over_message = self.draw_message(self.game_over_text, len(self.game_over_text), 1)
-        self.game_over_message_pos = (
-                (SCREEN_WIDTH // 2) - ((len(self.game_over_text) * TILE_SIZE) // 2),
-                (SCREEN_HEIGHT // 2) + ((HUD_TILE_HEIGHT * TILE_SIZE) // 2) - (TILE_SIZE // 2)
-        )
 
         self.key_pressed_start_timer = 0
         self.key_pressed_cooldown = LEVEL_KEY_PRESSED_COOLDOWN
@@ -320,22 +317,6 @@ class Level:
         self.floor_rect = self.floor_surface.get_rect(topleft=(0, 0))
         self.display_surface.blit(self.floor_surface, (0, HUD_TILE_HEIGHT*TILE_SIZE))
 
-    def draw_message(self, text: str, width, height):
-        pixel_text = []
-        text = text.lower()
-
-        for i in range(len(text)):
-            char = text[i]
-            char_id = FONT_CHARS.index(char)
-            pixel_text.append(self.font_tile_set.get_sprite_image(char_id))
-
-        # Arrange array in the amount of rows & columns desired
-        message_surface = pygame.surface.Surface((width * TILE_SIZE, height * TILE_SIZE))
-        for i in range(height):
-            for j in range(width):
-                message_surface.blit(pixel_text[i+j], (j * TILE_SIZE, i * TILE_SIZE))
-        return message_surface
-
     def draw_item_a(self):
         # Draw the A item in the A Frame of the HUD
         if self.in_menu:
@@ -529,6 +510,86 @@ class Level:
                                 self.enemies_tile_set,
                                 self.particle_tile_set)
 
+    def load_shop(self, level_id):
+        # Shops display from 0 to 3 items max
+        if level_id in SHOPS.keys() and 'items' in SHOPS[level_id].keys():
+            nb_items = len(SHOPS[level_id]['items'].keys())
+            item_pos = []
+
+            match nb_items:
+                case 0:
+                    pass
+                case 1:
+                    item_pos.append((15 * TILE_SIZE, ITEM_Y))
+                case 2:
+                    item_pos.append((12 * TILE_SIZE, ITEM_Y))
+                    item_pos.append((18 * TILE_SIZE, ITEM_Y))
+                case _:
+                    item_pos.append((10 * TILE_SIZE, ITEM_Y))
+                    item_pos.append((15 * TILE_SIZE, ITEM_Y))
+                    item_pos.append((20 * TILE_SIZE, ITEM_Y))
+                    nb_items = 3
+
+            flame_images = [self.npcs_tile_set.get_sprite_image(NPC_FLAME_ID),
+                            pygame.transform.flip(self.npcs_tile_set.get_sprite_image(NPC_FLAME_ID),
+                                                  True,
+                                                  False)]
+            Npc(FLAME_1_POS, [self.visible_sprites, self.npc_sprites], flame_images)
+            Npc(FLAME_2_POS, [self.visible_sprites, self.npc_sprites], flame_images)
+
+            # Caution : in python, 0 == False, so if npc_id is 0, this code is never executed
+            npc_id = SHOPS[level_id]['npc_id']
+            if npc_id:
+                npc_images = [self.npcs_tile_set.get_sprite_image(npc_id)]
+                if SHOPS[level_id]['npc_id'] in ANIMATED_FLIPPED_NPCS:
+                    npc_images.append(pygame.transform.flip(npc_images[0],
+                                                            True,
+                                                            False))
+                Npc((NPC_X, NPC_Y), [self.visible_sprites, self.npc_sprites], npc_images)
+
+            if SHOPS[level_id]['text'] and nb_items > 0:
+                text_pos_y = TEXT_OFFSET + HUD_OFFSET
+                TextBlock([self.visible_sprites, self.text_sprites],
+                          SHOPS[level_id]['text'],
+                          self.font_tile_set,
+                          text_pos_y)
+
+            items = list(SHOPS[level_id]['items'].items())
+            for i in range(nb_items):
+                item_label, item_price = items[i]
+                if item_label in SHOP_CONSUMABLES:
+                    tile_set = self.consumables_tile_set
+                    item_image = tile_set.get_sprite_image(SHOP_CONSUMABLES[item_label])
+                elif item_label in SHOP_ITEMS:
+                    tile_set = self.items_tile_set
+                    item_image = tile_set.get_sprite_image(SHOP_ITEMS[item_label])
+                else:
+                    # Unidentified item, implement it in settings.py
+                    # Abort
+                    return
+
+                price_sprite = None
+                if item_label != RUPEE_LABEL and item_price > 0:
+                    price_x = item_pos[i][0] + TILE_SIZE - FONT_SPRITE_SIZE // 2
+                    if item_price // 100 != 0:
+                        price_x -= FONT_SPRITE_SIZE
+                    elif item_price // 10 != 0:
+                        price_x -= FONT_SPRITE_SIZE // 2
+                    price_y = item_pos[i][1] + 3 * TILE_SIZE
+                    price_sprite = TextBlock([self.visible_sprites, self.text_sprites],
+                                             str(item_price),
+                                             self.font_tile_set,
+                                             price_y,
+                                             price_x)
+
+                Purchasable(item_pos[i],
+                            [self.visible_sprites, self.purchasable_sprites],
+                            item_label,
+                            item_image,
+                            item_price,
+                            price_sprite,
+                            self)
+
     def load_player(self, pos):
         self.player = Player(pos,
                              [self.visible_sprites],
@@ -538,6 +599,8 @@ class Level:
                              self.particle_sprites,
                              self.lootable_items_sprites,
                              self.border_sprites,
+                             self.purchasable_sprites,
+                             self.npc_sprites,
                              self.secret_flame_sprites,
                              self.secret_bomb_sprites,
                              self.player_tile_set,
@@ -553,6 +616,7 @@ class Level:
         self.load_warps(level_id, 'secrets_flame')
         self.load_items(level_id)
         self.load_enemies(level_id)
+        self.load_shop(level_id)
 
     def create_transition_surface(self):
         # Only Overworld and Dungeon maps will have warp tiles to border scroll
@@ -612,6 +676,12 @@ class Level:
                 obstacle.kill()
             for item in self.lootable_items_sprites:
                 item.kill()
+            for npc in self.npc_sprites:
+                npc.kill()
+            for purchasable in self.purchasable_sprites:
+                purchasable.kill()
+            for text in self.text_sprites:
+                text.kill()
 
             # change_id 0 -> 3 is a side scrolling map change, respectively Up/Right/Down/Left
             # change_id > 3 is a stairs map change, with sound and a completely different map
@@ -749,7 +819,14 @@ class Level:
 
         # Print GAME OVER in middle of screen until key is pressed to exit game
         if self.death_motion_index == 8:
-            self.display_surface.blit(self.game_over_message, self.game_over_message_pos)
+            game_over_message_pos_y = (SCREEN_HEIGHT // 2) + ((HUD_TILE_HEIGHT * TILE_SIZE) // 2) - (TILE_SIZE // 2)
+            TextBlock([self.visible_sprites, self.text_sprites],
+                      GAME_OVER_TEXT,
+                      self.font_tile_set,
+                      game_over_message_pos_y)
+            self.death_motion_index += 1
+
+        if self.death_motion_index == 9:
             keys = pygame.key.get_pressed()
             if is_action_a_key_pressed(keys):
                 self.death_played = True
