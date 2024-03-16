@@ -19,7 +19,16 @@ from npc import Npc
 from textblock import TextBlock
 
 
-class Level:
+class Singleton(type):
+    _instances = {}
+
+    def __call__(cls, *args, **kwargs):
+        if cls not in cls._instances:
+            cls._instances[cls] = super(Singleton, cls).__call__(*args, **kwargs)
+        return cls._instances[cls]
+
+
+class Level(metaclass=Singleton):
     def __init__(self):
         # Set up variables
         self.player = None
@@ -404,7 +413,7 @@ class Level:
                     if sprite_id != -1:
                         match warp_type:
                             case 'warps':
-                                Warp((x, y), groups, sprite_id, self.player, self)
+                                Warp((x, y), groups, sprite_id, self.player)
                             case 'secrets_bomb':
                                 SecretPassage((x, y),
                                               groups,
@@ -412,7 +421,6 @@ class Level:
                                               sprite_id,
                                               level_id,
                                               self.player,
-                                              self,
                                               image,
                                               revealed)
                             case 'secrets_flame':
@@ -422,7 +430,6 @@ class Level:
                                               sprite_id,
                                               level_id,
                                               self.player,
-                                              self,
                                               image,
                                               revealed)
 
@@ -467,32 +474,27 @@ class Level:
                         HeartReceptacle((x, y),
                                         [self.visible_sprites, self.lootable_items_sprites],
                                         self.consumables_tile_set,
-                                        level_id,
-                                        self)
+                                        level_id)
                     elif sprite_id == LADDER_FRAME_ID and MAP_ITEMS[level_id][LADDER_LABEL]:
                         Ladder((x, y),
                                [self.visible_sprites, self.lootable_items_sprites],
                                self.items_tile_set,
-                               level_id,
-                               self)
+                               level_id)
                     elif sprite_id == RED_CANDLE_FRAME_ID and MAP_ITEMS[level_id][CANDLE_LABEL]:
                         RedCandle((x, y),
                                   [self.visible_sprites, self.lootable_items_sprites],
                                   self.items_tile_set,
-                                  level_id,
-                                  self)
+                                  level_id)
                     elif sprite_id == BOOMERANG_FRAME_ID and MAP_ITEMS[level_id][BOOMERANG_LABEL]:
                         Boomerang((x, y),
                                   [self.visible_sprites, self.lootable_items_sprites],
                                   self.items_tile_set,
-                                  level_id,
-                                  self)
+                                  level_id)
                     elif sprite_id == WOOD_SWORD_FRAME_ID and MAP_ITEMS[level_id][WOOD_SWORD_LABEL]:
                         WoodenSword((x, y),
                                     [self.visible_sprites, self.lootable_items_sprites],
                                     self.items_tile_set,
-                                    level_id,
-                                    self)
+                                    level_id)
 
     def load_enemies(self, level_id):
         layout = import_csv_layout(f'../map/{level_id}_Enemies.csv')
@@ -587,8 +589,7 @@ class Level:
                             item_label,
                             item_image,
                             item_price,
-                            price_sprite,
-                            self)
+                            price_sprite)
 
     def load_player(self, pos):
         self.player = Player(pos,
@@ -908,26 +909,22 @@ class Level:
                           [self.visible_sprites, self.particle_sprites],
                           self.consumables_tile_set,
                           self.obstacle_sprites,
-                          rupee_amount,
-                          self)
+                          rupee_amount)
                 case 1 | 7:
                     CBomb(pos,
                           [self.visible_sprites, self.particle_sprites],
                           self.consumables_tile_set,
-                          self.obstacle_sprites,
-                          self)
+                          self.obstacle_sprites)
                 case 3:
                     Fairy(pos,
                           [self.visible_sprites, self.particle_sprites],
                           self.consumables_tile_set,
-                          self.border_sprites,
-                          self)
+                          self.border_sprites)
                 case 5 | 6 | 9:
                     Heart(pos,
                           [self.visible_sprites, self.particle_sprites],
                           self.consumables_tile_set,
-                          self.obstacle_sprites,
-                          self)
+                          self.obstacle_sprites)
 
     def heal_player(self, amount):
         self.player.heal(amount)

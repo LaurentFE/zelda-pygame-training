@@ -12,8 +12,6 @@ class Game:
         pygame.display.set_caption('Getting even closer to completion - A Zelda NES demo developed with Pygame')
         self.clock = pygame.time.Clock()
 
-        self.level = Level()
-
     def run(self):
         while True:
             for event in pygame.event.get():
@@ -22,7 +20,7 @@ class Game:
                     sys.exit()
 
             self.screen.fill('black')
-            self.level.run()
+            Level().run()
             pygame.display.update()
             self.clock.tick(FPS)
 

@@ -1,7 +1,7 @@
 import abc
 import random
-
 import pygame
+import level as game
 from settings import *
 from abc import ABC
 
@@ -391,13 +391,12 @@ class Rock(Particle):
 
 
 class Heart(Particle):
-    def __init__(self, owner_pos, groups, particle_tileset, obstacle_sprites, level):
+    def __init__(self, owner_pos, groups, particle_tileset, obstacle_sprites):
 
         owner_direction_vector = pygame.math.Vector2()
         super().__init__(owner_pos, owner_direction_vector, groups)
 
         self.obstacle_sprites = obstacle_sprites
-        self.level = level
 
         self.frame_id = HEART_FRAME_ID
         self.nb_frames = HEART_FRAMES
@@ -433,21 +432,20 @@ class Heart(Particle):
 
     def effect(self):
         self.heart_pickup_sound.play()
-        self.level.heal_player(1)
+        game.Level().heal_player(1)
 
     def update(self):
         super().update()
 
 
 class Rupee(Particle):
-    def __init__(self, owner_pos, groups, particle_tileset, obstacle_sprites, amount, level):
+    def __init__(self, owner_pos, groups, particle_tileset, obstacle_sprites, amount):
 
         owner_direction_vector = pygame.math.Vector2()
         super().__init__(owner_pos, owner_direction_vector, groups)
 
         self.obstacle_sprites = obstacle_sprites
         self.amount = amount
-        self.level = level
 
         self.frame_id = RUPEE_FRAME_ID
         self.nb_frames = RUPEE_FRAMES
@@ -483,20 +481,19 @@ class Rupee(Particle):
 
     def effect(self):
         self.rupee_pickup_sound.play()
-        self.level.add_money(self.amount)
+        game.Level().add_money(self.amount)
 
     def update(self):
         super().update()
 
 
 class CBomb(Particle):
-    def __init__(self, owner_pos, groups, particle_tileset, obstacle_sprites, level):
+    def __init__(self, owner_pos, groups, particle_tileset, obstacle_sprites):
 
         owner_direction_vector = pygame.math.Vector2()
         super().__init__(owner_pos, owner_direction_vector, groups)
 
         self.obstacle_sprites = obstacle_sprites
-        self.level = level
 
         self.frame_id = CBOMB_FRAME_ID
         self.nb_frames = CBOMB_FRAMES
@@ -533,20 +530,19 @@ class CBomb(Particle):
 
     def effect(self):
         self.bomb_pickup_sound.play()
-        self.level.add_bombs(PLAYER_BOMB_LOOT_AMOUNT)
+        game.Level().add_bombs(PLAYER_BOMB_LOOT_AMOUNT)
 
     def update(self):
         super().update()
 
 
 class Fairy(Particle):
-    def __init__(self, owner_pos, groups, particle_tileset, obstacle_sprites, level):
+    def __init__(self, owner_pos, groups, particle_tileset, obstacle_sprites):
 
         owner_direction_vector = pygame.math.Vector2()
         super().__init__(owner_pos, owner_direction_vector, groups)
 
         self.obstacle_sprites = obstacle_sprites
-        self.level = level
 
         self.frame_id = FAIRY_FRAMES_ID
         self.nb_frames = FAIRY_FRAMES
@@ -615,7 +611,7 @@ class Fairy(Particle):
 
     def effect(self):
         self.fairy_pickup_sound.play()
-        self.level.heal_player(PLAYER_HEALTH_MAX)
+        game.Level().heal_player(PLAYER_HEALTH_MAX)
 
     def update(self):
         super().update()
@@ -864,13 +860,12 @@ class Flame(Particle):
 
 
 class HeartReceptacle(Particle):
-    def __init__(self, owner_pos, groups, consumable_tileset, level_id, level):
+    def __init__(self, owner_pos, groups, consumable_tileset, level_id):
 
         owner_direction_vector = pygame.math.Vector2()
         super().__init__(owner_pos, owner_direction_vector, groups)
 
         self.level_id = level_id
-        self.level = level
 
         self.frame_id = HEARTRECEPTACLE_FRAME_ID
         self.nb_frames = HEARTRECEPTACLE_FRAMES
@@ -904,20 +899,19 @@ class HeartReceptacle(Particle):
 
     def effect(self):
         MAP_ITEMS[self.level_id][HEARTRECEPTACLE_LABEL] = False
-        self.level.player_pick_up(HEARTRECEPTACLE_LABEL)
+        game.Level().player_pick_up(HEARTRECEPTACLE_LABEL)
 
     def update(self):
         super().update()
 
 
 class Ladder(Particle):
-    def __init__(self, owner_pos, groups, items_tileset, level_id, level):
+    def __init__(self, owner_pos, groups, items_tileset, level_id):
 
         owner_direction_vector = pygame.math.Vector2()
         super().__init__(owner_pos, owner_direction_vector, groups)
 
         self.level_id = level_id
-        self.level = level
 
         self.frame_id = LADDER_FRAME_ID
         self.nb_frames = LADDER_FRAMES
@@ -951,20 +945,19 @@ class Ladder(Particle):
 
     def effect(self):
         MAP_ITEMS[self.level_id][LADDER_LABEL] = False
-        self.level.player_pick_up(LADDER_LABEL)
+        game.Level().player_pick_up(LADDER_LABEL)
 
     def update(self):
         super().update()
 
 
 class RedCandle(Particle):
-    def __init__(self, owner_pos, groups, items_tileset, level_id, level):
+    def __init__(self, owner_pos, groups, items_tileset, level_id):
 
         owner_direction_vector = pygame.math.Vector2()
         super().__init__(owner_pos, owner_direction_vector, groups)
 
         self.level_id = level_id
-        self.level = level
 
         self.frame_id = RED_CANDLE_FRAME_ID
         self.nb_frames = RED_CANDLE_FRAMES
@@ -998,20 +991,19 @@ class RedCandle(Particle):
 
     def effect(self):
         MAP_ITEMS[self.level_id][CANDLE_LABEL] = False
-        self.level.player_pick_up(CANDLE_LABEL)
+        game.Level().player_pick_up(CANDLE_LABEL)
 
     def update(self):
         super().update()
 
 
 class Boomerang(Particle):
-    def __init__(self, owner_pos, groups, items_tileset, level_id, level):
+    def __init__(self, owner_pos, groups, items_tileset, level_id):
 
         owner_direction_vector = pygame.math.Vector2()
         super().__init__(owner_pos, owner_direction_vector, groups)
 
         self.level_id = level_id
-        self.level = level
 
         self.frame_id = BOOMERANG_FRAME_ID
         self.nb_frames = BOOMERANG_FRAMES
@@ -1045,20 +1037,19 @@ class Boomerang(Particle):
 
     def effect(self):
         MAP_ITEMS[self.level_id][BOOMERANG_LABEL] = False
-        self.level.player_pick_up(BOOMERANG_LABEL)
+        game.Level().player_pick_up(BOOMERANG_LABEL)
 
     def update(self):
         super().update()
 
 
 class WoodenSword(Particle):
-    def __init__(self, owner_pos, groups, items_tileset, level_id, level):
+    def __init__(self, owner_pos, groups, items_tileset, level_id):
 
         owner_direction_vector = pygame.math.Vector2()
         super().__init__(owner_pos, owner_direction_vector, groups)
 
         self.level_id = level_id
-        self.level = level
 
         self.frame_id = WOOD_SWORD_FRAME_ID
         self.nb_frames = WOOD_SWORD_FRAMES
@@ -1092,7 +1083,7 @@ class WoodenSword(Particle):
 
     def effect(self):
         MAP_ITEMS[self.level_id][WOOD_SWORD_LABEL] = False
-        self.level.player_pick_up(WOOD_SWORD_LABEL)
+        game.Level().player_pick_up(WOOD_SWORD_LABEL)
 
     def update(self):
         super().update()
