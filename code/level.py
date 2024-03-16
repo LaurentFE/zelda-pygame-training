@@ -6,7 +6,7 @@ import pygame.mixer
 from settings import *
 from support import *
 from inputs import *
-from tileset import TileSet
+import tileset
 from tile import Tile
 from obstacle import Obstacle
 from player import Player
@@ -69,18 +69,6 @@ class Level:
         self.item_selected_sprite = None
         self.item_picked_up = None
 
-        # Set up tile sets
-        self.enemies_tile_set = TileSet('enemies')
-        self.font_tile_set = TileSet('font')
-        self.hud_tile_set = TileSet('hud')
-        self.items_tile_set = TileSet('items')
-        self.npcs_tile_set = TileSet('npcs')
-        self.player_tile_set = TileSet('player')
-        self.levels_tile_set = TileSet('levels')
-        self.particle_tile_set = TileSet('particles')
-        self.consumables_tile_set = TileSet('consumables')
-        self.warps_tile_set = TileSet('warps')
-
         # Set up sounds
         self.overworld_background_theme = pygame.mixer.Sound(THEME_OVERWORLD)
         self.overworld_background_theme.set_volume(0.2)
@@ -127,7 +115,7 @@ class Level:
         selector_pos = MENU_BOOMERANG_TOPLEFT
         if self.current_selected_item != 'None':
             selector_pos = self.menu_item_coord_and_frame_id[self.current_selected_item][0]
-        self.item_selector = Selector([self.menu_sprites], selector_pos, self.hud_tile_set)
+        self.item_selector = Selector([self.menu_sprites], selector_pos)
 
     def draw_menu(self):
         # Draw background
@@ -147,22 +135,30 @@ class Level:
                 self.item_selected_sprite.kill()
             self.item_selected_sprite = Tile(MENU_SELECTED_ITEM_TOPLEFT,
                                              [self.menu_sprites],
-                                             self.items_tile_set.get_sprite_image(
+                                             tileset.ITEMS_TILE_SET.get_sprite_image(
                                                  self.menu_item_coord_and_frame_id[self.current_selected_item][1]))
 
         # Passive Items
         if self.player.has_item(LADDER_LABEL):
-            Tile(MENU_LADDER_TOPLEFT, [self.menu_sprites], self.items_tile_set.get_sprite_image(LADDER_FRAME_ID))
+            Tile(MENU_LADDER_TOPLEFT,
+                 [self.menu_sprites],
+                 tileset.ITEMS_TILE_SET.get_sprite_image(LADDER_FRAME_ID))
 
         # Selectable items
         if self.player.has_item(BOOMERANG_LABEL):
             # Didn't implement red/blue boomerang system
-            Tile(MENU_BOOMERANG_TOPLEFT, [self.menu_sprites], self.items_tile_set.get_sprite_image(BOOMERANG_FRAME_ID))
+            Tile(MENU_BOOMERANG_TOPLEFT,
+                 [self.menu_sprites],
+                 tileset.ITEMS_TILE_SET.get_sprite_image(BOOMERANG_FRAME_ID))
         if self.player.has_item(BOMB_LABEL):
-            Tile(MENU_BOMBS_TOPLEFT, [self.menu_sprites], self.items_tile_set.get_sprite_image(BOMB_FRAME_ID))
+            Tile(MENU_BOMBS_TOPLEFT,
+                 [self.menu_sprites],
+                 tileset.ITEMS_TILE_SET.get_sprite_image(BOMB_FRAME_ID))
         if self.player.has_item(CANDLE_LABEL):
             # Didn't implement red/blue candle system
-            Tile(MENU_CANDLE_TOPLEFT, [self.menu_sprites], self.items_tile_set.get_sprite_image(RED_CANDLE_FRAME_ID))
+            Tile(MENU_CANDLE_TOPLEFT,
+                 [self.menu_sprites],
+                 tileset.ITEMS_TILE_SET.get_sprite_image(RED_CANDLE_FRAME_ID))
 
     def draw_triforce(self):
         # TriForce fragment system is not implemented yet
@@ -209,13 +205,13 @@ class Level:
 
         Tile(hundreds_pos,
              sprite_groups,
-             self.font_tile_set.get_sprite_image(hundreds))
+             tileset.FONT_TILE_SET.get_sprite_image(hundreds))
         Tile(tens_pos,
              sprite_groups,
-             self.font_tile_set.get_sprite_image(tens))
+             tileset.FONT_TILE_SET.get_sprite_image(tens))
         Tile(units_pos,
              sprite_groups,
-             self.font_tile_set.get_sprite_image(units))
+             tileset.FONT_TILE_SET.get_sprite_image(units))
 
     def draw_keys(self):
         # Draw amount of keys inside the HUD
@@ -239,13 +235,13 @@ class Level:
 
         Tile(hundreds_pos,
              sprite_groups,
-             self.font_tile_set.get_sprite_image(hundreds))
+             tileset.FONT_TILE_SET.get_sprite_image(hundreds))
         Tile(tens_pos,
              sprite_groups,
-             self.font_tile_set.get_sprite_image(tens))
+             tileset.FONT_TILE_SET.get_sprite_image(tens))
         Tile(units_pos,
              sprite_groups,
-             self.font_tile_set.get_sprite_image(units))
+             tileset.FONT_TILE_SET.get_sprite_image(units))
 
     def draw_bombs(self):
         # Draw amount of bombs inside the HUD
@@ -269,13 +265,13 @@ class Level:
 
         Tile(hundreds_pos,
              sprite_groups,
-             self.font_tile_set.get_sprite_image(hundreds))
+             tileset.FONT_TILE_SET.get_sprite_image(hundreds))
         Tile(tens_pos,
              sprite_groups,
-             self.font_tile_set.get_sprite_image(tens))
+             tileset.FONT_TILE_SET.get_sprite_image(tens))
         Tile(units_pos,
              sprite_groups,
-             self.font_tile_set.get_sprite_image(units))
+             tileset.FONT_TILE_SET.get_sprite_image(units))
 
     def draw_hearts(self):
         # Draw amount of health inside the HUD
@@ -292,20 +288,20 @@ class Level:
             heart_y = self.menu_rect.y + HUD_FIRST_HEART_POSITION_Y - (heart_i // HUD_NB_HEARTS_PER_LINE) * TILE_SIZE
             Tile((heart_x, heart_y),
                  sprite_groups,
-                 self.hud_tile_set.get_sprite_image(HUD_FULL_HEART_FRAME_ID))
+                 tileset.HUD_TILE_SET.get_sprite_image(HUD_FULL_HEART_FRAME_ID))
         if self.player.health % PLAYER_HEALTH_PER_HEART > 0:
             heart_x = self.menu_rect.x + HUD_FIRST_HEART_POSITION_X + (nb_hearts % 8) * TILE_SIZE
             heart_y = self.menu_rect.y + HUD_FIRST_HEART_POSITION_Y - (nb_hearts // HUD_NB_HEARTS_PER_LINE) * TILE_SIZE
             Tile((heart_x, heart_y),
                  sprite_groups,
-                 self.hud_tile_set.get_sprite_image(HUD_HALF_HEART_FRAME_ID))
+                 tileset.HUD_TILE_SET.get_sprite_image(HUD_HALF_HEART_FRAME_ID))
             nb_hearts += 1
         for heart_i in range(nb_hearts, self.player.current_max_health // PLAYER_HEALTH_PER_HEART):
             heart_x = self.menu_rect.x + HUD_FIRST_HEART_POSITION_X + (heart_i % 8) * TILE_SIZE
             heart_y = self.menu_rect.y + HUD_FIRST_HEART_POSITION_Y - (heart_i // HUD_NB_HEARTS_PER_LINE) * TILE_SIZE
             Tile((heart_x, heart_y),
                  sprite_groups,
-                 self.hud_tile_set.get_sprite_image(HUD_EMPTY_HEART_FRAME_ID))
+                 tileset.HUD_TILE_SET.get_sprite_image(HUD_EMPTY_HEART_FRAME_ID))
 
     def draw_floor(self, death_color=''):
         # Draw the background of the level
@@ -338,7 +334,7 @@ class Level:
         if item_a_id is not None:
             self.equipped_item_a_sprite = Tile(item_a_pos,
                                                sprite_groups,
-                                               self.items_tile_set.get_sprite_image(item_a_id))
+                                               tileset.ITEMS_TILE_SET.get_sprite_image(item_a_id))
 
     def draw_item_b(self):
         # Draw the selected B item in the B Frame of the HUD
@@ -370,7 +366,7 @@ class Level:
         if item_frame_id is not None:
             self.equipped_item_b_sprite = Tile(item_b_pos,
                                                sprite_groups,
-                                               self.items_tile_set.get_sprite_image(item_frame_id))
+                                               tileset.ITEMS_TILE_SET.get_sprite_image(item_frame_id))
 
     def load_warps(self, level_id, warp_type):
         image = None
@@ -382,7 +378,7 @@ class Level:
             case 'secrets_bomb':
                 layout = import_csv_layout(f'../map/{level_id}_Secrets_Bomb.csv')
                 groups = [self.visible_sprites, self.secret_bomb_sprites]
-                image = self.warps_tile_set.get_sprite_image(SECRET_CAVE_FRAME_ID)
+                image = tileset.WARPS_TILE_SET.get_sprite_image(SECRET_CAVE_FRAME_ID)
                 if level_id in MAP_SECRETS_REVEALED.keys():
                     revealed = MAP_SECRETS_REVEALED[level_id]
                 else:
@@ -390,7 +386,7 @@ class Level:
             case 'secrets_flame':
                 layout = import_csv_layout(f'../map/{level_id}_Secrets_Flame.csv')
                 groups = [self.visible_sprites, self.secret_flame_sprites]
-                image = self.warps_tile_set.get_sprite_image(SECRET_STAIRS_FRAME_ID)
+                image = tileset.WARPS_TILE_SET.get_sprite_image(SECRET_STAIRS_FRAME_ID)
                 if level_id in MAP_SECRETS_REVEALED.keys():
                     revealed = MAP_SECRETS_REVEALED[level_id]
                 else:
@@ -471,31 +467,26 @@ class Level:
                             and MAP_ITEMS[level_id][HEARTRECEPTACLE_LABEL]):
                         HeartReceptacle((x, y),
                                         [self.visible_sprites, self.lootable_items_sprites],
-                                        self.consumables_tile_set,
                                         level_id,
                                         self)
                     elif sprite_id == LADDER_FRAME_ID and MAP_ITEMS[level_id][LADDER_LABEL]:
                         Ladder((x, y),
                                [self.visible_sprites, self.lootable_items_sprites],
-                               self.items_tile_set,
                                level_id,
                                self)
                     elif sprite_id == RED_CANDLE_FRAME_ID and MAP_ITEMS[level_id][CANDLE_LABEL]:
                         RedCandle((x, y),
                                   [self.visible_sprites, self.lootable_items_sprites],
-                                  self.items_tile_set,
                                   level_id,
                                   self)
                     elif sprite_id == BOOMERANG_FRAME_ID and MAP_ITEMS[level_id][BOOMERANG_LABEL]:
                         Boomerang((x, y),
                                   [self.visible_sprites, self.lootable_items_sprites],
-                                  self.items_tile_set,
                                   level_id,
                                   self)
                     elif sprite_id == WOOD_SWORD_FRAME_ID and MAP_ITEMS[level_id][WOOD_SWORD_LABEL]:
                         WoodenSword((x, y),
                                     [self.visible_sprites, self.lootable_items_sprites],
-                                    self.items_tile_set,
                                     level_id,
                                     self)
 
@@ -511,9 +502,7 @@ class Level:
                                 [self.visible_sprites, self.enemy_sprites],
                                 self.visible_sprites,
                                 self.obstacle_sprites,
-                                self.particle_sprites,
-                                self.enemies_tile_set,
-                                self.particle_tile_set)
+                                self.particle_sprites)
 
     def load_shop(self, level_id):
         # Shops display from 0 to 3 items max
@@ -535,8 +524,8 @@ class Level:
                     item_pos.append((20 * TILE_SIZE, ITEM_Y))
                     nb_items = 3
 
-            flame_images = [self.npcs_tile_set.get_sprite_image(NPC_FLAME_ID),
-                            pygame.transform.flip(self.npcs_tile_set.get_sprite_image(NPC_FLAME_ID),
+            flame_images = [tileset.NPCS_TILE_SET.get_sprite_image(NPC_FLAME_ID),
+                            pygame.transform.flip(tileset.NPCS_TILE_SET.get_sprite_image(NPC_FLAME_ID),
                                                   True,
                                                   False)]
             Npc(FLAME_1_POS, [self.visible_sprites, self.npc_sprites], flame_images)
@@ -545,7 +534,7 @@ class Level:
             # Caution : in python, 0 == False, so if npc_id is 0, this code is never executed
             npc_id = SHOPS[level_id]['npc_id']
             if npc_id:
-                npc_images = [self.npcs_tile_set.get_sprite_image(npc_id)]
+                npc_images = [tileset.NPCS_TILE_SET.get_sprite_image(npc_id)]
                 if SHOPS[level_id]['npc_id'] in ANIMATED_FLIPPED_NPCS:
                     npc_images.append(pygame.transform.flip(npc_images[0],
                                                             True,
@@ -556,17 +545,16 @@ class Level:
                 text_pos_y = TEXT_OFFSET + HUD_OFFSET
                 TextBlock([self.visible_sprites, self.text_sprites],
                           SHOPS[level_id]['text'],
-                          self.font_tile_set,
                           text_pos_y)
 
             items = list(SHOPS[level_id]['items'].items())
             for i in range(nb_items):
                 item_label, item_price = items[i]
                 if item_label in SHOP_CONSUMABLES:
-                    tile_set = self.consumables_tile_set
+                    tile_set = tileset.CONSUMABLES_TILE_SET
                     item_image = tile_set.get_sprite_image(SHOP_CONSUMABLES[item_label])
                 elif item_label in SHOP_ITEMS:
-                    tile_set = self.items_tile_set
+                    tile_set = tileset.ITEMS_TILE_SET
                     item_image = tile_set.get_sprite_image(SHOP_ITEMS[item_label])
                 else:
                     # Unidentified item, implement it in settings.py
@@ -583,7 +571,6 @@ class Level:
                     price_y = item_pos[i][1] + 3 * TILE_SIZE
                     price_sprite = TextBlock([self.visible_sprites, self.text_sprites],
                                              str(item_price),
-                                             self.font_tile_set,
                                              price_y,
                                              price_x)
 
@@ -607,10 +594,7 @@ class Level:
                              self.purchasable_sprites,
                              self.npc_sprites,
                              self.secret_flame_sprites,
-                             self.secret_bomb_sprites,
-                             self.player_tile_set,
-                             self.particle_tile_set,
-                             self.items_tile_set)
+                             self.secret_bomb_sprites)
 
     def create_map(self, level_id):
         # This creates all Sprites of the new map
@@ -826,7 +810,6 @@ class Level:
             game_over_message_pos_y = (SCREEN_HEIGHT // 2) + (HUD_OFFSET // 2) - (TILE_SIZE // 2)
             TextBlock([self.visible_sprites, self.text_sprites],
                       GAME_OVER_TEXT,
-                      self.font_tile_set,
                       game_over_message_pos_y)
             self.death_motion_index += 1
 
@@ -911,26 +894,22 @@ class Level:
                     rupee_amount = 5 if random.randint(1, 100) <= LOOT_BIG_RUPEE_PERCENTAGE else 1
                     Rupee(pos,
                           [self.visible_sprites, self.particle_sprites],
-                          self.consumables_tile_set,
                           self.obstacle_sprites,
                           rupee_amount,
                           self)
                 case 1 | 7:
                     CBomb(pos,
                           [self.visible_sprites, self.particle_sprites],
-                          self.consumables_tile_set,
                           self.obstacle_sprites,
                           self)
                 case 3:
                     Fairy(pos,
                           [self.visible_sprites, self.particle_sprites],
-                          self.consumables_tile_set,
                           self.border_sprites,
                           self)
                 case 5 | 6 | 9:
                     Heart(pos,
                           [self.visible_sprites, self.particle_sprites],
-                          self.consumables_tile_set,
                           self.obstacle_sprites,
                           self)
 
@@ -941,21 +920,21 @@ class Level:
         x_offset = 0
         y_offset = - TILE_SIZE * 2
         if item_label == HEARTRECEPTACLE_LABEL:
-            item_image = self.consumables_tile_set.get_sprite_image(HEARTRECEPTACLE_FRAME_ID)
+            item_image = tileset.CONSUMABLES_TILE_SET.get_sprite_image(HEARTRECEPTACLE_FRAME_ID)
             x_offset -= 2
             y_offset += 4
         elif item_label == WOOD_SWORD_LABEL:
-            item_image = self.items_tile_set.get_sprite_image(WOOD_SWORD_FRAME_ID)
+            item_image = tileset.ITEMS_TILE_SET.get_sprite_image(WOOD_SWORD_FRAME_ID)
             x_offset -= 12
         elif item_label == CANDLE_LABEL:
-            item_image = self.items_tile_set.get_sprite_image(RED_CANDLE_FRAME_ID)
+            item_image = tileset.ITEMS_TILE_SET.get_sprite_image(RED_CANDLE_FRAME_ID)
             x_offset -= 12
         elif item_label == BOOMERANG_LABEL:
-            item_image = self.items_tile_set.get_sprite_image(BOOMERANG_FRAME_ID)
+            item_image = tileset.ITEMS_TILE_SET.get_sprite_image(BOOMERANG_FRAME_ID)
             x_offset -= 12
             y_offset += 9
         elif item_label == LADDER_LABEL:
-            item_image = self.items_tile_set.get_sprite_image(LADDER_FRAME_ID)
+            item_image = tileset.ITEMS_TILE_SET.get_sprite_image(LADDER_FRAME_ID)
             x_offset = 3
         else:
             # Item not implemented yet ? abort

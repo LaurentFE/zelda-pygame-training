@@ -1,12 +1,12 @@
 import pygame
+import tileset
 from settings import *
 
 
 class TextBlock(pygame.sprite.Sprite):
-    def __init__(self, groups: list, text, font_tile_set, pos_y, pos_x=None):
+    def __init__(self, groups: list, text, pos_y, pos_x=None):
         super().__init__(groups)
         self.text = text.lower()
-        self.font_tile_set = font_tile_set
 
         self.pos_x = pos_x
         self.pos_y = pos_y
@@ -37,7 +37,7 @@ class TextBlock(pygame.sprite.Sprite):
         for i in range(nb_row):
             for j in range(len(formatted_text[i])):
                 char_id = FONT_CHARS.index(formatted_text[i][j])
-                char_image = self.font_tile_set.get_sprite_image(char_id)
+                char_image = tileset.FONT_TILE_SET.get_sprite_image(char_id)
                 self.image.blit(char_image, (j * FONT_SPRITE_SIZE, i * FONT_SPRITE_SIZE))
 
         if self.pos_x is None:

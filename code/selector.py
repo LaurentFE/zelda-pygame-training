@@ -1,10 +1,10 @@
 import pygame
 from settings import *
-from tileset import TileSet
+import tileset
 
 
 class Selector(pygame.sprite.Sprite):
-    def __init__(self, groups, pos, hud_tile_set: TileSet):
+    def __init__(self, groups, pos):
         super().__init__(groups)
         self.pos_x = pos[0]
         self.pos_y = pos[1]
@@ -13,7 +13,7 @@ class Selector(pygame.sprite.Sprite):
         self.animation_start_timer = 0
         self.animation_frame_index = 0
         self.animation_cooldown = MENU_ITEM_SELECTOR_COOLDOWN
-        self.load_animation_frames(hud_tile_set)
+        self.load_animation_frames(tileset.HUD_TILE_SET)
 
         self.image = self.animation_frames[0]
 

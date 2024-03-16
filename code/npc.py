@@ -26,6 +26,7 @@ class Npc(pygame.sprite.Sprite):
                 self.move_animation_frame_count += 1
             else:
                 self.move_animation_frame_count = 0
+
     def update(self):
         self.animate()
         pygame.display.get_surface().blit(self.image, self.pos)

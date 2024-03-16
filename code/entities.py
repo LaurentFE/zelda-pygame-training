@@ -5,13 +5,12 @@ from abc import ABC
 
 
 class Entity(pygame.sprite.Sprite, ABC):
-    def __init__(self, groups, visible_sprites, obstacle_sprites, particle_sprites, particle_tile_set):
+    def __init__(self, groups, visible_sprites, obstacle_sprites, particle_sprites):
         super().__init__(groups)
 
         self.visible_sprites = visible_sprites
         self.obstacle_sprites = obstacle_sprites
         self.particle_sprites = particle_sprites
-        self.particle_tile_set = particle_tile_set
         self.walking_animations = {
             'up': [],
             'right': [],
