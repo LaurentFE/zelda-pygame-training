@@ -117,6 +117,7 @@ class Enemy(Entity):
         elif not self.isDead:
             super().animate()
         else:
+            self.hitbox = self.rect.inflate(-32, -32)
             self.despawn_animation_starting_time, self.despawn_animation_frame_count = (
                 self.change_animation_frame(self.despawn_animation,
                                             self.despawn_animation_frame_count,
