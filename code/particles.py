@@ -84,7 +84,7 @@ class PWoodenSword(Particle):
                  groups,
                  enemy_sprites,
                  particle_sprites,
-                 particle_tileset):
+                 particle_tile_set):
         super().__init__(owner_pos, owner_direction_vector, groups)
 
         self.enemy_sprites = enemy_sprites
@@ -123,7 +123,7 @@ class PWoodenSword(Particle):
 
         self.frame_id = WOOD_SWORD_RIGHT_FRAME_ID
         self.nb_frames = WOOD_SWORD_ATTACK_FRAMES
-        self.load_animation_frames(particle_tileset)
+        self.load_animation_frames(particle_tile_set)
         
         self.image = self.move_animations[self.direction_label][0]
         self.rect = self.image.get_rect(topleft=(self.pos_x, self.pos_y))
@@ -147,18 +147,18 @@ class PWoodenSword(Particle):
 
         self.is_active = True
 
-    def load_animation_frames(self, particle_tileset):
+    def load_animation_frames(self, particle_tile_set):
         for i in range(self.nb_frames):
             tiles_offset = SPRITE_SIZE // TILE_SIZE * i
-            self.move_animations['up'].append(particle_tileset.get_sprite_image(
+            self.move_animations['up'].append(particle_tile_set.get_sprite_image(
                 WOOD_SWORD_UP_FRAME_ID + tiles_offset))
-            self.move_animations['right'].append(particle_tileset.get_sprite_image(
+            self.move_animations['right'].append(particle_tile_set.get_sprite_image(
                 WOOD_SWORD_RIGHT_FRAME_ID + tiles_offset))
-            self.move_animations['down'].append(particle_tileset.get_sprite_image(
+            self.move_animations['down'].append(particle_tile_set.get_sprite_image(
                 WOOD_SWORD_DOWN_FRAME_ID + tiles_offset))
             self.move_animations['left'].append(
                 pygame.transform.flip(
-                    particle_tileset.get_sprite_image(self.frame_id + tiles_offset),
+                    particle_tile_set.get_sprite_image(self.frame_id + tiles_offset),
                     True,
                     False))
 
@@ -203,7 +203,7 @@ class PBoomerang(Particle):
                  owner_direction_vector,
                  owner_direction_label,
                  groups,
-                 item_tileset,
+                 item_tile_set,
                  enemy_sprites,
                  particle_sprites,
                  border_sprites,
@@ -236,7 +236,7 @@ class PBoomerang(Particle):
 
         self.frame_id = BOOMERANG_FRAME_ID
         self.nb_frames = BOOMERANG_FRAMES
-        self.load_animation_frames(item_tileset)
+        self.load_animation_frames(item_tile_set)
 
         self.image = self.move_animations[0]
         self.rect = self.image.get_rect(topleft=(self.pos_x, self.pos_y))
@@ -255,12 +255,12 @@ class PBoomerang(Particle):
         self.is_active = True
         self.go_back = False
 
-    def load_animation_frames(self, item_tileset):
+    def load_animation_frames(self, item_tile_set):
         self.move_animations.append(
-            item_tileset.get_sprite_image(self.frame_id))
+            item_tile_set.get_sprite_image(self.frame_id))
         self.move_animations.append(
             pygame.transform.flip(
-                item_tileset.get_sprite_image(self.frame_id),
+                item_tile_set.get_sprite_image(self.frame_id),
                 True,
                 False))
 
@@ -328,7 +328,7 @@ class Rock(Particle):
                  owner_direction_vector,
                  groups,
                  owner_direction_label,
-                 particle_tileset,
+                 particle_tile_set,
                  obstacle_sprites):
         super().__init__(owner_pos, owner_direction_vector, groups)
 
@@ -350,7 +350,7 @@ class Rock(Particle):
 
         self.frame_id = ROCK_FRAME_ID
         self.nb_frames = ROCK_FRAMES
-        self.load_animation_frames(particle_tileset)
+        self.load_animation_frames(particle_tile_set)
 
         self.image = self.move_animations[0]
         self.rect = self.image.get_rect(topleft=(self.pos_x, self.pos_y))
@@ -364,8 +364,8 @@ class Rock(Particle):
 
         self.is_active = True
 
-    def load_animation_frames(self, particle_tileset):
-        super().load_animation_frames(particle_tileset)
+    def load_animation_frames(self, particle_tile_set):
+        super().load_animation_frames(particle_tile_set)
 
     def animate(self):
         # This particle moves, but isn't animated
@@ -391,7 +391,7 @@ class Rock(Particle):
 
 
 class Heart(Particle):
-    def __init__(self, owner_pos, groups, particle_tileset, obstacle_sprites, level):
+    def __init__(self, owner_pos, groups, particle_tile_set, obstacle_sprites, level):
 
         owner_direction_vector = pygame.math.Vector2()
         super().__init__(owner_pos, owner_direction_vector, groups)
@@ -401,7 +401,7 @@ class Heart(Particle):
 
         self.frame_id = HEART_FRAME_ID
         self.nb_frames = HEART_FRAMES
-        self.load_animation_frames(particle_tileset)
+        self.load_animation_frames(particle_tile_set)
 
         self.image = self.move_animations[0]
         self.rect = self.image.get_rect(topleft=(self.pos_x, self.pos_y))
@@ -416,8 +416,8 @@ class Heart(Particle):
 
         self.is_active = True
 
-    def load_animation_frames(self, particle_tileset):
-        super().load_animation_frames(particle_tileset)
+    def load_animation_frames(self, particle_tile_set):
+        super().load_animation_frames(particle_tile_set)
 
     def animate(self):
         super().animate()
@@ -440,7 +440,7 @@ class Heart(Particle):
 
 
 class Rupee(Particle):
-    def __init__(self, owner_pos, groups, particle_tileset, obstacle_sprites, amount, level):
+    def __init__(self, owner_pos, groups, particle_tile_set, obstacle_sprites, amount, level):
 
         owner_direction_vector = pygame.math.Vector2()
         super().__init__(owner_pos, owner_direction_vector, groups)
@@ -451,7 +451,7 @@ class Rupee(Particle):
 
         self.frame_id = RUPEE_FRAME_ID
         self.nb_frames = RUPEE_FRAMES
-        self.load_animation_frames(particle_tileset)
+        self.load_animation_frames(particle_tile_set)
 
         self.image = self.move_animations[0]
         self.rect = self.image.get_rect(topleft=(self.pos_x, self.pos_y))
@@ -466,8 +466,8 @@ class Rupee(Particle):
 
         self.is_active = True
 
-    def load_animation_frames(self, particle_tileset):
-        super().load_animation_frames(particle_tileset)
+    def load_animation_frames(self, particle_tile_set):
+        super().load_animation_frames(particle_tile_set)
 
     def animate(self):
         super().animate()
@@ -490,7 +490,7 @@ class Rupee(Particle):
 
 
 class CBomb(Particle):
-    def __init__(self, owner_pos, groups, particle_tileset, obstacle_sprites, level):
+    def __init__(self, owner_pos, groups, particle_tile_set, obstacle_sprites, level):
 
         owner_direction_vector = pygame.math.Vector2()
         super().__init__(owner_pos, owner_direction_vector, groups)
@@ -500,7 +500,7 @@ class CBomb(Particle):
 
         self.frame_id = CBOMB_FRAME_ID
         self.nb_frames = CBOMB_FRAMES
-        self.load_animation_frames(particle_tileset)
+        self.load_animation_frames(particle_tile_set)
 
         self.image = self.move_animations[0]
         self.rect = self.image.get_rect(topleft=(self.pos_x, self.pos_y))
@@ -515,8 +515,8 @@ class CBomb(Particle):
 
         self.is_active = True
 
-    def load_animation_frames(self, particle_tileset):
-        super().load_animation_frames(particle_tileset)
+    def load_animation_frames(self, particle_tile_set):
+        super().load_animation_frames(particle_tile_set)
 
     def animate(self):
         # This doesn't animate
@@ -540,7 +540,7 @@ class CBomb(Particle):
 
 
 class Fairy(Particle):
-    def __init__(self, owner_pos, groups, particle_tileset, obstacle_sprites, level):
+    def __init__(self, owner_pos, groups, particle_tile_set, obstacle_sprites, level):
 
         owner_direction_vector = pygame.math.Vector2()
         super().__init__(owner_pos, owner_direction_vector, groups)
@@ -550,7 +550,7 @@ class Fairy(Particle):
 
         self.frame_id = FAIRY_FRAMES_ID
         self.nb_frames = FAIRY_FRAMES
-        self.load_animation_frames(particle_tileset)
+        self.load_animation_frames(particle_tile_set)
 
         self.image = self.move_animations[0]
         self.rect = self.image.get_rect(topleft=(self.pos_x, self.pos_y))
@@ -569,8 +569,8 @@ class Fairy(Particle):
 
         self.is_active = True
 
-    def load_animation_frames(self, particle_tileset):
-        super().load_animation_frames(particle_tileset)
+    def load_animation_frames(self, particle_tile_set):
+        super().load_animation_frames(particle_tile_set)
 
     def animate(self):
         super().animate()
@@ -627,7 +627,7 @@ class Bomb(Particle):
                  owner_direction_label,
                  groups,
                  secret_bomb_sprites,
-                 particle_tileset):
+                 particle_tile_set):
         super().__init__(owner_pos, owner_direction_vector, groups)
 
         self.secret_bomb_sprites = secret_bomb_sprites
@@ -635,10 +635,10 @@ class Bomb(Particle):
         self.owner_pos = owner_pos
         self.groups = groups
 
-        self.particle_tileset = particle_tileset
+        self.particle_tile_set = particle_tile_set
         self.frame_id = PBOMB_FRAME_ID
         self.nb_frames = PBOMB_FRAMES
-        self.load_animation_frames(particle_tileset)
+        self.load_animation_frames(particle_tile_set)
 
         self.image = self.move_animations[0]
         self.rect = self.image.get_rect(topleft=(self.pos_x, self.pos_y))
@@ -673,8 +673,8 @@ class Bomb(Particle):
                 self.pos_y = owner_pos[1]
         self.rect.topleft = (self.pos_x, self.pos_y)
 
-    def load_animation_frames(self, particle_tileset):
-        super().load_animation_frames(particle_tileset)
+    def load_animation_frames(self, particle_tile_set):
+        super().load_animation_frames(particle_tile_set)
 
     def animate(self):
         pass
@@ -691,11 +691,11 @@ class Bomb(Particle):
     def effect(self):
         self.bomb_explode_sound.play()
         # Generate smoke effect
-        BombSmoke((self.pos_x - 16, self.pos_y), self.groups, self.particle_tileset)
-        BombSmoke((self.pos_x + 16, self.pos_y + 16), self.groups, self.particle_tileset)
-        BombSmoke((self.pos_x, self.pos_y + 24), self.groups, self.particle_tileset)
-        BombSmoke((self.pos_x + 8, self.pos_y - 8), self.groups, self.particle_tileset)
-        BombSmoke((self.pos_x - 16, self.pos_y), self.groups, self.particle_tileset)
+        BombSmoke((self.pos_x - 16, self.pos_y), self.groups, self.particle_tile_set)
+        BombSmoke((self.pos_x + 16, self.pos_y + 16), self.groups, self.particle_tile_set)
+        BombSmoke((self.pos_x, self.pos_y + 24), self.groups, self.particle_tile_set)
+        BombSmoke((self.pos_x + 8, self.pos_y - 8), self.groups, self.particle_tile_set)
+        BombSmoke((self.pos_x - 16, self.pos_y), self.groups, self.particle_tile_set)
         # Destroy fragile walls nearby
         self.collision('')
 
@@ -709,13 +709,13 @@ class Bomb(Particle):
 
 
 class BombSmoke(Particle):
-    def __init__(self, effect_pos, groups, particle_tileset):
+    def __init__(self, effect_pos, groups, particle_tile_set):
         owner_direction_vector = pygame.math.Vector2()
         super().__init__(effect_pos, owner_direction_vector, groups)
 
         self.frame_id = PBOMB_SMOKE_FRAME_ID
         self.nb_frames = PBOMB_SMOKE_FRAMES
-        self.load_animation_frames(particle_tileset)
+        self.load_animation_frames(particle_tile_set)
 
         self.image = self.move_animations[0]
         self.rect = self.image.get_rect(topleft=(self.pos_x, self.pos_y))
@@ -729,8 +729,8 @@ class BombSmoke(Particle):
         self.move_animation_cooldown = 150
         self.smoke_cooldown = PBOMB_SMOKE_FRAMES * self.move_animation_cooldown
 
-    def load_animation_frames(self, particle_tileset):
-        super().load_animation_frames(particle_tileset)
+    def load_animation_frames(self, particle_tile_set):
+        super().load_animation_frames(particle_tile_set)
 
     def animate(self):
         super().animate()
@@ -757,7 +757,7 @@ class Flame(Particle):
                  owner_direction_vector,
                  owner_direction_label,
                  groups,
-                 particle_tileset,
+                 particle_tile_set,
                  enemy_sprites,
                  secret_flame_sprites,
                  player):
@@ -797,7 +797,7 @@ class Flame(Particle):
 
         self.frame_id = FLAME_FRAME_ID
         self.nb_frames = FLAME_FRAMES
-        self.load_animation_frames(particle_tileset)
+        self.load_animation_frames(particle_tile_set)
 
         self.image = self.move_animations[0]
         self.rect = self.image.get_rect(topleft=(self.pos_x, self.pos_y))
@@ -814,12 +814,12 @@ class Flame(Particle):
         self.ignited_starting_time = pygame.time.get_ticks()
         self.extinction_cooldown = 600
 
-    def load_animation_frames(self, particle_tileset):
+    def load_animation_frames(self, particle_tile_set):
         self.move_animations.append(
-            particle_tileset.get_sprite_image(self.frame_id))
+            particle_tile_set.get_sprite_image(self.frame_id))
         self.move_animations.append(
             pygame.transform.flip(
-                particle_tileset.get_sprite_image(self.frame_id),
+                particle_tile_set.get_sprite_image(self.frame_id),
                 flip_x=True,
                 flip_y=False))
 
@@ -864,7 +864,7 @@ class Flame(Particle):
 
 
 class HeartReceptacle(Particle):
-    def __init__(self, owner_pos, groups, consumable_tileset, level_id, level):
+    def __init__(self, owner_pos, groups, consumable_tile_set, level_id, level):
 
         owner_direction_vector = pygame.math.Vector2()
         super().__init__(owner_pos, owner_direction_vector, groups)
@@ -874,7 +874,7 @@ class HeartReceptacle(Particle):
 
         self.frame_id = HEARTRECEPTACLE_FRAME_ID
         self.nb_frames = HEARTRECEPTACLE_FRAMES
-        self.load_animation_frames(consumable_tileset)
+        self.load_animation_frames(consumable_tile_set)
 
         self.image = self.move_animations[0]
         self.rect = self.image.get_rect(topleft=(self.pos_x, self.pos_y))
@@ -886,8 +886,8 @@ class HeartReceptacle(Particle):
 
         self.is_active = True
 
-    def load_animation_frames(self, particle_tileset):
-        super().load_animation_frames(particle_tileset)
+    def load_animation_frames(self, particle_tile_set):
+        super().load_animation_frames(particle_tile_set)
 
     def animate(self):
         # No animation
@@ -911,7 +911,7 @@ class HeartReceptacle(Particle):
 
 
 class Ladder(Particle):
-    def __init__(self, owner_pos, groups, items_tileset, level_id, level):
+    def __init__(self, owner_pos, groups, items_tile_set, level_id, level):
 
         owner_direction_vector = pygame.math.Vector2()
         super().__init__(owner_pos, owner_direction_vector, groups)
@@ -921,7 +921,7 @@ class Ladder(Particle):
 
         self.frame_id = LADDER_FRAME_ID
         self.nb_frames = LADDER_FRAMES
-        self.load_animation_frames(items_tileset)
+        self.load_animation_frames(items_tile_set)
 
         self.image = self.move_animations[0]
         self.rect = self.image.get_rect(topleft=(self.pos_x, self.pos_y))
@@ -933,8 +933,8 @@ class Ladder(Particle):
 
         self.is_active = True
 
-    def load_animation_frames(self, items_tileset):
-        super().load_animation_frames(items_tileset)
+    def load_animation_frames(self, items_tile_set):
+        super().load_animation_frames(items_tile_set)
 
     def animate(self):
         # No animation
@@ -958,7 +958,7 @@ class Ladder(Particle):
 
 
 class RedCandle(Particle):
-    def __init__(self, owner_pos, groups, items_tileset, level_id, level):
+    def __init__(self, owner_pos, groups, items_tile_set, level_id, level):
 
         owner_direction_vector = pygame.math.Vector2()
         super().__init__(owner_pos, owner_direction_vector, groups)
@@ -968,7 +968,7 @@ class RedCandle(Particle):
 
         self.frame_id = RED_CANDLE_FRAME_ID
         self.nb_frames = RED_CANDLE_FRAMES
-        self.load_animation_frames(items_tileset)
+        self.load_animation_frames(items_tile_set)
 
         self.image = self.move_animations[0]
         self.rect = self.image.get_rect(topleft=(self.pos_x, self.pos_y))
@@ -980,8 +980,8 @@ class RedCandle(Particle):
 
         self.is_active = True
 
-    def load_animation_frames(self, items_tileset):
-        super().load_animation_frames(items_tileset)
+    def load_animation_frames(self, items_tile_set):
+        super().load_animation_frames(items_tile_set)
 
     def animate(self):
         # No animation
@@ -1005,7 +1005,7 @@ class RedCandle(Particle):
 
 
 class Boomerang(Particle):
-    def __init__(self, owner_pos, groups, items_tileset, level_id, level):
+    def __init__(self, owner_pos, groups, items_tile_set, level_id, level):
 
         owner_direction_vector = pygame.math.Vector2()
         super().__init__(owner_pos, owner_direction_vector, groups)
@@ -1015,7 +1015,7 @@ class Boomerang(Particle):
 
         self.frame_id = BOOMERANG_FRAME_ID
         self.nb_frames = BOOMERANG_FRAMES
-        self.load_animation_frames(items_tileset)
+        self.load_animation_frames(items_tile_set)
 
         self.image = self.move_animations[0]
         self.rect = self.image.get_rect(topleft=(self.pos_x, self.pos_y))
@@ -1027,8 +1027,8 @@ class Boomerang(Particle):
 
         self.is_active = True
 
-    def load_animation_frames(self, items_tileset):
-        super().load_animation_frames(items_tileset)
+    def load_animation_frames(self, items_tile_set):
+        super().load_animation_frames(items_tile_set)
 
     def animate(self):
         # No animation
@@ -1052,7 +1052,7 @@ class Boomerang(Particle):
 
 
 class WoodenSword(Particle):
-    def __init__(self, owner_pos, groups, items_tileset, level_id, level):
+    def __init__(self, owner_pos, groups, items_tile_set, level_id, level):
 
         owner_direction_vector = pygame.math.Vector2()
         super().__init__(owner_pos, owner_direction_vector, groups)
@@ -1062,7 +1062,7 @@ class WoodenSword(Particle):
 
         self.frame_id = WOOD_SWORD_FRAME_ID
         self.nb_frames = WOOD_SWORD_FRAMES
-        self.load_animation_frames(items_tileset)
+        self.load_animation_frames(items_tile_set)
 
         self.image = self.move_animations[0]
         self.rect = self.image.get_rect(topleft=(self.pos_x, self.pos_y))
@@ -1074,8 +1074,8 @@ class WoodenSword(Particle):
 
         self.is_active = True
 
-    def load_animation_frames(self, items_tileset):
-        super().load_animation_frames(items_tileset)
+    def load_animation_frames(self, items_tile_set):
+        super().load_animation_frames(items_tile_set)
 
     def animate(self):
         # No animation

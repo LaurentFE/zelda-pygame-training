@@ -3,7 +3,7 @@ from settings import *
 
 
 # Will need someday to SINGLETON-ify this
-class Tileset(pygame.sprite.Sprite):
+class TileSet(pygame.sprite.Sprite):
     def __init__(self, tile_type):
         super().__init__()
 

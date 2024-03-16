@@ -6,7 +6,7 @@ import pygame.mixer
 from settings import *
 from support import *
 from inputs import *
-from tileset import Tileset
+from tileset import TileSet
 from tile import Tile
 from obstacle import Obstacle
 from player import Player
@@ -70,16 +70,16 @@ class Level:
         self.item_picked_up = None
 
         # Set up tile sets
-        self.enemies_tile_set = Tileset('enemies')
-        self.font_tile_set = Tileset('font')
-        self.hud_tile_set = Tileset('hud')
-        self.items_tile_set = Tileset('items')
-        self.npcs_tile_set = Tileset('npcs')
-        self.player_tile_set = Tileset('player')
-        self.levels_tile_set = Tileset('levels')
-        self.particle_tile_set = Tileset('particles')
-        self.consumables_tile_set = Tileset('consumables')
-        self.warps_tile_set = Tileset('warps')
+        self.enemies_tile_set = TileSet('enemies')
+        self.font_tile_set = TileSet('font')
+        self.hud_tile_set = TileSet('hud')
+        self.items_tile_set = TileSet('items')
+        self.npcs_tile_set = TileSet('npcs')
+        self.player_tile_set = TileSet('player')
+        self.levels_tile_set = TileSet('levels')
+        self.particle_tile_set = TileSet('particles')
+        self.consumables_tile_set = TileSet('consumables')
+        self.warps_tile_set = TileSet('warps')
 
         # Set up sounds
         self.overworld_background_theme = pygame.mixer.Sound(THEME_OVERWORLD)

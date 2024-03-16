@@ -9,8 +9,8 @@ from particles import Rock
 # Known issue : Monster waits for 'action_attack' to end before getting hurt
 class Enemy(Entity):
     def __init__(self, groups, visible_sprites, obstacle_sprites, particle_sprites,
-                 particle_tileset, uses_projectiles=False):
-        super().__init__(groups, visible_sprites, obstacle_sprites, particle_sprites, particle_tileset)
+                 particle_tile_set, uses_projectiles=False):
+        super().__init__(groups, visible_sprites, obstacle_sprites, particle_sprites, particle_tile_set)
 
         self.direction_label = random.choice(['up', 'down', 'left', 'right'])
         self.state = ''
@@ -263,9 +263,9 @@ class Enemy(Entity):
 
 class RedOctorock(Enemy):
     def __init__(self, pos, groups, visible_sprites, obstacle_sprites, particle_sprites,
-                 enemies_tileset, particle_tileset):
+                 enemies_tile_set, particle_tile_set):
         super().__init__(groups, visible_sprites, obstacle_sprites, particle_sprites,
-                         particle_tileset, True)
+                         particle_tile_set, True)
 
         self.walking_frames = OCTOROCK_WALKING_FRAMES
         self.action_frames = OCTOROCK_WALKING_FRAMES
@@ -285,7 +285,7 @@ class RedOctorock(Enemy):
         self.hurt_left_frame_id = OCTOROCK_HURT_LEFT_FRAME_ID
         self.hurt_right_frame_id = OCTOROCK_HURT_LEFT_FRAME_ID
 
-        self.load_animation_frames(enemies_tileset)
+        self.load_animation_frames(enemies_tile_set)
 
         # Set first image of the monster appearing when created, and generating corresponding hitbox
         self.image = self.spawn_animation[0]
@@ -337,7 +337,7 @@ class RedOctorock(Enemy):
              self.direction_vector,
              [self.visible_sprites, self.particle_sprites],
              self.direction_label,
-             self.particle_tileset,
+             self.particle_tile_set,
              self.obstacle_sprites)
 
     def take_damage(self, amount, direction):

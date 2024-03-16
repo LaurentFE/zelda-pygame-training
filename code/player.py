@@ -44,9 +44,9 @@ class Player(Entity):
                  secret_flame_sprites,
                  secret_bomb_sprites,
                  player_tile_set,
-                 particle_tileset,
-                 item_tileset):
-        super().__init__(groups, visible_sprites, obstacle_sprites, particle_sprites, particle_tileset)
+                 particle_tile_set,
+                 item_tile_set):
+        super().__init__(groups, visible_sprites, obstacle_sprites, particle_sprites, particle_tile_set)
 
         self.enemy_sprites = enemy_sprites
         self.visible_sprites = visible_sprites
@@ -58,7 +58,7 @@ class Player(Entity):
         self.secret_flame_sprites = secret_flame_sprites
         self.secret_bomb_sprites = secret_bomb_sprites
 
-        self.item_tileset = item_tileset
+        self.item_tile_set = item_tile_set
 
         self.pickup_one_handed_animation = []
         self.pickup_two_handed_animation = []
@@ -266,7 +266,7 @@ class Player(Entity):
                                                       [self.visible_sprites, self.particle_sprites],
                                                       self.enemy_sprites,
                                                       self.particle_sprites,
-                                                      self.particle_tileset)
+                                                      self.particle_tile_set)
             else:
                 # ItemA used not implemented, abort
                 return
@@ -282,7 +282,7 @@ class Player(Entity):
                            self.direction_vector,
                            self.direction_label,
                            [self.visible_sprites, self.particle_sprites],
-                           self.item_tileset,
+                           self.item_tile_set,
                            self.enemy_sprites,
                            self.particle_sprites,
                            self.border_sprites,
@@ -296,7 +296,7 @@ class Player(Entity):
                          self.direction_label,
                          [self.visible_sprites, self.particle_sprites],
                          self.secret_bomb_sprites,
-                         self.particle_tileset)
+                         self.particle_tile_set)
                     self.bombs -= 1
                 else:
                     # Not enough bombs to operate, abort
@@ -306,7 +306,7 @@ class Player(Entity):
                       self.direction_vector,
                       self.direction_label,
                       [self.visible_sprites, self.particle_sprites],
-                      self.particle_tileset,
+                      self.particle_tile_set,
                       self.enemy_sprites,
                       self.secret_flame_sprites,
                       self)
@@ -390,7 +390,7 @@ class Player(Entity):
             if sprite.type == LIMIT_WATER_INDEX and self.has_ladder and not self.ladder_in_use:
                 if sprite.hitbox.colliderect(self.hitbox):
                     self.ladder_in_use = True
-                    ladder_image = self.item_tileset.get_sprite_image(LADDER_FRAME_ID)
+                    ladder_image = self.item_tile_set.get_sprite_image(LADDER_FRAME_ID)
                     ladder_pos_x = sprite.pos[0]
                     ladder_pos_y = sprite.pos[1]
                     if direction == 'horizontal':

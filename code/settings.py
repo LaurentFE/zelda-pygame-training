@@ -391,9 +391,9 @@ SHOPS = {
                              'text': 'it\'s a secret to everybody.'}
 }
 
-# SHOP_dict name indicates the tileset
+# SHOP_dict name indicates the tile set
 # Key is label of item
-# Value is frame_id of the item in the tileset
+# Value is frame_id of the item in the tile set
 SHOP_CONSUMABLES = {
     BOMB_LABEL: CBOMB_FRAME_ID,
     HEARTRECEPTACLE_LABEL: HEARTRECEPTACLE_FRAME_ID,
