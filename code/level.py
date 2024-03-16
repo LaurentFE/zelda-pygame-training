@@ -10,7 +10,7 @@ import tileset
 from tile import Tile
 from obstacle import Obstacle
 from player import Player
-from enemies import RedOctorock
+from enemies import RedOctorock, RedMoblin
 from particles import Heart, Rupee, CBomb, Fairy, HeartReceptacle, Ladder, RedCandle, Boomerang, WoodenSword
 from selector import Selector
 from warp import Warp, SecretPassage
@@ -503,6 +503,12 @@ class Level:
                                 self.visible_sprites,
                                 self.obstacle_sprites,
                                 self.particle_sprites)
+                elif sprite_id == 44:
+                    RedMoblin((x,y),
+                              [self.visible_sprites, self.enemy_sprites],
+                              self.visible_sprites,
+                              self.obstacle_sprites,
+                              self.particle_sprites)
 
     def load_shop(self, level_id):
         # Shops display from 0 to 3 items max

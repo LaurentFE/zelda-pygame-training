@@ -370,7 +370,102 @@ class Rock(Particle):
 
     def collision(self, direction):
         for sprite in self.obstacle_sprites:
-            if sprite.hitbox.colliderect(self.hitbox):
+            if (sprite.hitbox.colliderect(self.hitbox)
+                    and sprite.type != LIMIT_WATER_INDEX
+                    and sprite.type != LIMIT_LADDER_INDEX):
+                self.kill()
+
+    def move(self):
+        self.hitbox.x += self.direction_vector.x * self.speed
+        self.rect.x += self.direction_vector.x * self.speed
+        self.hitbox.y += self.direction_vector.y * self.speed
+        self.rect.y += self.direction_vector.y * self.speed
+
+    def effect(self):
+        # None, it's a damaging particle
+        pass
+
+    def update(self):
+        super().update()
+
+
+class Arrow(Particle):
+    def __init__(self,
+                 owner_pos,
+                 owner_direction_vector,
+                 groups,
+                 owner_direction_label,
+                 obstacle_sprites):
+        super().__init__(owner_pos, owner_direction_vector, groups)
+
+        self.obstacle_sprites = obstacle_sprites
+
+        match owner_direction_label:
+            case 'up':
+                self.direction_vector.x = 0
+                self.direction_vector.y = -1
+            case 'right':
+                self.direction_vector.x = 1
+                self.direction_vector.y = 0
+            case 'down':
+                self.direction_vector.x = 0
+                self.direction_vector.y = 1
+            case 'left':
+                self.direction_vector.x = -1
+                self.direction_vector.y = 0
+
+        self.frame_up_id = ARROW_FRAME_UP_ID
+        self.frame_right_id = ARROW_FRAME_RIGHT_ID
+        self.nb_frames = ARROW_FRAMES
+
+        self.move_animations = {
+            'up': [],
+            'right': [],
+            'down': [],
+            'left': []
+        }
+        self.load_animation_frames(tileset.PARTICLES_TILE_SET)
+
+        self.image = self.move_animations[owner_direction_label][0]
+        self.rect = self.image.get_rect(topleft=(self.pos_x, self.pos_y))
+        self.hitbox = self.rect.inflate(-16, -12)
+        self.hitbox.left = self.rect.left
+        self.hitbox.top = self.rect.top + 4
+
+        self.affects_player = True
+        self.collision_damage = ARROW_DMG
+        self.speed = ARROW_SPEED
+
+        self.is_active = True
+
+    def load_animation_frames(self, particle_tile_set):
+        for i in range(self.nb_frames):
+            tiles_offset = SPRITE_SIZE // TILE_SIZE * i
+            self.move_animations['up'].append(
+                particle_tile_set.get_sprite_image(self.frame_up_id + tiles_offset))
+            self.move_animations['down'].append(
+                pygame.transform.flip(
+                    particle_tile_set.get_sprite_image(self.frame_up_id + tiles_offset),
+                    False,
+                    True))
+            self.move_animations['right'].append(
+                particle_tile_set.get_sprite_image(self.frame_right_id + tiles_offset))
+            self.move_animations['left'].append(
+                pygame.transform.flip(
+                    particle_tile_set.get_sprite_image(self.frame_right_id + tiles_offset),
+                    True,
+                    False))
+
+    def animate(self):
+        # This particle moves, but isn't animated
+        pass
+
+    def collision(self, direction):
+        for sprite in self.obstacle_sprites:
+            if (sprite.hitbox.colliderect(self.hitbox)
+                    and sprite.type != LIMIT_TREE_INDEX
+                    and sprite.type != LIMIT_WATER_INDEX
+                    and sprite.type != LIMIT_LADDER_INDEX):
                 self.kill()
 
     def move(self):
