@@ -302,6 +302,16 @@ UNDERWORLD_STAIRS = [
      'player_pos': NEW_LEVEL_BOTTOM_CENTER_POS,
      'stairs': True,
      'help': 'This (11) is the entrance of dungeon0_0 from __level0__'},
+    {'map': 'level',
+     'screen': '0',
+     'player_pos': (200, 200),
+     'stairs': False,
+     'help': 'This (12) is the exit of secret_to_everybody0 to __level0__'},
+    {'map': 'secret_to_everybody',
+     'screen': '0',
+     'player_pos': NEW_LEVEL_BOTTOM_CENTER_POS,
+     'stairs': True,
+     'help': 'This (13) is the entrance of secret_to_everybody0 from __level0__'}
 ]
 
 # Map system
@@ -365,11 +375,10 @@ FLAME_2_POS = (NPC_X + 6 * TILE_SIZE, NPC_Y)
 # Shops
 #
 SHOPS = {
-    'sword_cave0': {'items': {WOOD_SWORD_LABEL: 10,
-                              RUPEE_LABEL: -10},
+    'sword_cave0': {'items': {WOOD_SWORD_LABEL: 0},
                     'npc_id': OLD_MAN_ID,
                     'text': 'it\'s dangerous to go alone, take this !'},
-    'shop00': {'items': {CANDLE_LABEL: 50,
+    'shop00': {'items': {CANDLE_LABEL: 30,
                          BOMB_LABEL: 15,
                          BOOMERANG_LABEL: 50},
                'npc_id': MERCHANT_ID,
