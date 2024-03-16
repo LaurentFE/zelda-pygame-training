@@ -433,7 +433,7 @@ class Heart(Particle):
 
     def effect(self):
         self.heart_pickup_sound.play()
-        self.level.heal_player(1)
+        self.level.player_pick_up(HEART_LABEL, 1)
 
     def update(self):
         super().update()
@@ -483,7 +483,7 @@ class Rupee(Particle):
 
     def effect(self):
         self.rupee_pickup_sound.play()
-        self.level.add_money(self.amount)
+        self.level.player_pick_up(RUPEE_LABEL, self.amount)
 
     def update(self):
         super().update()
@@ -533,7 +533,7 @@ class CBomb(Particle):
 
     def effect(self):
         self.bomb_pickup_sound.play()
-        self.level.add_bombs(PLAYER_BOMB_LOOT_AMOUNT)
+        self.level.player_pick_up(BOMB_LABEL, PLAYER_BOMB_LOOT_AMOUNT)
 
     def update(self):
         super().update()
@@ -615,7 +615,7 @@ class Fairy(Particle):
 
     def effect(self):
         self.fairy_pickup_sound.play()
-        self.level.heal_player(PLAYER_HEALTH_MAX)
+        self.level.player_pick_up(FAIRY_LABEL, PLAYER_HEALTH_MAX)
 
     def update(self):
         super().update()
