@@ -745,8 +745,8 @@ class Player(Entity):
         elif new_x >= SCREEN_WIDTH - TILE_SIZE * 3:
             new_x = SCREEN_WIDTH - TILE_SIZE * 3 - 1
 
-        if TILE_SIZE + TILE_SIZE * HUD_TILE_HEIGHT >= new_y:
-            new_y = TILE_SIZE + TILE_SIZE * HUD_TILE_HEIGHT + 1
+        if TILE_SIZE + HUD_OFFSET >= new_y:
+            new_y = TILE_SIZE + HUD_OFFSET + 1
         elif new_y >= SCREEN_HEIGHT - TILE_SIZE * 3:
             new_y = SCREEN_HEIGHT - TILE_SIZE * 3 - 1
 

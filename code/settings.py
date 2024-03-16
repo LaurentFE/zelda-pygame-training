@@ -284,7 +284,7 @@ UNDERWORLD_STAIRS = [
      'help': 'This (7) is the secret entrance of pay_for_my_door0 from level6'},
     {'map': 'level',
      'screen': '11',
-     'player_pos': (144, HUD_TILE_HEIGHT * TILE_SIZE + 112),
+     'player_pos': (144, HUD_OFFSET + 112),
      'stairs': False,
      'help': 'This (8) is the exit of shop00 to level11'},
     {'map': 'shop0',

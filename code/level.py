@@ -173,7 +173,7 @@ class Level:
         # Draw HUD space either at the top (level) or the bottom (pause menu) of the screen
         self.menu_surface = pygame.image.load('../graphics/hud/hud_perma.png').convert()
         if self.in_menu:
-            top_left = (0, SCREEN_HEIGHT - HUD_TILE_HEIGHT*TILE_SIZE)
+            top_left = (0, SCREEN_HEIGHT - HUD_OFFSET)
         else:
             top_left = (0, 0)
         self.menu_rect = self.menu_surface.get_rect(topleft=top_left)
@@ -315,7 +315,7 @@ class Level:
             self.floor_surface = pygame.image.load(
                 f'../graphics/levels/{self.current_map}{self.current_map_screen}{death_color}.png').convert()
         self.floor_rect = self.floor_surface.get_rect(topleft=(0, 0))
-        self.display_surface.blit(self.floor_surface, (0, HUD_TILE_HEIGHT*TILE_SIZE))
+        self.display_surface.blit(self.floor_surface, (0, HUD_OFFSET))
 
     def draw_item_a(self):
         # Draw the A item in the A Frame of the HUD
@@ -399,7 +399,7 @@ class Level:
                 for col_index, col in enumerate(row):
                     x = col_index * TILE_SIZE
                     # Skipping the HUD tiles at the top of screen
-                    y = row_index * TILE_SIZE + HUD_TILE_HEIGHT * TILE_SIZE
+                    y = row_index * TILE_SIZE + HUD_OFFSET
                     sprite_id = int(col)
                     if sprite_id != -1:
                         match warp_type:
@@ -430,7 +430,7 @@ class Level:
         layout = import_csv_layout(f'../map/{level_id}_Limits.csv')
         # Draw lines of obstacles so no one gets into the menu or off the screen at the bottom
         for col in range(0, NB_TILE_WIDTH):
-            y_top = (HUD_TILE_HEIGHT-1)*TILE_SIZE
+            y_top = HUD_OFFSET - TILE_SIZE
             y_bottom = SCREEN_HEIGHT
             Obstacle((col*TILE_SIZE, y_top), [self.obstacle_sprites, self.border_sprites])
             Obstacle((col*TILE_SIZE, y_bottom), [self.obstacle_sprites, self.border_sprites])
@@ -445,7 +445,7 @@ class Level:
         for row_index, row in enumerate(layout):
             for col_index, col in enumerate(row):
                 x = col_index * TILE_SIZE
-                y = row_index * TILE_SIZE + HUD_TILE_HEIGHT * TILE_SIZE  # skipping menu tiles at the top of screen
+                y = row_index * TILE_SIZE + HUD_OFFSET  # skipping menu tiles at the top of screen
                 sprite_id = int(col)
                 if sprite_id != -1:
                     Obstacle((x, y), [self.obstacle_sprites], sprite_id)
@@ -458,7 +458,7 @@ class Level:
             for row_index, row in enumerate(layout):
                 for col_index, col in enumerate(row):
                     x = col_index * TILE_SIZE
-                    y = row_index * TILE_SIZE + HUD_TILE_HEIGHT * TILE_SIZE  # Skipping menu tiles at the top of screen
+                    y = row_index * TILE_SIZE + HUD_OFFSET  # Skipping menu tiles at the top of screen
                     sprite_id = int(col)
                     # Ignore any item that has an id that is not supposed to be in this level
                     if (sprite_id == HEARTRECEPTACLE_FRAME_ID
@@ -499,7 +499,7 @@ class Level:
         for row_index, row in enumerate(layout):
             for col_index, col in enumerate(row):
                 x = col_index * TILE_SIZE
-                y = row_index * TILE_SIZE + HUD_TILE_HEIGHT * TILE_SIZE  # Skipping menu tiles at the top of screen
+                y = row_index * TILE_SIZE + HUD_OFFSET  # Skipping menu tiles at the top of screen
                 sprite_id = int(col)
                 if sprite_id == 4:
                     RedOctorock((x, y),
@@ -729,22 +729,21 @@ class Level:
         y_fixed_offset = self.floor_rect.height / MAP_SCROLL_FRAMES_COUNT
         x_offset = x_fixed_offset * self.map_scroll_animation_counter
         y_offset = y_fixed_offset * self.map_scroll_animation_counter
-        hud_offset = HUD_TILE_HEIGHT*TILE_SIZE
 
         match self.in_map_transition:
             case 'Warp_U':
-                self.display_surface.blit(self.transition_surface, (0, hud_offset - self.floor_rect.height + y_offset))
+                self.display_surface.blit(self.transition_surface, (0, HUD_OFFSET - self.floor_rect.height + y_offset))
                 self.draw_hud()
                 self.player.define_warping_position(0, y_offset)
             case 'Warp_R':
-                self.display_surface.blit(self.transition_surface, (-x_offset, hud_offset))
+                self.display_surface.blit(self.transition_surface, (-x_offset, HUD_OFFSET))
                 self.player.define_warping_position(-x_offset, 0)
             case 'Warp_D':
-                self.display_surface.blit(self.transition_surface, (0, hud_offset - y_offset))
+                self.display_surface.blit(self.transition_surface, (0, HUD_OFFSET - y_offset))
                 self.draw_hud()
                 self.player.define_warping_position(0, -y_offset)
             case 'Warp_L':
-                self.display_surface.blit(self.transition_surface, (x_offset - self.floor_rect.width, hud_offset))
+                self.display_surface.blit(self.transition_surface, (x_offset - self.floor_rect.width, HUD_OFFSET))
                 self.player.define_warping_position(x_offset, 0)
 
     def death(self):
@@ -819,7 +818,7 @@ class Level:
 
         # Print GAME OVER in middle of screen until key is pressed to exit game
         if self.death_motion_index == 8:
-            game_over_message_pos_y = (SCREEN_HEIGHT // 2) + ((HUD_TILE_HEIGHT * TILE_SIZE) // 2) - (TILE_SIZE // 2)
+            game_over_message_pos_y = (SCREEN_HEIGHT // 2) + (HUD_OFFSET // 2) - (TILE_SIZE // 2)
             TextBlock([self.visible_sprites, self.text_sprites],
                       GAME_OVER_TEXT,
                       self.font_tile_set,
