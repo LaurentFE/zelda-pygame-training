@@ -18,16 +18,14 @@ class Particle(pygame.sprite.Sprite, ABC):
         self.bypasses_shield = False
 
         self.image = None
+        self.rect = pygame.Rect(0, 0, 0, 0)
 
-        self.move_animations = {
-            'up': [],
-            'right': [],
-            'down': [],
-            'left': []
-        }
+        self.move_animations = []
         self.move_animation_cooldown = 100
-        self.move_animation_timer_start = 0
+        self.move_animation_timer_start = pygame.time.get_ticks()
         self.move_animation_frame_count = 0
+        self.frame_id = 0
+        self.nb_frames = 0
 
         self.affects_player = False
         self.affects_enemy = False
@@ -41,11 +39,22 @@ class Particle(pygame.sprite.Sprite, ABC):
 
     @abc.abstractmethod
     def load_animation_frames(self, tile_set):
-        pass
+        for i in range(self.nb_frames):
+            tiles_offset = SPRITE_SIZE // TILE_SIZE * i
+            self.move_animations.append(tile_set.get_sprite_image(self.frame_id + tiles_offset))
 
     @abc.abstractmethod
     def animate(self):
-        pass
+        current_time = pygame.time.get_ticks()
+
+        # Going through the motions of multiple frames, with a timer per frame
+        self.image = self.move_animations[self.move_animation_frame_count]
+        if current_time - self.move_animation_timer_start >= self.move_animation_cooldown:
+            self.move_animation_timer_start = pygame.time.get_ticks()
+            if self.move_animation_frame_count < self.nb_frames - 1:
+                self.move_animation_frame_count += 1
+            else:
+                self.move_animation_frame_count = 0
 
     @abc.abstractmethod
     def collision(self, direction):
@@ -61,7 +70,10 @@ class Particle(pygame.sprite.Sprite, ABC):
 
     @abc.abstractmethod
     def update(self):
-        pass
+        self.move()
+        self.animate()
+        self.collision('')
+        pygame.display.get_surface().blit(self.image, self.rect.topleft)
 
 
 class PWoodenSword(Particle):
@@ -75,9 +87,6 @@ class PWoodenSword(Particle):
                  particle_tileset):
         super().__init__(owner_pos, owner_direction_vector, groups)
 
-        self.owner_pos = owner_pos
-        self.pos_x = owner_pos[0]
-        self.pos_y = owner_pos[1]
         self.enemy_sprites = enemy_sprites
         self.particle_sprites = particle_sprites
 
@@ -105,9 +114,15 @@ class PWoodenSword(Particle):
                 self.direction_vector.y = 0
 
         self.move_animation_cooldown = 5
-        self.move_animation_timer_start = pygame.time.get_ticks()
-        self.move_animation_frame_count = 0
+        self.move_animations = {
+            'up': [],
+            'right': [],
+            'down': [],
+            'left': []
+        }
 
+        self.frame_id = WOOD_SWORD_RIGHT_FRAME_ID
+        self.nb_frames = WOOD_SWORD_ATTACK_FRAMES
         self.load_animation_frames(particle_tileset)
         
         self.image = self.move_animations[self.direction_label][0]
@@ -133,7 +148,7 @@ class PWoodenSword(Particle):
         self.is_active = True
 
     def load_animation_frames(self, particle_tileset):
-        for i in range(WOOD_SWORD_FRAMES):
+        for i in range(self.nb_frames):
             tiles_offset = SPRITE_SIZE // TILE_SIZE * i
             self.move_animations['up'].append(particle_tileset.get_sprite_image(
                 WOOD_SWORD_UP_FRAME_ID + tiles_offset))
@@ -143,7 +158,7 @@ class PWoodenSword(Particle):
                 WOOD_SWORD_DOWN_FRAME_ID + tiles_offset))
             self.move_animations['left'].append(
                 pygame.transform.flip(
-                    particle_tileset.get_sprite_image(WOOD_SWORD_RIGHT_FRAME_ID + tiles_offset),
+                    particle_tileset.get_sprite_image(self.frame_id + tiles_offset),
                     True,
                     False))
 
@@ -154,7 +169,7 @@ class PWoodenSword(Particle):
         self.image = self.move_animations[self.direction_label][self.move_animation_frame_count]
         if current_time - self.move_animation_timer_start >= self.move_animation_cooldown:
             self.move_animation_timer_start = pygame.time.get_ticks()
-            if self.move_animation_frame_count < WOOD_SWORD_FRAMES - 1:
+            if self.move_animation_frame_count < self.nb_frames - 1:
                 self.move_animation_frame_count += 1
 
     def collision(self, direction):
@@ -180,9 +195,7 @@ class PWoodenSword(Particle):
         pass
 
     def update(self):
-        self.animate()
-        self.collision('')
-        pygame.display.get_surface().blit(self.image, self.rect.topleft)
+        super().update()
 
 
 class PBoomerang(Particle):
@@ -197,9 +210,6 @@ class PBoomerang(Particle):
                  player):
         super().__init__(owner_pos, owner_direction_vector, groups)
 
-        self.owner_pos = owner_pos
-        self.pos_x = owner_pos[0]
-        self.pos_y = owner_pos[1]
         self.direction_vector = pygame.math.Vector2(owner_direction_vector)
         self.direction_label = owner_direction_label
         self.enemy_sprites = enemy_sprites
@@ -223,10 +233,9 @@ class PBoomerang(Particle):
                     self.direction_vector.y = 0
 
         self.move_animation_cooldown = 100
-        self.move_animation_timer_start = pygame.time.get_ticks()
-        self.move_animation_frame_count = 0
-        self.move_animations = []
 
+        self.frame_id = BOOMERANG_FRAME_ID
+        self.nb_frames = BOOMERANG_FRAMES
         self.load_animation_frames(item_tileset)
 
         self.image = self.move_animations[0]
@@ -237,6 +246,7 @@ class PBoomerang(Particle):
 
         self.affects_enemy = True
         self.collision_damage = BOOMERANG_DMG
+        self.speed = BOOMERANG_SPEED
 
         self.boomerang_attack_sound = pygame.mixer.Sound(SOUND_BOOMERANG_ATTACK)
         self.boomerang_attack_sound.set_volume(0.5)
@@ -247,24 +257,15 @@ class PBoomerang(Particle):
 
     def load_animation_frames(self, item_tileset):
         self.move_animations.append(
-            item_tileset.get_sprite_image(BOOMERANG_FRAME_ID))
+            item_tileset.get_sprite_image(self.frame_id))
         self.move_animations.append(
             pygame.transform.flip(
-                item_tileset.get_sprite_image(BOOMERANG_FRAME_ID),
+                item_tileset.get_sprite_image(self.frame_id),
                 True,
                 False))
 
     def animate(self):
-        current_time = pygame.time.get_ticks()
-
-        # Going through the motions of multiple frames, with a timer per frame
-        self.image = self.move_animations[self.move_animation_frame_count]
-        if current_time - self.move_animation_timer_start >= self.move_animation_cooldown:
-            self.move_animation_timer_start = pygame.time.get_ticks()
-            if self.move_animation_frame_count < BOOMERANG_FRAMES - 1:
-                self.move_animation_frame_count += 1
-            else:
-                self.move_animation_frame_count = 0
+        super().animate()
 
     def collision(self, direction):
         # Collision with a monster
@@ -303,20 +304,17 @@ class PBoomerang(Particle):
             if self.direction_vector.magnitude() != 0:
                 self.direction_vector = self.direction_vector.normalize()
 
-        self.hitbox.x += self.direction_vector.x * BOOMERANG_SPEED
-        self.rect.x += self.direction_vector.x * BOOMERANG_SPEED
-        self.hitbox.y += self.direction_vector.y * BOOMERANG_SPEED
-        self.rect.y += self.direction_vector.y * BOOMERANG_SPEED
+        self.hitbox.x += self.direction_vector.x * self.speed
+        self.rect.x += self.direction_vector.x * self.speed
+        self.hitbox.y += self.direction_vector.y * self.speed
+        self.rect.y += self.direction_vector.y * self.speed
 
     def effect(self):
         # None, it's a damaging particle
         pass
 
     def update(self):
-        self.move()
-        self.animate()
-        self.collision('')
-        pygame.display.get_surface().blit(self.image, self.rect.topleft)
+        super().update()
 
     def kill(self):
         self.boomerang_attack_sound.stop()
@@ -336,10 +334,6 @@ class Rock(Particle):
 
         self.obstacle_sprites = obstacle_sprites
 
-        self.owner_pos = owner_pos
-        self.pos_x = owner_pos[0]
-        self.pos_y = owner_pos[1]
-
         match owner_direction_label:
             case 'up':
                 self.direction_vector.x = 0
@@ -354,9 +348,8 @@ class Rock(Particle):
                 self.direction_vector.x = -1
                 self.direction_vector.y = 0
 
-        self.move_animation_frame_count = 0
-        self.move_animations = []
-
+        self.frame_id = ROCK_FRAME_ID
+        self.nb_frames = ROCK_FRAMES
         self.load_animation_frames(particle_tileset)
 
         self.image = self.move_animations[0]
@@ -367,11 +360,12 @@ class Rock(Particle):
 
         self.affects_player = True
         self.collision_damage = ROCK_DMG
+        self.speed = ROCK_SPEED
 
         self.is_active = True
 
     def load_animation_frames(self, particle_tileset):
-        self.move_animations.append(particle_tileset.get_sprite_image(ROCK_FRAME_ID))
+        super().load_animation_frames(particle_tileset)
 
     def animate(self):
         # This particle moves, but isn't animated
@@ -383,19 +377,17 @@ class Rock(Particle):
                 self.kill()
 
     def move(self):
-        self.hitbox.x += self.direction_vector.x * ROCK_SPEED
-        self.rect.x += self.direction_vector.x * ROCK_SPEED
-        self.hitbox.y += self.direction_vector.y * ROCK_SPEED
-        self.rect.y += self.direction_vector.y * ROCK_SPEED
+        self.hitbox.x += self.direction_vector.x * self.speed
+        self.rect.x += self.direction_vector.x * self.speed
+        self.hitbox.y += self.direction_vector.y * self.speed
+        self.rect.y += self.direction_vector.y * self.speed
 
     def effect(self):
         # None, it's a damaging particle
         pass
 
     def update(self):
-        self.move()
-        self.collision('')
-        pygame.display.get_surface().blit(self.image, self.rect.topleft)
+        super().update()
 
 
 class Heart(Particle):
@@ -407,13 +399,8 @@ class Heart(Particle):
         self.obstacle_sprites = obstacle_sprites
         self.level = level
 
-        self.owner_pos = owner_pos
-        self.pos_x = owner_pos[0]
-        self.pos_y = owner_pos[1]
-
-        self.move_animation_frame_count = 0
-        self.move_animations = []
-
+        self.frame_id = HEART_FRAME_ID
+        self.nb_frames = HEART_FRAMES
         self.load_animation_frames(particle_tileset)
 
         self.image = self.move_animations[0]
@@ -430,21 +417,10 @@ class Heart(Particle):
         self.is_active = True
 
     def load_animation_frames(self, particle_tileset):
-        for i in range(HEART_FRAMES):
-            tiles_offset = SPRITE_SIZE // TILE_SIZE * i
-            self.move_animations.append(particle_tileset.get_sprite_image(HEART_FRAME_ID + tiles_offset))
+        super().load_animation_frames(particle_tileset)
 
     def animate(self):
-        current_time = pygame.time.get_ticks()
-
-        # Going through the motions of multiple frames, with a timer per frame
-        self.image = self.move_animations[self.move_animation_frame_count]
-        if current_time - self.move_animation_timer_start >= self.move_animation_cooldown:
-            self.move_animation_timer_start = pygame.time.get_ticks()
-            if self.move_animation_frame_count < HEART_FRAMES - 1:
-                self.move_animation_frame_count += 1
-            else:
-                self.move_animation_frame_count = 0
+        super().animate()
 
     def collision(self, direction):
         # This doesn't move, so it won't collide with things.
@@ -460,8 +436,7 @@ class Heart(Particle):
         self.level.heal_player(1)
 
     def update(self):
-        self.animate()
-        pygame.display.get_surface().blit(self.image, self.rect.topleft)
+        super().update()
 
 
 class Rupee(Particle):
@@ -474,13 +449,8 @@ class Rupee(Particle):
         self.amount = amount
         self.level = level
 
-        self.owner_pos = owner_pos
-        self.pos_x = owner_pos[0]
-        self.pos_y = owner_pos[1]
-
-        self.move_animation_frame_count = 0
-        self.move_animations = []
-
+        self.frame_id = RUPEE_FRAME_ID
+        self.nb_frames = RUPEE_FRAMES
         self.load_animation_frames(particle_tileset)
 
         self.image = self.move_animations[0]
@@ -497,21 +467,10 @@ class Rupee(Particle):
         self.is_active = True
 
     def load_animation_frames(self, particle_tileset):
-        for i in range(RUPEE_FRAMES):
-            tiles_offset = SPRITE_SIZE // TILE_SIZE * i
-            self.move_animations.append(particle_tileset.get_sprite_image(RUPEE_FRAME_ID + tiles_offset))
+        super().load_animation_frames(particle_tileset)
 
     def animate(self):
-        current_time = pygame.time.get_ticks()
-
-        # Going through the motions of multiple frames, with a timer per frame
-        self.image = self.move_animations[self.move_animation_frame_count]
-        if current_time - self.move_animation_timer_start >= self.move_animation_cooldown:
-            self.move_animation_timer_start = pygame.time.get_ticks()
-            if self.move_animation_frame_count < RUPEE_FRAMES - 1:
-                self.move_animation_frame_count += 1
-            else:
-                self.move_animation_frame_count = 0
+        super().animate()
 
     def collision(self, direction):
         # This doesn't move, so it won't collide with things.
@@ -527,8 +486,7 @@ class Rupee(Particle):
         self.level.add_money(self.amount)
 
     def update(self):
-        self.animate()
-        pygame.display.get_surface().blit(self.image, self.rect.topleft)
+        super().update()
 
 
 class CBomb(Particle):
@@ -540,13 +498,8 @@ class CBomb(Particle):
         self.obstacle_sprites = obstacle_sprites
         self.level = level
 
-        self.owner_pos = owner_pos
-        self.pos_x = owner_pos[0]
-        self.pos_y = owner_pos[1]
-
-        self.move_animation_frame_count = 0
-        self.move_animations = []
-
+        self.frame_id = CBOMB_FRAME_ID
+        self.nb_frames = CBOMB_FRAMES
         self.load_animation_frames(particle_tileset)
 
         self.image = self.move_animations[0]
@@ -563,7 +516,7 @@ class CBomb(Particle):
         self.is_active = True
 
     def load_animation_frames(self, particle_tileset):
-        self.move_animations.append(particle_tileset.get_sprite_image(CBOMB_FRAME_ID))
+        super().load_animation_frames(particle_tileset)
 
     def animate(self):
         # This doesn't animate
@@ -583,7 +536,7 @@ class CBomb(Particle):
         self.level.add_bombs(PLAYER_BOMB_LOOT_AMOUNT)
 
     def update(self):
-        pygame.display.get_surface().blit(self.image, self.rect.topleft)
+        super().update()
 
 
 class Fairy(Particle):
@@ -595,13 +548,8 @@ class Fairy(Particle):
         self.obstacle_sprites = obstacle_sprites
         self.level = level
 
-        self.owner_pos = owner_pos
-        self.pos_x = owner_pos[0]
-        self.pos_y = owner_pos[1]
-
-        self.move_animation_frame_count = 0
-        self.move_animations = []
-
+        self.frame_id = FAIRY_FRAMES_ID
+        self.nb_frames = FAIRY_FRAMES
         self.load_animation_frames(particle_tileset)
 
         self.image = self.move_animations[0]
@@ -611,7 +559,7 @@ class Fairy(Particle):
         self.affects_player = True
         self.bypasses_shield = True
         self.collision_damage = 0
-        self.speed = 1
+        self.speed = FAIRY_SPEED
 
         self.direction_starting_time = 0
         self.direction_cooldown = random.randrange(500, 2000, 100)
@@ -622,21 +570,10 @@ class Fairy(Particle):
         self.is_active = True
 
     def load_animation_frames(self, particle_tileset):
-        for i in range(FAIRY_FRAMES):
-            tiles_offset = SPRITE_SIZE // TILE_SIZE * i
-            self.move_animations.append(particle_tileset.get_sprite_image(FAIRY_FRAMES_ID + tiles_offset))
+        super().load_animation_frames(particle_tileset)
 
     def animate(self):
-        current_time = pygame.time.get_ticks()
-
-        # Going through the motions of multiple frames, with a timer per frame
-        self.image = self.move_animations[self.move_animation_frame_count]
-        if current_time - self.move_animation_timer_start >= self.move_animation_cooldown:
-            self.move_animation_timer_start = pygame.time.get_ticks()
-            if self.move_animation_frame_count < FAIRY_FRAMES - 1:
-                self.move_animation_frame_count += 1
-            else:
-                self.move_animation_frame_count = 0
+        super().animate()
 
     def collision(self, direction):
         # This flies, so it will only collide with screen border obstacles, that are given in obstacles_sprites
@@ -681,22 +618,26 @@ class Fairy(Particle):
         self.level.heal_player(PLAYER_HEALTH_MAX)
 
     def update(self):
-        self.animate()
-        self.move()
-        pygame.display.get_surface().blit(self.image, self.rect.topleft)
+        super().update()
 
 
 class Bomb(Particle):
-    def __init__(self, owner_pos, owner_direction_vector, owner_direction_label, groups, particle_tileset):
+    def __init__(self, owner_pos,
+                 owner_direction_vector,
+                 owner_direction_label,
+                 groups,
+                 secret_bomb_sprites,
+                 particle_tileset):
         super().__init__(owner_pos, owner_direction_vector, groups)
-        # Will later give a group of destructible sprites to check if the bomb is close enough to break it
+
+        self.secret_bomb_sprites = secret_bomb_sprites
+
         self.owner_pos = owner_pos
         self.groups = groups
 
-        self.move_animation_frame_count = 0
-        self.move_animations = []
-
         self.particle_tileset = particle_tileset
+        self.frame_id = PBOMB_FRAME_ID
+        self.nb_frames = PBOMB_FRAMES
         self.load_animation_frames(particle_tileset)
 
         self.image = self.move_animations[0]
@@ -722,23 +663,27 @@ class Bomb(Particle):
                 self.pos_x = owner_pos[0]
                 self.pos_y = owner_pos[1] - 32
             case 'right':
-                self.pos_x = owner_pos[0] + 16
+                self.pos_x = owner_pos[0] + 24
                 self.pos_y = owner_pos[1]
             case 'down':
                 self.pos_x = owner_pos[0]
                 self.pos_y = owner_pos[1] + 32
             case 'left':
-                self.pos_x = owner_pos[0] - 16
+                self.pos_x = owner_pos[0] - 24
                 self.pos_y = owner_pos[1]
+        self.rect.topleft = (self.pos_x, self.pos_y)
 
     def load_animation_frames(self, particle_tileset):
-        self.move_animations.append(particle_tileset.get_sprite_image(PBOMB_FRAME_ID))
+        super().load_animation_frames(particle_tileset)
 
     def animate(self):
         pass
 
     def collision(self, direction):
-        pass
+        for secret_passage in self.secret_bomb_sprites:
+            if (secret_passage.rect.colliderect(self.hitbox)
+                    and not secret_passage.is_revealed):
+                secret_passage.reveal()
 
     def move(self):
         pass
@@ -752,7 +697,7 @@ class Bomb(Particle):
         BombSmoke((self.pos_x + 8, self.pos_y - 8), self.groups, self.particle_tileset)
         BombSmoke((self.pos_x - 16, self.pos_y), self.groups, self.particle_tileset)
         # Destroy fragile walls nearby
-        pass
+        self.collision('')
 
     def update(self):
         current_time = pygame.time.get_ticks()
@@ -760,7 +705,7 @@ class Bomb(Particle):
             self.effect()
             self.kill()
         else:
-            pygame.display.get_surface().blit(self.image, (self.pos_x, self.pos_y))
+            super().update()
 
 
 class BombSmoke(Particle):
@@ -768,9 +713,8 @@ class BombSmoke(Particle):
         owner_direction_vector = pygame.math.Vector2()
         super().__init__(effect_pos, owner_direction_vector, groups)
 
-        self.move_animation_frame_count = 0
-        self.move_animations = []
-
+        self.frame_id = PBOMB_SMOKE_FRAME_ID
+        self.nb_frames = PBOMB_SMOKE_FRAMES
         self.load_animation_frames(particle_tileset)
 
         self.image = self.move_animations[0]
@@ -781,26 +725,15 @@ class BombSmoke(Particle):
 
         self.is_active = True
 
-        self.smoke_starting_time = self.move_animation_timer_start = pygame.time.get_ticks()
+        self.smoke_starting_time = self.move_animation_timer_start
         self.move_animation_cooldown = 150
         self.smoke_cooldown = PBOMB_SMOKE_FRAMES * self.move_animation_cooldown
 
     def load_animation_frames(self, particle_tileset):
-        for i in range(PBOMB_SMOKE_FRAMES):
-            tiles_offset = SPRITE_SIZE // TILE_SIZE * i
-            self.move_animations.append(particle_tileset.get_sprite_image(PBOMB_SMOKE_FRAME_ID + tiles_offset))
+        super().load_animation_frames(particle_tileset)
 
     def animate(self):
-        current_time = pygame.time.get_ticks()
-
-        # Going through the motions of multiple frames, with a timer per frame
-        self.image = self.move_animations[self.move_animation_frame_count]
-        if current_time - self.move_animation_timer_start >= self.move_animation_cooldown:
-            self.move_animation_timer_start = pygame.time.get_ticks()
-            if self.move_animation_frame_count < PBOMB_SMOKE_FRAMES - 1:
-                self.move_animation_frame_count += 1
-            else:
-                self.move_animation_frame_count = 0
+        super().animate()
 
     def collision(self, direction):
         pass
@@ -816,8 +749,7 @@ class BombSmoke(Particle):
         if current_time - self.smoke_starting_time >= self.smoke_cooldown:
             self.kill()
         else:
-            self.animate()
-            pygame.display.get_surface().blit(self.image, (self.pos_x, self.pos_y))
+            super().update()
 
 
 class Flame(Particle):
@@ -827,14 +759,15 @@ class Flame(Particle):
                  groups,
                  particle_tileset,
                  enemy_sprites,
+                 secret_flame_sprites,
                  player):
         super().__init__(owner_pos, owner_direction_vector, groups)
 
         self.enemy_sprites = enemy_sprites
+        self.secret_flame_sprites = secret_flame_sprites
         self.player_ref = player
 
         self.direction_label = owner_direction_label
-        self.direction_vector = pygame.math.Vector2()
         match self.direction_label:
             case 'up':
                 self.direction_vector.x = 0
@@ -861,46 +794,37 @@ class Flame(Particle):
         self.max_distance = TILE_SIZE
 
         self.move_animation_cooldown = 100
-        self.move_animation_timer_start = pygame.time.get_ticks()
-        self.move_animation_frame_count = 0
-        self.move_animations = []
+
+        self.frame_id = FLAME_FRAME_ID
+        self.nb_frames = FLAME_FRAMES
         self.load_animation_frames(particle_tileset)
 
         self.image = self.move_animations[0]
         self.rect = self.image.get_rect(topleft=(self.pos_x, self.pos_y))
         self.hitbox = self.rect
 
-        self.collision_damage = FLAME_DMG
-
-        self.bomb_drop_sound = pygame.mixer.Sound(SOUND_FLAME)
-        self.bomb_drop_sound.set_volume(0.3)
-        self.bomb_drop_sound.play()
-
         self.is_active = True
+        self.collision_damage = FLAME_DMG
+        self.speed = FLAME_SPEED
+
+        self.flame_sound = pygame.mixer.Sound(SOUND_FLAME)
+        self.flame_sound.set_volume(0.3)
+        self.flame_sound.play()
 
         self.ignited_starting_time = pygame.time.get_ticks()
         self.extinction_cooldown = 600
 
     def load_animation_frames(self, particle_tileset):
         self.move_animations.append(
-            particle_tileset.get_sprite_image(FLAME_FRAME_ID))
+            particle_tileset.get_sprite_image(self.frame_id))
         self.move_animations.append(
             pygame.transform.flip(
-                particle_tileset.get_sprite_image(FLAME_FRAME_ID),
+                particle_tileset.get_sprite_image(self.frame_id),
                 flip_x=True,
                 flip_y=False))
 
     def animate(self):
-        current_time = pygame.time.get_ticks()
-
-        # Going through the motions of multiple frames, with a timer per frame
-        self.image = self.move_animations[self.move_animation_frame_count]
-        if current_time - self.move_animation_timer_start >= self.move_animation_cooldown:
-            self.move_animation_timer_start = pygame.time.get_ticks()
-            if self.move_animation_frame_count < FLAME_FRAMES - 1:
-                self.move_animation_frame_count += 1
-            else:
-                self.move_animation_frame_count = 0
+        super().animate()
 
     def collision(self, direction):
         # Collision with a monster
@@ -914,14 +838,18 @@ class Flame(Particle):
                 enemy.take_damage(self.collision_damage, direction)
 
         # Collision with a flammable tile
+        for secret_passage in self.secret_flame_sprites:
+            if (secret_passage.rect.colliderect(self.hitbox)
+                    and not secret_passage.is_revealed):
+                secret_passage.reveal()
 
     def move(self):
         if self.distance_travelled < self.max_distance:
-            self.hitbox.x += self.direction_vector.x * FLAME_SPEED
-            self.rect.x += self.direction_vector.x * FLAME_SPEED
-            self.hitbox.y += self.direction_vector.y * FLAME_SPEED
-            self.rect.y += self.direction_vector.y * FLAME_SPEED
-            self.distance_travelled += FLAME_SPEED
+            self.hitbox.x += self.direction_vector.x * self.speed
+            self.rect.x += self.direction_vector.x * self.speed
+            self.hitbox.y += self.direction_vector.y * self.speed
+            self.rect.y += self.direction_vector.y * self.speed
+            self.distance_travelled += self.speed
 
     def effect(self):
         pass
@@ -932,10 +860,7 @@ class Flame(Particle):
             self.player_ref.is_candle_lit = False
             self.kill()
         else:
-            self.animate()
-            self.move()
-            self.collision('')
-            pygame.display.get_surface().blit(self.image, self.rect.topleft)
+            super().update()
 
 
 class HeartReceptacle(Particle):
@@ -947,13 +872,8 @@ class HeartReceptacle(Particle):
         self.level_id = level_id
         self.level = level
 
-        self.owner_pos = owner_pos
-        self.pos_x = owner_pos[0]
-        self.pos_y = owner_pos[1]
-
-        self.move_animation_frame_count = 0
-        self.move_animations = []
-
+        self.frame_id = HEARTRECEPTACLE_FRAME_ID
+        self.nb_frames = HEARTRECEPTACLE_FRAMES
         self.load_animation_frames(consumable_tileset)
 
         self.image = self.move_animations[0]
@@ -967,8 +887,7 @@ class HeartReceptacle(Particle):
         self.is_active = True
 
     def load_animation_frames(self, particle_tileset):
-        # Only one frame
-        self.move_animations.append(particle_tileset.get_sprite_image(HEARTRECEPTACLE_FRAME_ID))
+        super().load_animation_frames(particle_tileset)
 
     def animate(self):
         # No animation
@@ -988,7 +907,7 @@ class HeartReceptacle(Particle):
         self.level.player_pick_up(HEARTRECEPTACLE_LABEL)
 
     def update(self):
-        pygame.display.get_surface().blit(self.image, self.rect.topleft)
+        super().update()
 
 
 class Ladder(Particle):
@@ -1000,13 +919,8 @@ class Ladder(Particle):
         self.level_id = level_id
         self.level = level
 
-        self.owner_pos = owner_pos
-        self.pos_x = owner_pos[0]
-        self.pos_y = owner_pos[1]
-
-        self.move_animation_frame_count = 0
-        self.move_animations = []
-
+        self.frame_id = LADDER_FRAME_ID
+        self.nb_frames = LADDER_FRAMES
         self.load_animation_frames(items_tileset)
 
         self.image = self.move_animations[0]
@@ -1020,8 +934,7 @@ class Ladder(Particle):
         self.is_active = True
 
     def load_animation_frames(self, items_tileset):
-        # Only one frame
-        self.move_animations.append(items_tileset.get_sprite_image(LADDER_FRAME_ID))
+        super().load_animation_frames(items_tileset)
 
     def animate(self):
         # No animation
@@ -1041,7 +954,7 @@ class Ladder(Particle):
         self.level.player_pick_up(LADDER_LABEL)
 
     def update(self):
-        pygame.display.get_surface().blit(self.image, self.rect.topleft)
+        super().update()
 
 
 class RedCandle(Particle):
@@ -1053,13 +966,8 @@ class RedCandle(Particle):
         self.level_id = level_id
         self.level = level
 
-        self.owner_pos = owner_pos
-        self.pos_x = owner_pos[0]
-        self.pos_y = owner_pos[1]
-
-        self.move_animation_frame_count = 0
-        self.move_animations = []
-
+        self.frame_id = RED_CANDLE_FRAME_ID
+        self.nb_frames = RED_CANDLE_FRAMES
         self.load_animation_frames(items_tileset)
 
         self.image = self.move_animations[0]
@@ -1073,8 +981,7 @@ class RedCandle(Particle):
         self.is_active = True
 
     def load_animation_frames(self, items_tileset):
-        # Only one frame
-        self.move_animations.append(items_tileset.get_sprite_image(RED_CANDLE_FRAME_ID))
+        super().load_animation_frames(items_tileset)
 
     def animate(self):
         # No animation
@@ -1094,7 +1001,7 @@ class RedCandle(Particle):
         self.level.player_pick_up(CANDLE_LABEL)
 
     def update(self):
-        pygame.display.get_surface().blit(self.image, self.rect.topleft)
+        super().update()
 
 
 class Boomerang(Particle):
@@ -1106,13 +1013,8 @@ class Boomerang(Particle):
         self.level_id = level_id
         self.level = level
 
-        self.owner_pos = owner_pos
-        self.pos_x = owner_pos[0]
-        self.pos_y = owner_pos[1]
-
-        self.move_animation_frame_count = 0
-        self.move_animations = []
-
+        self.frame_id = BOOMERANG_FRAME_ID
+        self.nb_frames = BOOMERANG_FRAMES
         self.load_animation_frames(items_tileset)
 
         self.image = self.move_animations[0]
@@ -1126,8 +1028,7 @@ class Boomerang(Particle):
         self.is_active = True
 
     def load_animation_frames(self, items_tileset):
-        # Only one frame
-        self.move_animations.append(items_tileset.get_sprite_image(BOOMERANG_FRAME_ID))
+        super().load_animation_frames(items_tileset)
 
     def animate(self):
         # No animation
@@ -1147,7 +1048,7 @@ class Boomerang(Particle):
         self.level.player_pick_up(BOOMERANG_LABEL)
 
     def update(self):
-        pygame.display.get_surface().blit(self.image, self.rect.topleft)
+        super().update()
 
 
 class WoodenSword(Particle):
@@ -1159,13 +1060,8 @@ class WoodenSword(Particle):
         self.level_id = level_id
         self.level = level
 
-        self.owner_pos = owner_pos
-        self.pos_x = owner_pos[0]
-        self.pos_y = owner_pos[1]
-
-        self.move_animation_frame_count = 0
-        self.move_animations = []
-
+        self.frame_id = WOOD_SWORD_FRAME_ID
+        self.nb_frames = WOOD_SWORD_FRAMES
         self.load_animation_frames(items_tileset)
 
         self.image = self.move_animations[0]
@@ -1179,8 +1075,7 @@ class WoodenSword(Particle):
         self.is_active = True
 
     def load_animation_frames(self, items_tileset):
-        # Only one frame
-        self.move_animations.append(items_tileset.get_sprite_image(WOOD_SWORD_FRAME_ID))
+        super().load_animation_frames(items_tileset)
 
     def animate(self):
         # No animation
@@ -1200,4 +1095,4 @@ class WoodenSword(Particle):
         self.level.player_pick_up(WOOD_SWORD_LABEL)
 
     def update(self):
-        pygame.display.get_surface().blit(self.image, self.rect.topleft)
+        super().update()

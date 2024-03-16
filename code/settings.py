@@ -93,14 +93,13 @@ PLAYER_STAIRS_FRAMES = 4
 PLAYER_STAIRS_FRAME_ID = 148
 PLAYER_STAIRS_ANIMATION_COOLDOWN = 150
 PLAYER_STAIRS_DURATION = PLAYER_STAIRS_FRAMES * PLAYER_STAIRS_ANIMATION_COOLDOWN
-WOOD_SWORD_FRAMES = 3
+WOOD_SWORD_ATTACK_FRAMES = 3
 WOOD_SWORD_UP_FRAME_ID = 0
 WOOD_SWORD_RIGHT_FRAME_ID = 6
 WOOD_SWORD_DOWN_FRAME_ID = 12
-BOOMERANG_FRAMES = 2
-BOOMERANG_SPEED = 6
 
 ROCK_FRAME_ID = 40
+ROCK_FRAMES = 1
 MAGIC_EXPLOSION_TOP_LEFT_SPRITE = 130
 
 # ITEMS LABEL
@@ -114,26 +113,32 @@ WOOD_SWORD_LABEL = 'Wood Sword'
 HEART_LABEL = 'Heart'
 RUPEE_LABEL = 'Rupee'
 
-# ITEMS SPRITES
+# ITEMS SPRITES & INFO
 #
 RAFT_FRAME_ID = 0
 MAGIC_TOME_FRAME_ID = 2
 RED_RING_FRAME_ID = 4
 LADDER_FRAME_ID = 6
+LADDER_FRAMES = 1
 MAGIC_KEY_FRAME_ID = 8
 POWER_BRACELET_FRAME_ID = 10
 BOOMERANG_FRAME_ID = 24
+BOOMERANG_FRAMES = 2
+BOOMERANG_SPEED = 6
 BOMB_FRAME_ID = 26
 BOW_ARROW_FRAME_ID = 28
 RED_CANDLE_FRAME_ID = 30
+RED_CANDLE_FRAMES = 1
 RECORDER_FRAME_ID = 48
 MEAT_FRAME_ID = 50
 MEDICINE_FRAME_ID = 52
 MAGICAL_ROD_FRAME_ID = 54
 WOOD_SWORD_FRAME_ID = 32
+WOOD_SWORD_FRAMES = 1
 
 # USABLE ITEM SPRITES
 #
+PBOMB_FRAMES = 1
 PBOMB_FRAME_ID = 48
 PBOMB_SMOKE_FRAMES = 3
 PBOMB_SMOKE_FRAME_ID = 50
@@ -141,7 +146,7 @@ FLAME_FRAMES = 2
 FLAME_FRAME_ID = 56
 FLAME_SPEED = 1
 
-# CONSUMABLE SPRITES
+# CONSUMABLE SPRITES & INFO
 #
 HEART_FRAME_ID = 0
 HEART_FRAMES = 2
@@ -151,6 +156,7 @@ CBOMB_FRAME_ID = 8
 CBOMB_FRAMES = 1
 FAIRY_FRAMES_ID = 10
 FAIRY_FRAMES = 2
+FAIRY_SPEED = 1
 HEARTRECEPTACLE_FRAME_ID = 14
 HEARTRECEPTACLE_FRAMES = 1
 
@@ -252,44 +258,50 @@ SOUND_STAIRS = AUDIO_PATH + 'Stairs.wav'
 SOUND_FLAME = AUDIO_PATH + 'Flame.wav'
 
 # Underworld map id
+# As a reminder, the first entry of this dict corresponds to a change_id of 4
+# See 'help' for a reminder of who is what
 NEW_LEVEL_BOTTOM_CENTER_POS = (SCREEN_WIDTH / 2 - TILE_SIZE, SCREEN_HEIGHT - TILE_SIZE * 3 - 1)
 UNDERWORLD_STAIRS = [
     {'map': 'level',
      'screen': '10',
      'player_pos': (128, 32 + HUD_OFFSET + TILE_SIZE + 1),
-     'stairs': False},
+     'stairs': False,
+     'help': 'This (4) is the exit from the sword_cave0 to level10'},
     {'map': 'sword_cave',
      'screen': '0',
      'player_pos': NEW_LEVEL_BOTTOM_CENTER_POS,
-     'stairs': True},
+     'stairs': True,
+     'help': 'This (5) is the entrance of sword_cave0 from level10'},
     {'map': 'level',
      'screen': '6',
      'player_pos': (192, HUD_OFFSET + 160),
-     'stairs': False},
+     'stairs': False,
+     'help': 'This (6) is the exit of pay_for_my_door0 to level6'},
     {'map': 'pay_for_my_door',
      'screen': '0',
      'player_pos': NEW_LEVEL_BOTTOM_CENTER_POS,
-     'stairs': False},
+     'stairs': False,
+     'help': 'This (7) is the secret entrance of pay_for_my_door0 from level6'},
     {'map': 'level',
-     'screen': '0',
-     'player_pos': (200, 200),
-     'stairs': False},
+     'screen': '11',
+     'player_pos': (144, HUD_TILE_HEIGHT * TILE_SIZE + 112),
+     'stairs': False,
+     'help': 'This (8) is the exit of shop00 to level11'},
     {'map': 'shop0',
      'screen': '0',
      'player_pos': NEW_LEVEL_BOTTOM_CENTER_POS,
-     'stairs': True},
+     'stairs': True,
+     'help': 'This (9) is the entrance of shop00 from level11'},
     {'map': 'level',
      'screen': '0',
      'player_pos': (200, 200),
-     'stairs': False},
+     'stairs': False,
+     'help': 'This (10) is the exit of dungeon0_0 to __level0__'},
     {'map': 'dungeon0_',
      'screen': '0',
      'player_pos': NEW_LEVEL_BOTTOM_CENTER_POS,
-     'stairs': True},
-    {'map': 'level',
-     'screen': '0',
-     'player_pos': (200, 200),
-     'stairs': False}
+     'stairs': True,
+     'help': 'This (11) is the entrance of dungeon0_0 from __level0__'},
 ]
 
 # Map system
@@ -313,7 +325,22 @@ LIMIT_WATER_INDEX = 30
 LIMIT_ROCK_INDEX = 40
 LIMIT_LADDER_INDEX = 50
 
+# Secret passages sprite frame id
+#
+SECRET_CAVE_FRAME_ID = 0
+SECRET_STAIRS_FRAME_ID = 2
+SECRET_HORIZONTAL_WALL_FRAME_ID = 4
+SECRET_VERTICAL_WALL_FRAME_ID = 6
+
+# Secret content in maps
+# When a secret passage has been revealed, an entry 'level_id': True is created.
+# Warning : with this system, there can't be multiple secrets in one screen (both fire & bomb for instance)
+#
+MAP_SECRETS_REVEALED = {
+}
+
 # Item content in maps
+#
 MAP_ITEMS = {
     'level9': {HEARTRECEPTACLE_LABEL: True},
     'level11': {LADDER_LABEL: True},
@@ -368,3 +395,8 @@ SHOP_ITEMS = {
     CANDLE_LABEL: RED_CANDLE_FRAME_ID,
     WOOD_SWORD_LABEL: WOOD_SWORD_FRAME_ID
 }
+
+PLAYER_START_X = SCREEN_WIDTH // 2 - TILE_SIZE
+PLAYER_START_Y = (SCREEN_HEIGHT + HUD_TILE_HEIGHT * TILE_SIZE) // 2 - TILE_SIZE
+STARTING_MAP = 'level'
+STARTING_SCREEN = '10'
