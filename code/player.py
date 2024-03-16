@@ -60,6 +60,10 @@ class Player(Entity):
 
         self.item_tileset = item_tileset
 
+        self.pickup_one_handed_animation = []
+        self.pickup_two_handed_animation = []
+        self.stairs_animation = []
+
         # Initialisation of the values used to load the different animations
         self.is_right_flipped = True
         self.walking_frames = PLAYER_WALKING_FRAMES
@@ -150,6 +154,13 @@ class Player(Entity):
         # Animation reset
         self.idle_time = 0
 
+        # Current animation pointers
+        self.current_animation_cooldown = 0
+        self.current_animation_starting_time = 0
+        self.current_animation_frame_count = 0
+        self.current_animation_frames_nb = 0
+        self.current_animation_list = []
+
         # Player actions cooldowns
         self.action_cooldown = PLAYER_ACTION_ANIMATION_COOLDOWN
         self.pickup_one_handed_cooldown = PLAYER_PICKUP_ONE_HANDED_COOLDOWN
@@ -188,8 +199,28 @@ class Player(Entity):
         self.is_boomerang_thrown = False
         self.is_candle_lit = False
 
+    def load_pickup_one_handed_frames(self, entity_tile_set):
+        for i in range(self.pickup_one_handed_frames):
+            tiles_offset = SPRITE_SIZE // TILE_SIZE * i
+            self.pickup_one_handed_animation.append(
+                entity_tile_set.get_sprite_image(self.pickup_one_handed_frame_id + tiles_offset))
+
+    def load_pickup_two_handed_frames(self, entity_tile_set):
+        for i in range(self.pickup_two_handed_frames):
+            tiles_offset = SPRITE_SIZE // TILE_SIZE * i
+            self.pickup_two_handed_animation.append(
+                entity_tile_set.get_sprite_image(self.pickup_two_handed_frame_id + tiles_offset))
+
+    def load_stairs_frames(self, entity_tile_set):
+        for i in range(self.stairs_frames):
+            tiles_offset = SPRITE_SIZE // TILE_SIZE * i
+            self.stairs_animation.append(entity_tile_set.get_sprite_image(self.stairs_frame_id + tiles_offset))
+
     def load_animation_frames(self, player_tile_set):
         super().load_animation_frames(player_tile_set)
+        self.load_pickup_one_handed_frames(player_tile_set)
+        self.load_pickup_two_handed_frames(player_tile_set)
+        self.load_stairs_frames(player_tile_set)
 
     def can_move(self):
         if self.state == 'walking' or self.state == 'idle':
@@ -520,84 +551,89 @@ class Player(Entity):
             self.pickup_one_handed_starting_time = current_time
             self.pick_up_sound.play()
 
+    def change_animation_frame(self,
+                               animation_list,
+                               animation_frame_count,
+                               animation_starting_time,
+                               animation_cooldown,
+                               animation_frames_nb,
+                               reset_for_loop=True,
+                               idle_after=False):
+        current_time = pygame.time.get_ticks()
+
+        # Going through the motions of multiple frames, with a timer per frame
+        self.image = animation_list[animation_frame_count]
+        if current_time - animation_starting_time >= animation_cooldown:
+            animation_starting_time = current_time
+            if animation_frame_count < animation_frames_nb - 1:
+                animation_frame_count += 1
+            elif reset_for_loop:
+                animation_frame_count = 0
+                if idle_after:
+                    self.state = 'idle'
+
+        return animation_starting_time, animation_frame_count
+
     def animate(self):
         current_time = pygame.time.get_ticks()
         if self.state == 'idle':
             # Stops all animation, resetting to 1st walking frame of the current direction
             self.image = self.walking_animations[self.direction_label][0]
         elif self.state == 'walking' or self.state == 'warping':
-            # Going through the motions of multiple frames, with a timer per frame
-            self.image = self.walking_animations[self.direction_label][self.walking_animation_frame_count]
-            if current_time - self.walking_animation_starting_time >= self.walking_animation_cooldown:
-                self.walking_animation_starting_time = current_time
-                if self.walking_animation_frame_count < PLAYER_WALKING_FRAMES-1:
-                    self.walking_animation_frame_count += 1
-                else:
-                    self.walking_animation_frame_count = 0
+            self.walking_animation_starting_time, self.walking_animation_frame_count = (
+                self.change_animation_frame(self.walking_animations[self.direction_label],
+                                            self.walking_animation_frame_count,
+                                            self.walking_animation_starting_time,
+                                            self.walking_animation_cooldown,
+                                            self.walking_frames))
         elif 'action' in self.state:
-            # Going through the motions of multiple frames, with a timer per frame
-            self.image = self.action_animations[self.direction_label][self.action_animation_frame_count]
-            if current_time - self.action_animation_starting_time >= self.action_animation_cooldown:
-                self.action_animation_starting_time = current_time
-                if self.action_animation_frame_count < PLAYER_ACTION_FRAMES-1:
-                    self.action_animation_frame_count += 1
-                else:
-                    self.action_animation_frame_count = 0
+            self.action_animation_starting_time, self.action_animation_frame_count = (
+                self.change_animation_frame(self.action_animations[self.direction_label],
+                                            self.action_animation_frame_count,
+                                            self.action_animation_starting_time,
+                                            self.action_animation_cooldown,
+                                            self.action_frames))
         elif self.state == 'pickup_one_handed':
-            # Going through the motions of multiple frames, with a timer per frame
-            self.image = self.pickup_one_handed_animation[self.pickup_one_handed_animation_frame_count]
-            if (current_time - self.pickup_one_handed_animation_starting_time
-                    >= self.pickup_one_handed_animation_cooldown):
-                self.pickup_one_handed_animation_starting_time = current_time
-                if self.pickup_one_handed_animation_frame_count < PLAYER_PICKUP_ONE_HANDED_FRAMES-1:
-                    self.pickup_one_handed_animation_frame_count += 1
-                else:
-                    self.pickup_one_handed_animation_frame_count = 0
+            self.pickup_one_handed_animation_starting_time, self.pickup_one_handed_animation_frame_count = (
+                self.change_animation_frame(self.pickup_one_handed_animation,
+                                            self.pickup_one_handed_animation_frame_count,
+                                            self.pickup_one_handed_animation_starting_time,
+                                            self.pickup_one_handed_animation_cooldown,
+                                            self.pickup_one_handed_frames))
+
         elif self.state == 'pickup_two_handed':
-            # Going through the motions of multiple frames, with a timer per frame
-            self.image = self.pickup_two_handed_animation[self.pickup_two_handed_animation_frame_count]
-            if (current_time - self.pickup_two_handed_animation_starting_time
-                    >= self.pickup_two_handed_animation_cooldown):
-                self.pickup_two_handed_animation_starting_time = current_time
-                if self.pickup_two_handed_animation_frame_count < PLAYER_PICKUP_TWO_HANDED_FRAMES-1:
-                    self.pickup_two_handed_animation_frame_count += 1
-                else:
-                    self.pickup_two_handed_animation_frame_count = 0
-        elif 'hurt' in self.state:
-            # Going through the motions of multiple frames, with a timer per frame
-            self.image = self.hurt_animations[self.direction_label][self.hurt_animation_frame_count]
-            if current_time - self.hurt_animation_starting_time >= self.hurt_animation_cooldown:
-                self.hurt_animation_starting_time = current_time
-                if self.hurt_animation_frame_count < PLAYER_HURT_FRAMES-1:
-                    self.hurt_animation_frame_count += 1
+            self.pickup_two_handed_animation_starting_time, self.pickup_two_handed_animation_frame_count = (
+                self.change_animation_frame(self.pickup_two_handed_animation,
+                                            self.pickup_two_handed_animation_frame_count,
+                                            self.pickup_two_handed_animation_starting_time,
+                                            self.pickup_two_handed_animation_cooldown,
+                                            self.pickup_two_handed_frames))
+        elif 'hurt' in self.state or self.state == 'dying':
+            reset_for_loop = False if 'hurt' in self.state else True
+            self.hurt_animation_starting_time, self.hurt_animation_frame_count = (
+                self.change_animation_frame(self.hurt_animations[self.direction_label],
+                                            self.hurt_animation_frame_count,
+                                            self.hurt_animation_starting_time,
+                                            self.hurt_animation_cooldown,
+                                            self.hurt_frames,
+                                            reset_for_loop))
         elif self.state == 'stairs':
-            # Going through the motions of multiple frames, with a timer per frame
-            self.image = self.stairs_animation[self.stairs_animation_frame_count]
-            if current_time - self.stairs_animation_starting_time >= self.stairs_animation_cooldown:
-                self.stairs_animation_starting_time = current_time
-                if self.stairs_animation_frame_count < PLAYER_STAIRS_FRAMES-1:
-                    self.stairs_animation_frame_count += 1
-                else:
-                    self.stairs_animation_frame_count = 0
-                    self.state = 'idle'
-        elif self.state == 'dying':
-            # Going through the motions of multiple frames, with a timer per frame
-            self.image = self.hurt_animations[self.direction_label][self.hurt_animation_frame_count]
-            if current_time - self.hurt_animation_starting_time >= self.hurt_animation_cooldown:
-                self.hurt_animation_starting_time = current_time
-                if self.hurt_animation_frame_count < PLAYER_HURT_FRAMES-1:
-                    self.hurt_animation_frame_count += 1
-                else:
-                    self.hurt_animation_frame_count = 0
+            self.stairs_animation_starting_time, self.stairs_animation_frame_count = (
+                self.change_animation_frame(self.stairs_animation,
+                                            self.stairs_animation_frame_count,
+                                            self.stairs_animation_starting_time,
+                                            self.stairs_animation_cooldown,
+                                            self.stairs_frames,
+                                            True,
+                                            True))
         elif self.state == 'spinning':
             # Spin spin spin !
-            self.image = self.walking_animations[self.direction_label][self.walking_animation_frame_count]
-            if current_time - self.walking_animation_starting_time >= self.walking_animation_cooldown:
-                self.walking_animation_starting_time = current_time
-                if self.walking_animation_frame_count < PLAYER_WALKING_FRAMES - 1:
-                    self.walking_animation_frame_count += 1
-                else:
-                    self.walking_animation_frame_count = 0
+            self.walking_animation_starting_time, self.walking_animation_frame_count = (
+                self.change_animation_frame(self.walking_animations[self.direction_label],
+                                            self.walking_animation_frame_count,
+                                            self.walking_animation_starting_time,
+                                            self.walking_animation_cooldown,
+                                            self.walking_frames))
             elapsed_spin_time = current_time - self.spin_animation_starting_time
             if elapsed_spin_time < PLAYER_DEATH_SPIN_DURATION * 0.25:
                 self.direction_label = 'right'
@@ -612,13 +648,12 @@ class Player(Entity):
             # be gray
             self.image = self.gray_animation['down'][0]
         elif self.state == 'despawn':
-            self.image = self.despawn_animation[self.despawn_animation_frame_count]
-            if current_time - self.despawn_animation_starting_time >= self.despawn_animation_cooldown:
-                self.despawn_animation_starting_time = current_time
-                if self.despawn_animation_frame_count < PLAYER_DEATH_FRAMES-1:
-                    self.despawn_animation_frame_count += 1
-                else:
-                    self.despawn_animation_frame_count = 0
+            self.despawn_animation_starting_time, self.despawn_animation_frame_count = (
+                self.change_animation_frame(self.despawn_animation,
+                                            self.despawn_animation_frame_count,
+                                            self.despawn_animation_starting_time,
+                                            self.despawn_animation_cooldown,
+                                            self.despawn_frames))
 
     def heal(self, amount):
         if amount >= 0:
