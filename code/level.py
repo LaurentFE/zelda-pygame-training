@@ -373,7 +373,8 @@ class Level:
                                                self.items_tile_set.get_sprite_image(item_frame_id))
 
     def load_warps(self, level_id, warp_type):
-        layout = None
+        image = None
+        revealed = False
         match warp_type:
             case 'warps':
                 layout = import_csv_layout(f'../map/{level_id}_Warps.csv')
@@ -394,6 +395,10 @@ class Level:
                     revealed = MAP_SECRETS_REVEALED[level_id]
                 else:
                     revealed = False
+            case _:
+                # warp type not implemented, abort
+                return
+
         if layout is not None:
             for row_index, row in enumerate(layout):
                 for col_index, col in enumerate(row):
