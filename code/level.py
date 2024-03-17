@@ -382,7 +382,8 @@ class Level(metaclass=Singleton):
                                                self.items_tile_set.get_sprite_image(item_frame_id))
 
     def load_warps(self, level_id, warp_type):
-        layout = None
+        image = None
+        revealed = False
         match warp_type:
             case 'warps':
                 layout = import_csv_layout(f'../map/{level_id}_Warps.csv')
@@ -403,6 +404,10 @@ class Level(metaclass=Singleton):
                     revealed = MAP_SECRETS_REVEALED[level_id]
                 else:
                     revealed = False
+            case _:
+                # warp type not implemented, abort
+                return
+
         if layout is not None:
             for row_index, row in enumerate(layout):
                 for col_index, col in enumerate(row):
@@ -926,42 +931,45 @@ class Level(metaclass=Singleton):
                           self.consumables_tile_set,
                           self.obstacle_sprites)
 
-    def heal_player(self, amount):
-        self.player.heal(amount)
+    def player_pick_up(self, item_label, amount=0):
+        if item_label in ITEM_PICKUP_ANIMATION.keys():
+            x_offset = 0
+            y_offset = - TILE_SIZE * 2
+            if item_label == HEARTRECEPTACLE_LABEL:
+                item_image = self.consumables_tile_set.get_sprite_image(HEARTRECEPTACLE_FRAME_ID)
+                x_offset -= 2
+                y_offset += 4
+            elif item_label == WOOD_SWORD_LABEL:
+                item_image = self.items_tile_set.get_sprite_image(WOOD_SWORD_FRAME_ID)
+                x_offset -= 12
+            elif item_label == CANDLE_LABEL:
+                item_image = self.items_tile_set.get_sprite_image(RED_CANDLE_FRAME_ID)
+                x_offset -= 12
+            elif item_label == BOOMERANG_LABEL:
+                item_image = self.items_tile_set.get_sprite_image(BOOMERANG_FRAME_ID)
+                x_offset -= 12
+                y_offset += 9
+            elif item_label == LADDER_LABEL:
+                item_image = self.items_tile_set.get_sprite_image(LADDER_FRAME_ID)
+                x_offset = 3
+            else:
+                # Item not implemented yet ? abort
+                return
 
-    def player_pick_up(self, item_label):
-        x_offset = 0
-        y_offset = - TILE_SIZE * 2
-        if item_label == HEARTRECEPTACLE_LABEL:
-            item_image = self.consumables_tile_set.get_sprite_image(HEARTRECEPTACLE_FRAME_ID)
-            x_offset -= 2
-            y_offset += 4
-        elif item_label == WOOD_SWORD_LABEL:
-            item_image = self.items_tile_set.get_sprite_image(WOOD_SWORD_FRAME_ID)
-            x_offset -= 12
-        elif item_label == CANDLE_LABEL:
-            item_image = self.items_tile_set.get_sprite_image(RED_CANDLE_FRAME_ID)
-            x_offset -= 12
-        elif item_label == BOOMERANG_LABEL:
-            item_image = self.items_tile_set.get_sprite_image(BOOMERANG_FRAME_ID)
-            x_offset -= 12
-            y_offset += 9
-        elif item_label == LADDER_LABEL:
-            item_image = self.items_tile_set.get_sprite_image(LADDER_FRAME_ID)
-            x_offset = 3
+            self.player.add_item(item_label)
+            item_pos = (self.player.rect.left + x_offset, self.player.rect.top + y_offset)
+            self.item_picked_up = Tile(item_pos, [self.visible_sprites], item_image)
         else:
-            # Item not implemented yet ? abort
-            return
-
-        self.player.add_item(item_label)
-        item_pos = (self.player.rect.left + x_offset, self.player.rect.top + y_offset)
-        self.item_picked_up = Tile(item_pos, [self.visible_sprites], item_image)
-
-    def add_money(self, amount):
-        self.player.add_money(amount)
-
-    def add_bombs(self, amount):
-        self.player.add_bombs(amount)
+            if (item_label == HEART_LABEL
+                    or item_label == FAIRY_LABEL):
+                self.player.heal(amount)
+            elif item_label == RUPEE_LABEL:
+                self.player.add_money(amount)
+            elif item_label == BOMB_LABEL:
+                self.player.add_bombs(amount)
+            else:
+                # Item not implemented yet ? abort
+                return
 
     def run(self):
         self.input()

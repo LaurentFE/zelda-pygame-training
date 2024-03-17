@@ -696,22 +696,18 @@ class Player(Entity):
     def add_item(self, label):
         if label == HEARTRECEPTACLE_LABEL:
             self.add_max_health()
-            self.set_state('pickup_two_handed')
         elif label == WOOD_SWORD_LABEL:
             self.has_wood_sword = True
             self.equip_best_sword()
-            self.set_state('pickup_one_handed')
         elif label == BOOMERANG_LABEL:
             self.has_boomerang = True
-            self.set_state('pickup_one_handed')
             self.change_item_b(label)
         elif label == CANDLE_LABEL:
             self.has_candle = True
-            self.set_state('pickup_one_handed')
             self.change_item_b(label)
         elif label == LADDER_LABEL:
             self.has_ladder = True
-            self.set_state('pickup_two_handed')
+        self.set_state(ITEM_PICKUP_ANIMATION[label])
 
     def has_item(self, label):
         if label == BOOMERANG_LABEL:

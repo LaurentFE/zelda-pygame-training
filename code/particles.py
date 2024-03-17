@@ -432,7 +432,7 @@ class Heart(Particle):
 
     def effect(self):
         self.heart_pickup_sound.play()
-        game.Level().heal_player(1)
+        game.Level().player_pick_up(HEART_LABEL, 1)
 
     def update(self):
         super().update()
@@ -481,7 +481,7 @@ class Rupee(Particle):
 
     def effect(self):
         self.rupee_pickup_sound.play()
-        game.Level().add_money(self.amount)
+        game.Level().player_pick_up(RUPEE_LABEL, self.amount)
 
     def update(self):
         super().update()
@@ -530,7 +530,7 @@ class CBomb(Particle):
 
     def effect(self):
         self.bomb_pickup_sound.play()
-        game.Level().add_bombs(PLAYER_BOMB_LOOT_AMOUNT)
+        game.Level().player_pick_up(BOMB_LABEL, PLAYER_BOMB_LOOT_AMOUNT)
 
     def update(self):
         super().update()
@@ -611,7 +611,7 @@ class Fairy(Particle):
 
     def effect(self):
         self.fairy_pickup_sound.play()
-        game.Level().heal_player(PLAYER_HEALTH_MAX)
+        game.Level().player_pick_up(FAIRY_LABEL, PLAYER_HEALTH_MAX)
 
     def update(self):
         super().update()
@@ -636,11 +636,6 @@ class Bomb(Particle):
         self.nb_frames = PBOMB_FRAMES
         self.load_animation_frames(particle_tileset)
 
-        self.image = self.move_animations[0]
-        self.rect = self.image.get_rect(topleft=(self.pos_x, self.pos_y))
-        self.hitbox = self.rect.inflate(32, 32)
-        self.hitbox.center = self.rect.center
-
         self.collision_damage = 0
 
         self.bomb_drop_sound = pygame.mixer.Sound(SOUND_BOMB_DROP)
@@ -648,11 +643,6 @@ class Bomb(Particle):
         self.bomb_drop_sound.play()
         self.bomb_explode_sound = pygame.mixer.Sound(SOUND_BOMB_EXPLODE)
         self.bomb_explode_sound.set_volume(0.3)
-
-        self.is_active = True
-
-        self.ignited_starting_time = pygame.time.get_ticks()
-        self.explosion_cooldown = 1000
 
         match owner_direction_label:
             case 'up':
@@ -667,7 +657,14 @@ class Bomb(Particle):
             case 'left':
                 self.pos_x = owner_pos[0] - 24
                 self.pos_y = owner_pos[1]
-        self.rect.topleft = (self.pos_x, self.pos_y)
+        self.image = self.move_animations[0]
+        self.rect = self.image.get_rect(topleft=(self.pos_x, self.pos_y))
+        self.hitbox = self.rect.inflate(24, 32)
+
+        self.is_active = True
+
+        self.ignited_starting_time = pygame.time.get_ticks()
+        self.explosion_cooldown = 1000
 
     def load_animation_frames(self, particle_tileset):
         super().load_animation_frames(particle_tileset)
@@ -677,7 +674,7 @@ class Bomb(Particle):
 
     def collision(self, direction):
         for secret_passage in self.secret_bomb_sprites:
-            if (secret_passage.rect.colliderect(self.hitbox)
+            if (secret_passage.hitbox.colliderect(self.hitbox)
                     and not secret_passage.is_revealed):
                 secret_passage.reveal()
 
@@ -701,7 +698,7 @@ class Bomb(Particle):
             self.effect()
             self.kill()
         else:
-            super().update()
+            pygame.display.get_surface().blit(self.image, self.rect.topleft)
 
 
 class BombSmoke(Particle):

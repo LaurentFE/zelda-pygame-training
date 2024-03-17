@@ -22,18 +22,18 @@ class Purchasable(pygame.sprite.Sprite):
             self.ignore_player_money_amount = False
 
     def effect(self):
-        # Items that don't have a pickup animation
+        item_amount = 0
         if self.label == BOMB_LABEL:
-            game.Level().add_bombs(PLAYER_BOMB_LOOT_AMOUNT)
+            item_amount = PLAYER_BOMB_LOOT_AMOUNT
         elif self.label == HEART_LABEL:
-            game.Level().heal_player(1)
-        # Items that have a pickup animation
-        elif self.label == HEARTRECEPTACLE_LABEL or self.label in SHOP_ITEMS.keys():
-            game.Level().player_pick_up(self.label)
+            item_amount = 1
 
-        game.Level().add_money(-self.price)
+        game.Level().player_pick_up(self.label, item_amount)
+        game.Level().player_pick_up(RUPEE_LABEL, -self.price)
+
         level_id = game.Level().current_map + game.Level().current_map_screen
         SHOPS[level_id]['items'].pop(self.label, None)
+
         if self.price_sprite_ref is not None:
             self.price_sprite_ref.kill()
 
