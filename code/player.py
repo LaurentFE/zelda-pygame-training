@@ -58,7 +58,7 @@ class Player(Entity):
         self.stairs_animation = []
 
         # Initialisation of the values used to load the different animations
-        self.is_right_flipped = True
+        self.is_right_x_flipped = True
         self.walking_frames = PLAYER_WALKING_FRAMES
         self.walking_up_frame_id = PLAYER_WALKING_UP_FRAME_ID
         self.walking_down_frame_id = PLAYER_WALKING_DOWN_FRAME_ID
