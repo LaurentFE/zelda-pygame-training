@@ -228,7 +228,7 @@ class Player(Entity):
         return False
 
     def can_action(self):
-        if 'action' not in self.state:
+        if 'action' not in self.state and self.state != 'warping' and self.state != 'stairs':
             return True
         return False
 
