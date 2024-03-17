@@ -12,25 +12,25 @@ class Entity(pygame.sprite.Sprite, ABC):
         self.obstacle_sprites = obstacle_sprites
         self.particle_sprites = particle_sprites
         self.walking_animations = {
-            'up': [],
-            'right': [],
-            'down': [],
-            'left': []
+            UP_LABEL: [],
+            RIGHT_LABEL: [],
+            DOWN_LABEL: [],
+            LEFT_LABEL: []
         }
         self.gray_animation = {
-            'down': []
+            DOWN_LABEL: []
         }
         self.action_animations = {
-            'up': [],
-            'right': [],
-            'down': [],
-            'left': []
+            UP_LABEL: [],
+            RIGHT_LABEL: [],
+            DOWN_LABEL: [],
+            LEFT_LABEL: []
         }
         self.hurt_animations = {
-            'up': [],
-            'right': [],
-            'down': [],
-            'left': []
+            UP_LABEL: [],
+            RIGHT_LABEL: [],
+            DOWN_LABEL: [],
+            LEFT_LABEL: []
         }
         self.spawn_animation = []
         self.despawn_animation = []
@@ -99,85 +99,85 @@ class Entity(pygame.sprite.Sprite, ABC):
         for i in range(self.walking_frames):
             tiles_offset = (SPRITE_SIZE // TILE_SIZE) * i
             if self.is_up_y_flipped:
-                self.walking_animations['up'].append(
+                self.walking_animations[UP_LABEL].append(
                     pygame.transform.flip(
                         entity_tile_set.get_sprite_image(self.walking_up_frame_id + tiles_offset),
                         False,
                         True))
             elif self.is_walking_animation_x_flipped and i >= self.walking_frames // 2:
                 reset_offset = (SPRITE_SIZE // TILE_SIZE) * (self.walking_frames // 2)
-                self.walking_animations['up'].append(
+                self.walking_animations[UP_LABEL].append(
                     pygame.transform.flip(
                         entity_tile_set.get_sprite_image(self.walking_up_frame_id + tiles_offset - reset_offset),
                         True,
                         False))
             else:
-                self.walking_animations['up'].append(
+                self.walking_animations[UP_LABEL].append(
                     entity_tile_set.get_sprite_image(self.walking_up_frame_id + tiles_offset))
 
-            self.walking_animations['left'].append(
+            self.walking_animations[LEFT_LABEL].append(
                 entity_tile_set.get_sprite_image(self.walking_left_frame_id + tiles_offset))
 
             if self.is_walking_animation_x_flipped and i >= self.walking_frames // 2:
                 reset_offset = (SPRITE_SIZE // TILE_SIZE) * (self.walking_frames // 2)
-                self.walking_animations['down'].append(
+                self.walking_animations[DOWN_LABEL].append(
                     pygame.transform.flip(
                         entity_tile_set.get_sprite_image(self.walking_down_frame_id + tiles_offset - reset_offset),
                         True,
                         False))
             else:
-                self.walking_animations['down'].append(
+                self.walking_animations[DOWN_LABEL].append(
                     entity_tile_set.get_sprite_image(self.walking_down_frame_id + tiles_offset))
 
             if self.is_right_x_flipped:
-                self.walking_animations['right'].append(
+                self.walking_animations[RIGHT_LABEL].append(
                     pygame.transform.flip(
                         entity_tile_set.get_sprite_image(self.walking_right_frame_id + tiles_offset),
                         True,
                         False))
             else:
-                self.walking_animations['right'].append(
+                self.walking_animations[RIGHT_LABEL].append(
                     entity_tile_set.get_sprite_image(self.walking_right_frame_id + tiles_offset))
 
             if self.can_be_gray:
-                self.gray_animation['down'].append(
+                self.gray_animation[DOWN_LABEL].append(
                     entity_tile_set.get_sprite_image(self.walking_down_gray_frame_id + tiles_offset))
 
     def load_action_frames(self, entity_tile_set):
         for i in range(self.action_frames):
             tiles_offset = SPRITE_SIZE // TILE_SIZE * i
             if self.is_up_action_y_flipped:
-                self.action_animations['up'].append(
+                self.action_animations[UP_LABEL].append(
                     pygame.transform.flip(
                         entity_tile_set.get_sprite_image(self.action_up_frame_id + tiles_offset),
                         False,
                         True))
             elif self.is_action_animation_x_flipped and i >= self.action_frames // 2:
                 reset_offset = (SPRITE_SIZE // TILE_SIZE) * (self.action_frames // 2)
-                self.action_animations['up'].append(
+                self.action_animations[UP_LABEL].append(
                     pygame.transform.flip(
                         entity_tile_set.get_sprite_image(self.action_up_frame_id + tiles_offset - reset_offset),
                         True,
                         False))
             else:
-                self.action_animations['up'].append(
+                self.action_animations[UP_LABEL].append(
                     entity_tile_set.get_sprite_image(self.action_up_frame_id + tiles_offset))
 
-            self.action_animations['left'].append(
+            self.action_animations[LEFT_LABEL].append(
                 entity_tile_set.get_sprite_image(self.action_left_frame_id + tiles_offset))
 
             if self.is_action_animation_x_flipped and i >= self.action_frames // 2:
                 reset_offset = (SPRITE_SIZE // TILE_SIZE) * (self.action_frames // 2)
-                self.action_animations['down'].append(
+                self.action_animations[DOWN_LABEL].append(
                     pygame.transform.flip(
                         entity_tile_set.get_sprite_image(self.action_down_frame_id + tiles_offset - reset_offset),
                         True,
                         False))
             else:
-                self.action_animations['down'].append(
+                self.action_animations[DOWN_LABEL].append(
                     entity_tile_set.get_sprite_image(self.action_down_frame_id + tiles_offset))
 
-            self.action_animations['right'].append(
+            self.action_animations[RIGHT_LABEL].append(
                 pygame.transform.flip(
                     entity_tile_set.get_sprite_image(self.action_right_frame_id + tiles_offset),
                     True,
@@ -187,26 +187,26 @@ class Entity(pygame.sprite.Sprite, ABC):
         for i in range(self.hurt_frames):
             tiles_offset = SPRITE_SIZE // TILE_SIZE * i
             if self.is_up_y_flipped:
-                self.hurt_animations['up'].append(
+                self.hurt_animations[UP_LABEL].append(
                     pygame.transform.flip(
                         entity_tile_set.get_sprite_image(self.hurt_up_frame_id + tiles_offset),
                         False,
                         True))
             else:
-                self.hurt_animations['up'].append(
+                self.hurt_animations[UP_LABEL].append(
                     entity_tile_set.get_sprite_image(self.hurt_up_frame_id + tiles_offset))
-            self.hurt_animations['left'].append(
+            self.hurt_animations[LEFT_LABEL].append(
                 entity_tile_set.get_sprite_image(self.hurt_left_frame_id + tiles_offset))
-            self.hurt_animations['down'].append(
+            self.hurt_animations[DOWN_LABEL].append(
                 entity_tile_set.get_sprite_image(self.hurt_down_frame_id + tiles_offset))
             if self.is_right_x_flipped:
-                self.hurt_animations['right'].append(
+                self.hurt_animations[RIGHT_LABEL].append(
                     pygame.transform.flip(
                         entity_tile_set.get_sprite_image(self.hurt_right_frame_id + tiles_offset),
                         True,
                         False))
             else:
-                self.hurt_animations['right'].append(
+                self.hurt_animations[RIGHT_LABEL].append(
                     entity_tile_set.get_sprite_image(self.hurt_right_frame_id + tiles_offset))
 
     def load_spawn_frames(self, entity_tile_set):
@@ -251,20 +251,20 @@ class Entity(pygame.sprite.Sprite, ABC):
             elif reset_for_loop:
                 animation_frame_count = 0
                 if idle_after:
-                    self.state = 'idle'
+                    self.state = STATE_IDLE
 
         return animation_starting_time, animation_frame_count
 
     @abc.abstractmethod
     def animate(self):
-        if self.state == 'walking':
+        if self.state == STATE_WALKING:
             self.walking_animation_starting_time, self.walking_animation_frame_count = (
                 self.change_animation_frame(self.walking_animations[self.direction_label],
                                             self.walking_animation_frame_count,
                                             self.walking_animation_starting_time,
                                             self.walking_animation_cooldown,
                                             self.walking_frames))
-        elif 'hurt' in self.state:
+        elif STATE_HURT in self.state:
             self.hurt_animation_starting_time, self.hurt_animation_frame_count = (
                 self.change_animation_frame(self.hurt_animations[self.direction_label],
                                             self.hurt_animation_frame_count,
@@ -273,7 +273,7 @@ class Entity(pygame.sprite.Sprite, ABC):
                                             self.hurt_frames,
                                             False))
 
-        elif 'action' in self.state:
+        elif STATE_ACTION in self.state:
             self.action_animation_starting_time, self.action_animation_frame_count = (
                 self.change_animation_frame(self.action_animations[self.direction_label],
                                             self.action_animation_frame_count,

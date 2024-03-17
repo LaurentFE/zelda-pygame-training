@@ -7,12 +7,12 @@ from entities import Entity
 from particles import Rock, Arrow
 
 
-# Known issue : Monster waits for 'action_attack' to end before getting hurt
+# Known issue : Monster waits for STATE_ACTION to end before getting hurt
 class Enemy(Entity):
     def __init__(self, groups, visible_sprites, obstacle_sprites, particle_sprites, uses_projectiles=False):
         super().__init__(groups, visible_sprites, obstacle_sprites, particle_sprites)
 
-        self.direction_label = random.choice(['up', 'down', 'left', 'right'])
+        self.direction_label = random.choice([UP_LABEL, DOWN_LABEL, LEFT_LABEL, RIGHT_LABEL])
         self.state = ''
         self.speed = 1
 
@@ -68,18 +68,18 @@ class Enemy(Entity):
         current_time = pygame.time.get_ticks()
 
         # Monster can shoot if he isn't in the hurt animation. Attack cooldown is randomized
-        if self.uses_projectiles and 'hurt' not in self.state:
+        if self.uses_projectiles and STATE_HURT not in self.state:
             if self.has_attacked:
                 if current_time - self.attack_starting_time >= self.attack_cooldown:
                     self.has_attacked = False
                     self.attack_cooldown = random.randrange(1600, 4800, 100)
-                if self.state == 'action_attack':
+                if self.state == STATE_ACTION:
                     if current_time - self.attack_starting_time >= self.action_animation_cooldown * 2:
-                        self.state = 'walking'
+                        self.state = STATE_WALKING
         # Hurt monster is invulnerable during animation, this is reset here
-        if 'hurt' in self.state:
+        if STATE_HURT in self.state:
             if current_time - self.hurt_starting_time >= self.hurt_cooldown:
-                self.state = 'walking'
+                self.state = STATE_WALKING
                 self.invulnerable = False
                 self.hurt_animation_frame_count = 0
 
@@ -111,9 +111,9 @@ class Enemy(Entity):
                                             MONSTER_SPAWN_FRAMES,
                                             True,
                                             True))
-            if self.state == 'idle':
+            if self.state == STATE_IDLE:
                 self.isSpawned = True
-                self.state = 'walking'
+                self.state = STATE_WALKING
         elif not self.isDead:
             super().animate()
         else:
@@ -126,14 +126,14 @@ class Enemy(Entity):
                                             MONSTER_DEATH_FRAMES,
                                             True,
                                             True))
-            if self.state == 'idle':
+            if self.state == STATE_IDLE:
                 self.deathPlayed = True
 
     @abc.abstractmethod
     # Monsters don't collide with other Monsters : NES compliant
     # Monsters don't collide with particles. Particles collide with enemies
     def collision(self, direction):
-        if direction == 'horizontal':
+        if direction == HORIZONTAL_LABEL:
             for sprite in self.obstacle_sprites:
                 if sprite.hitbox.colliderect(self.hitbox) and sprite.type != LIMIT_LADDER_INDEX:
                     if self.direction_vector.x > 0:
@@ -141,7 +141,7 @@ class Enemy(Entity):
                     if self.direction_vector.x < 0:
                         self.hitbox.left = sprite.hitbox.right
 
-        elif direction == 'vertical':
+        elif direction == VERTICAL_LABEL:
             for sprite in self.obstacle_sprites:
                 if sprite.hitbox.colliderect(self.hitbox) and sprite.type != LIMIT_LADDER_INDEX:
                     if self.direction_vector.y > 0:
@@ -151,28 +151,27 @@ class Enemy(Entity):
 
     @abc.abstractmethod
     def move(self):
-        if self.state == 'walking':
-            match self.direction_label:
-                case 'up':
-                    self.direction_vector.x = 0
-                    self.direction_vector.y = -1
-                case 'down':
-                    self.direction_vector.x = 0
-                    self.direction_vector.y = 1
-                case 'left':
-                    self.direction_vector.x = -1
-                    self.direction_vector.y = 0
-                case 'right':
-                    self.direction_vector.x = 1
-                    self.direction_vector.y = 0
-                case _:
-                    # Illegal move, ignore
-                    return
+        if self.state == STATE_WALKING:
+            if self.direction_label == UP_LABEL:
+                self.direction_vector.x = 0
+                self.direction_vector.y = -1
+            elif self.direction_label == DOWN_LABEL:
+                self.direction_vector.x = 0
+                self.direction_vector.y = 1
+            elif self.direction_label == LEFT_LABEL:
+                self.direction_vector.x = -1
+                self.direction_vector.y = 0
+            elif self.direction_label == RIGHT_LABEL:
+                self.direction_vector.x = 1
+                self.direction_vector.y = 0
+            else:
+                # Illegal move, ignore
+                return
 
         self.hitbox.x += self.direction_vector.x * self.current_speed
-        self.collision('horizontal')
+        self.collision(HORIZONTAL_LABEL)
         self.hitbox.y += self.direction_vector.y * self.current_speed
-        self.collision('vertical')
+        self.collision(VERTICAL_LABEL)
 
         self.rect.center = self.hitbox.center
 
@@ -182,44 +181,43 @@ class Enemy(Entity):
 
     @abc.abstractmethod
     def take_damage(self, amount, direction):
-        if 'hurt' not in self.state and not self.invulnerable:
-            self.state = 'hurt'
+        if STATE_HURT not in self.state and not self.invulnerable:
+            self.state = STATE_HURT
             self.hurt_starting_time = pygame.time.get_ticks()
             self.hurt_animation_starting_time = self.hurt_starting_time
             self.invulnerable = True
 
             # If origin of damage is static, enemy is pushed back to where he came from
             if direction == '':
-                match self.direction_label:
-                    case 'up':
-                        direction = 'down'
-                    case 'right':
-                        direction = 'left'
-                    case 'down':
-                        direction = 'up'
-                    case _:
-                        direction = 'right'
+                if self.direction_label == UP_LABEL:
+                    direction = DOWN_LABEL
+                elif self.direction_label == RIGHT_LABEL:
+                    direction = LEFT_LABEL
+                elif self.direction_label == DOWN_LABEL:
+                    direction = UP_LABEL
+                else:
+                    direction = RIGHT_LABEL
 
-            if direction == 'left':
+            if direction == LEFT_LABEL:
                 self.direction_vector.x = -1
                 self.direction_vector.y = 0
                 self.hitbox.x -= self.current_speed
-                self.direction_label = 'right'
-            elif direction == 'right':
+                self.direction_label = RIGHT_LABEL
+            elif direction == RIGHT_LABEL:
                 self.direction_vector.x = 1
                 self.direction_vector.y = 0
                 self.hitbox.x += self.current_speed
-                self.direction_label = 'left'
-            elif direction == 'up':
+                self.direction_label = LEFT_LABEL
+            elif direction == UP_LABEL:
                 self.direction_vector.y = -1
                 self.direction_vector.x = 0
                 self.hitbox.y -= self.current_speed
-                self.direction_label = 'down'
+                self.direction_label = DOWN_LABEL
             else:
                 self.direction_vector.y = 1
                 self.direction_vector.x = 0
                 self.hitbox.y += self.current_speed
-                self.direction_label = 'up'
+                self.direction_label = UP_LABEL
 
             self.health -= amount
             if self.health > 0:
@@ -230,25 +228,25 @@ class Enemy(Entity):
         current_time = pygame.time.get_ticks()
 
         # Attacks interrupt movements if available.
-        if 'hurt' not in self.state:
+        if STATE_HURT not in self.state:
             self.current_speed = self.speed
             if (self.isSpawned
-                    and self.state == 'walking'
+                    and self.state == STATE_WALKING
                     and current_time - self.direction_starting_time >= self.direction_cooldown):
-                self.direction_label = random.choice(['up', 'down', 'left', 'right'])
+                self.direction_label = random.choice([UP_LABEL, DOWN_LABEL, LEFT_LABEL, RIGHT_LABEL])
                 self.direction_starting_time = current_time
                 self.direction_cooldown = random.randrange(500, 2000, 100)
             if self. isSpawned and self.can_attack and not self.has_attacked:
-                self.state = 'action_attack'
+                self.state = STATE_ACTION
                 self.attack_starting_time = current_time
         else:
             # While hurt, Monster is repelled with a fading speed
             self.current_speed = (MONSTER_HURT_FRAMES - self.hurt_animation_frame_count)
         if self.isSpawned and not self.isDead:
-            if self.state == 'action_attack' and not self.has_attacked:
+            if self.state == STATE_ACTION and not self.has_attacked:
                 self.attack()
                 self.has_attacked = True
-            elif self.state != 'action_attack':
+            elif self.state != STATE_ACTION:
                 self.move()
             if self.health <= 0:
                 self.despawn_animation_starting_time = pygame.time.get_ticks()

@@ -105,8 +105,8 @@ class Player(Entity):
         self.pick_up_sound = pygame.mixer.Sound(SOUND_PICKUP)
         self.pick_up_sound.set_volume(0.3)
 
-        self.direction_label = 'down'
-        self.state = 'idle'
+        self.direction_label = DOWN_LABEL
+        self.state = STATE_IDLE
         self.speed = 3
 
         self.pos = pos
@@ -216,12 +216,12 @@ class Player(Entity):
         self.load_stairs_frames(player_tile_set)
 
     def can_move(self):
-        if self.state == 'walking' or self.state == 'idle':
+        if self.state == STATE_WALKING or self.state == STATE_IDLE:
             return True
         return False
 
     def can_action(self):
-        if 'action' not in self.state and self.state != 'warping' and self.state != 'stairs':
+        if STATE_ACTION not in self.state and self.state != STATE_WARPING and self.state != STATE_STAIRS:
             return True
         return False
 
@@ -233,24 +233,24 @@ class Player(Entity):
         if is_move_key_pressed(keys) and self.can_move():
             if is_up_key_pressed(keys):
                 self.direction_vector.y = -1
-                self.direction_label = 'up'
+                self.direction_label = UP_LABEL
             elif is_down_key_pressed(keys):
                 self.direction_vector.y = 1
-                self.direction_label = 'down'
+                self.direction_label = DOWN_LABEL
             if is_left_key_pressed(keys):
                 self.direction_vector.x = -1
-                self.direction_label = 'left'
+                self.direction_label = LEFT_LABEL
             elif is_right_key_pressed(keys):
                 self.direction_vector.x = 1
-                self.direction_label = 'right'
-            if self.state != 'walking':
-                self.state = 'walking'
+                self.direction_label = RIGHT_LABEL
+            if self.state != STATE_WALKING:
+                self.state = STATE_WALKING
                 self.walking_animation_starting_time = pygame.time.get_ticks()
                 self.idle_time = pygame.time.get_ticks()
 
         # ActionA input has prio over Move input
         # Can't move during sword use
-        if is_action_a_key_pressed(keys) and self.can_action() and self.itemA != 'None':
+        if is_action_a_key_pressed(keys) and self.can_action() and self.itemA != NONE_LABEL:
             # Define here all different item A weapons implemented
             if self.itemA == WOOD_SWORD_LABEL:
                 self.action_a_particle = PWoodenSword(self.rect.topleft,
@@ -262,13 +262,13 @@ class Player(Entity):
             else:
                 # ItemA used not implemented, abort
                 return
-            self.state = 'actionA'
+            self.state = STATE_ACTION_A
             self.action_starting_time = pygame.time.get_ticks()
             self.direction_vector.x = 0
             self.direction_vector.y = 0
 
         # Can't move during item use
-        if is_action_b_key_pressed(keys) and self.can_action() and self.itemB != 'None':
+        if is_action_b_key_pressed(keys) and self.can_action() and self.itemB != NONE_LABEL:
             if self.itemB == BOOMERANG_LABEL and not self.is_boomerang_thrown:
                 PBoomerang(self.rect.topleft,
                            self.direction_vector,
@@ -304,41 +304,41 @@ class Player(Entity):
                 # ItemB used not implemented, abort
                 return
 
-            self.state = 'actionB'
+            self.state = STATE_ACTION_B
             self.action_starting_time = pygame.time.get_ticks()
             self.direction_vector.x = 0
             self.direction_vector.y = 0
 
     def cooldowns(self):
         current_time = pygame.time.get_ticks()
-        if 'action' in self.state:
+        if STATE_ACTION in self.state:
             if current_time - self.action_starting_time >= self.action_cooldown:
-                if self.state == 'actionA':
+                if self.state == STATE_ACTION_A:
                     self.action_a_particle.kill()
                     self.action_a_particle = None
-                elif self.state == 'actionB' and self.action_b_particle is not None:
+                elif self.state == STATE_ACTION_B and self.action_b_particle is not None:
                     self.action_b_particle.kill()
                     self.action_b_particle = None
-                self.state = 'idle'
-        elif self.state == 'walking':
+                self.state = STATE_IDLE
+        elif self.state == STATE_WALKING:
             if current_time - self.idle_time >= self.walking_animation_cooldown:
-                self.state = 'idle'
-        elif self.state == 'pickup_one_handed':
+                self.state = STATE_IDLE
+        elif self.state == ONE_HANDED:
             if current_time - self.pickup_one_handed_starting_time >= self.pickup_one_handed_cooldown:
-                self.state = 'idle'
+                self.state = STATE_IDLE
                 self.invulnerable = False
-        elif self.state == 'pickup_two_handed':
+        elif self.state == TWO_HANDED:
             if current_time - self.pickup_two_handed_starting_time >= self.pickup_two_handed_cooldown:
-                self.state = 'idle'
+                self.state = STATE_IDLE
                 self.invulnerable = False
-        elif 'hurt' in self.state:
+        elif STATE_HURT in self.state:
             if self.action_a_particle is not None:
                 self.action_a_particle.kill()
                 self.action_a_particle = None
             if current_time - self.hurt_starting_time >= self.hurt_cooldown:
-                self.state = 'idle'
+                self.state = STATE_IDLE
 
-        if 'hurt' not in self.state:
+        if STATE_HURT not in self.state:
             if current_time - self.hurt_starting_time >= self.invulnerability_cooldown:
                 self.invulnerable = False
                 self.hurt_animation_frame_count = 0
@@ -347,12 +347,12 @@ class Player(Entity):
         # Collision with Enemies
         for sprite in self.enemy_sprites:
             if sprite.hitbox.colliderect(self.hitbox):
-                if 'hurt' not in self.state and not self.invulnerable and not sprite.invulnerable:
+                if STATE_HURT not in self.state and not self.invulnerable and not sprite.invulnerable:
                     self.hurt_starting_time = pygame.time.get_ticks()
                     self.invulnerable = True
                     self.player_hurt_sound.play()
-                    if direction == 'horizontal':
-                        self.state = 'hurt_h'
+                    if direction == HORIZONTAL_LABEL:
+                        self.state = STATE_HURT_HORIZONTAL
                         self.direction_vector.y = 0
                         if self.hitbox.centerx - sprite.hitbox.centerx <= 0:
                             self.direction_vector.x = -1
@@ -361,7 +361,7 @@ class Player(Entity):
                             self.direction_vector.x = 1
                             self.hitbox.x += self.current_speed
                     else:
-                        self.state = 'hurt_v'
+                        self.state = STATE_HURT_VERTICAL
                         self.direction_vector.x = 0
                         if self.hitbox.centerx - sprite.hitbox.centerx <= 0:
                             self.direction_vector.y = -1
@@ -382,7 +382,7 @@ class Player(Entity):
                     ladder_image = tileset.ITEMS_TILE_SET.get_sprite_image(LADDER_FRAME_ID)
                     ladder_pos_x = sprite.pos[0]
                     ladder_pos_y = sprite.pos[1]
-                    if direction == 'horizontal':
+                    if direction == HORIZONTAL_LABEL:
                         if self.direction_vector.x < 0:
                             ladder_pos_x -= 16
                     else:
@@ -405,7 +405,7 @@ class Player(Entity):
             elif sprite.type != LIMIT_LADDER_INDEX:
                 # If it's anything but a walkable water, block Player's path
                 if sprite.hitbox.colliderect(self.hitbox):
-                    if direction == 'horizontal':
+                    if direction == HORIZONTAL_LABEL:
                         if self.direction_vector.x > 0:
                             self.hitbox.right = sprite.hitbox.left
                         if self.direction_vector.x < 0:
@@ -431,20 +431,20 @@ class Player(Entity):
         # Collision with Particles
         for particle in self.particle_sprites:
             if particle.hitbox.colliderect(self.hitbox):
-                if 'hurt' not in self.state and not self.invulnerable and particle.affects_player:
+                if STATE_HURT not in self.state and not self.invulnerable and particle.affects_player:
                     # Shield test
                     if (not particle.bypasses_shield
-                            and 'action' not in self.state
-                            and ((self.direction_label == 'up' and particle.direction_vector.y > 0)
-                                 or (self.direction_label == 'down' and particle.direction_vector.y < 0)
-                                 or (self.direction_label == 'left' and particle.direction_vector.x > 0)
-                                 or (self.direction_label == 'right' and particle.direction_vector.x < 0))):
+                            and STATE_ACTION not in self.state
+                            and ((self.direction_label == UP_LABEL and particle.direction_vector.y > 0)
+                                 or (self.direction_label == DOWN_LABEL and particle.direction_vector.y < 0)
+                                 or (self.direction_label == LEFT_LABEL and particle.direction_vector.x > 0)
+                                 or (self.direction_label == RIGHT_LABEL and particle.direction_vector.x < 0))):
                         # Successful block !
                         self.shield_block_sound.play()
                         particle.kill()
                     else:
                         if particle.collision_damage != 0:
-                            self.state = 'hurt_p'
+                            self.state = STATE_HURT_PARTICLE
                             self.hurt_starting_time = pygame.time.get_ticks()
                             self.hurt_animation_starting_time = self.hurt_starting_time
                             self.invulnerable = True
@@ -463,7 +463,7 @@ class Player(Entity):
         # Collision with a lootable item
         for item in self.lootable_items_sprites:
             if item.hitbox.colliderect(self.rect):
-                if 'hurt' not in self.state:
+                if STATE_HURT not in self.state:
                     item.effect()
                     item.kill()
 
@@ -478,7 +478,7 @@ class Player(Entity):
         # Collision with a Npc
         for npc in self.npc_sprites:
             if npc.hitbox.colliderect(self.hitbox):
-                if direction == 'horizontal':
+                if direction == HORIZONTAL_LABEL:
                     if self.direction_vector.x > 0:
                         self.hitbox.right = npc.hitbox.left
                     if self.direction_vector.x < 0:
@@ -494,9 +494,9 @@ class Player(Entity):
             self.direction_vector = self.direction_vector.normalize()
 
         self.hitbox.x += self.direction_vector.x * self.current_speed
-        self.collision('horizontal')
+        self.collision(HORIZONTAL_LABEL)
         self.hitbox.y += self.direction_vector.y * self.current_speed
-        self.collision('vertical')
+        self.collision(VERTICAL_LABEL)
 
         if not self.isDead:
             self.rect.top = self.hitbox.top - 12
@@ -504,38 +504,38 @@ class Player(Entity):
 
     def set_state(self, state):
         current_time = pygame.time.get_ticks()
-        if state == 'dying':
+        if state == STATE_DYING:
             self.state = state
             self.hurt_starting_time = current_time
-        elif state == 'spinning':
+        elif state == STATE_SPINNING:
             if not self.is_spinning:
                 self.state = state
                 self.spin_animation_starting_time = current_time
             self.is_spinning = True
-        elif state == 'idle_d':
-            self.state = 'idle'
-            self.direction_label = 'down'
-        elif state == 'gray':
+        elif state == STATE_IDLE_DOWN:
+            self.state = STATE_IDLE
+            self.direction_label = DOWN_LABEL
+        elif state == STATE_GRAY:
             self.state = state
-        elif state == 'despawn':
+        elif state == STATE_DESPAWN:
             self.state = state
             self.despawn_sound.play()
             self.despawn_animation_starting_time = current_time
-        elif state == 'warping':
+        elif state == STATE_WARPING:
             self.state = state
-        elif state == 'stairs':
+        elif state == STATE_STAIRS:
             self.state = state
             self.stairs_sound.play()
             self.stairs_animation_starting_time = current_time
-        elif state == 'idle':
+        elif state == STATE_IDLE:
             self.state = state
-        elif state == 'pickup_two_handed':
-            self.state = 'pickup_two_handed'
+        elif state == TWO_HANDED:
+            self.state = TWO_HANDED
             self.invulnerable = True
             self.pickup_two_handed_starting_time = current_time
             self.pick_up_sound.play()
-        elif state == 'pickup_one_handed':
-            self.state = 'pickup_one_handed'
+        elif state == ONE_HANDED:
+            self.state = ONE_HANDED
             self.invulnerable = True
             self.pickup_one_handed_starting_time = current_time
             self.pick_up_sound.play()
@@ -559,30 +559,30 @@ class Player(Entity):
             elif reset_for_loop:
                 animation_frame_count = 0
                 if idle_after:
-                    self.state = 'idle'
+                    self.state = STATE_IDLE
 
         return animation_starting_time, animation_frame_count
 
     def animate(self):
         current_time = pygame.time.get_ticks()
-        if self.state == 'idle':
+        if self.state == STATE_IDLE:
             # Stops all animation, resetting to 1st walking frame of the current direction
             self.image = self.walking_animations[self.direction_label][0]
-        elif self.state == 'walking' or self.state == 'warping':
+        elif self.state == STATE_WALKING or self.state == STATE_WARPING:
             self.walking_animation_starting_time, self.walking_animation_frame_count = (
                 self.change_animation_frame(self.walking_animations[self.direction_label],
                                             self.walking_animation_frame_count,
                                             self.walking_animation_starting_time,
                                             self.walking_animation_cooldown,
                                             self.walking_frames))
-        elif 'action' in self.state:
+        elif STATE_ACTION in self.state:
             self.action_animation_starting_time, self.action_animation_frame_count = (
                 self.change_animation_frame(self.action_animations[self.direction_label],
                                             self.action_animation_frame_count,
                                             self.action_animation_starting_time,
                                             self.action_animation_cooldown,
                                             self.action_frames))
-        elif self.state == 'pickup_one_handed':
+        elif self.state == ONE_HANDED:
             self.pickup_one_handed_animation_starting_time, self.pickup_one_handed_animation_frame_count = (
                 self.change_animation_frame(self.pickup_one_handed_animation,
                                             self.pickup_one_handed_animation_frame_count,
@@ -590,15 +590,15 @@ class Player(Entity):
                                             self.pickup_one_handed_animation_cooldown,
                                             self.pickup_one_handed_frames))
 
-        elif self.state == 'pickup_two_handed':
+        elif self.state == TWO_HANDED:
             self.pickup_two_handed_animation_starting_time, self.pickup_two_handed_animation_frame_count = (
                 self.change_animation_frame(self.pickup_two_handed_animation,
                                             self.pickup_two_handed_animation_frame_count,
                                             self.pickup_two_handed_animation_starting_time,
                                             self.pickup_two_handed_animation_cooldown,
                                             self.pickup_two_handed_frames))
-        elif 'hurt' in self.state or self.state == 'dying':
-            reset_for_loop = False if 'hurt' in self.state else True
+        elif STATE_HURT in self.state or self.state == STATE_DYING:
+            reset_for_loop = False if STATE_HURT in self.state else True
             self.hurt_animation_starting_time, self.hurt_animation_frame_count = (
                 self.change_animation_frame(self.hurt_animations[self.direction_label],
                                             self.hurt_animation_frame_count,
@@ -606,7 +606,7 @@ class Player(Entity):
                                             self.hurt_animation_cooldown,
                                             self.hurt_frames,
                                             reset_for_loop))
-        elif self.state == 'stairs':
+        elif self.state == STATE_STAIRS:
             self.stairs_animation_starting_time, self.stairs_animation_frame_count = (
                 self.change_animation_frame(self.stairs_animation,
                                             self.stairs_animation_frame_count,
@@ -615,7 +615,7 @@ class Player(Entity):
                                             self.stairs_frames,
                                             True,
                                             True))
-        elif self.state == 'spinning':
+        elif self.state == STATE_SPINNING:
             # Spin spin spin !
             self.walking_animation_starting_time, self.walking_animation_frame_count = (
                 self.change_animation_frame(self.walking_animations[self.direction_label],
@@ -625,18 +625,18 @@ class Player(Entity):
                                             self.walking_frames))
             elapsed_spin_time = current_time - self.spin_animation_starting_time
             if elapsed_spin_time < PLAYER_DEATH_SPIN_DURATION * 0.25:
-                self.direction_label = 'right'
+                self.direction_label = RIGHT_LABEL
             elif elapsed_spin_time < PLAYER_DEATH_SPIN_DURATION * 0.5:
-                self.direction_label = 'up'
+                self.direction_label = UP_LABEL
             elif elapsed_spin_time < PLAYER_DEATH_SPIN_DURATION * 0.75:
-                self.direction_label = 'left'
+                self.direction_label = LEFT_LABEL
             else:
                 self.spin_animation_starting_time = current_time
-                self.direction_label = 'down'
-        elif self.state == 'gray':
+                self.direction_label = DOWN_LABEL
+        elif self.state == STATE_GRAY:
             # be gray
-            self.image = self.gray_animation['down'][0]
-        elif self.state == 'despawn':
+            self.image = self.gray_animation[DOWN_LABEL][0]
+        elif self.state == STATE_DESPAWN:
             self.despawn_animation_starting_time, self.despawn_animation_frame_count = (
                 self.change_animation_frame(self.despawn_animation,
                                             self.despawn_animation_frame_count,
@@ -676,7 +676,7 @@ class Player(Entity):
         if amount >= 0:
             if not self.has_bombs:
                 self.has_bombs = True
-                if self.itemB == 'None':
+                if self.itemB == NONE_LABEL:
                     self.itemB = BOMB_LABEL
             self.bombs += amount
             if self.bombs > PLAYER_BOMBS_MAX:
@@ -715,7 +715,7 @@ class Player(Entity):
         if self.has_wood_sword:
             self.itemA = WOOD_SWORD_LABEL
         else:
-            self.itemA = 'None'
+            self.itemA = NONE_LABEL
 
     def change_item_b(self, label):
         if self.has_item(label):
@@ -747,13 +747,13 @@ class Player(Entity):
     def update(self):
         player_draw_pos = self.rect.topleft
         if not self.isDead:
-            if 'hurt' not in self.state:
+            if STATE_HURT not in self.state:
                 self.input()
                 self.current_speed = self.speed
             else:
                 self.current_speed = (PLAYER_HURT_FRAMES - self.hurt_animation_frame_count)
 
-            if self.state != 'warping':
+            if self.state != STATE_WARPING:
                 self.move()
             else:
                 player_draw_pos = (self.warping_x, self.warping_y)
