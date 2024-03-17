@@ -485,8 +485,8 @@ MAP_SECRETS_REVEALED = {
 }
 # Item content in maps
 MAP_ITEMS = {
-    'level9': {HEARTRECEPTACLE_LABEL: True},
-    'level11': {LADDER_LABEL: True},
+    LEVEL_PREFIX_LABEL + '9': {HEARTRECEPTACLE_LABEL: True},
+    LEVEL_PREFIX_LABEL + '11': {LADDER_LABEL: True},
 }
 
 # NPCS
