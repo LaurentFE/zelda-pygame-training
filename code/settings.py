@@ -16,6 +16,21 @@ COLOR_KEY = (116, 116, 116)
 TEXT_OFFSET = TEXT_MARGIN * FONT_SPRITE_SIZE
 GAME_OVER_TEXT = 'game over'
 
+# Tile sets types
+#
+TILE_CONSUMABLES = 'consumables'
+TILE_ENEMIES = 'enemies'
+TILE_FONTS = 'font'
+TILE_HUD = 'hud'
+TILE_ITEMS = 'items'
+TILE_LEVELS = 'levels'
+TILE_NPCS = 'npcs'
+TILE_PARTICLES = 'particles'
+TILE_PLAYER = 'player'
+TILE_WARPS = 'warps'
+TILE_TYPES = [TILE_CONSUMABLES, TILE_ENEMIES, TILE_FONTS, TILE_HUD, TILE_ITEMS,
+              TILE_LEVELS, TILE_NPCS, TILE_PARTICLES, TILE_PLAYER, TILE_WARPS]
+
 # Health & Damages Stats
 #
 PLAYER_HEALTH_PER_HEART = 256
@@ -404,9 +419,9 @@ SHOPS = {
                              'text': 'it\'s a secret to everybody.'}
 }
 
-# SHOP_dict name indicates the tileset
+# SHOP_dict name indicates the tile set
 # Key is label of item
-# Value is frame_id of the item in the tileset
+# Value is frame_id of the item in the tile set
 SHOP_CONSUMABLES = {
     BOMB_LABEL: CBOMB_FRAME_ID,
     HEARTRECEPTACLE_LABEL: HEARTRECEPTACLE_FRAME_ID,

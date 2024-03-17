@@ -1,6 +1,7 @@
 import abc
 import pygame
 import random
+import tileset
 from settings import *
 from entities import Entity
 from particles import Rock
@@ -8,9 +9,8 @@ from particles import Rock
 
 # Known issue : Monster waits for 'action_attack' to end before getting hurt
 class Enemy(Entity):
-    def __init__(self, groups, visible_sprites, obstacle_sprites, particle_sprites,
-                 particle_tileset, uses_projectiles=False):
-        super().__init__(groups, visible_sprites, obstacle_sprites, particle_sprites, particle_tileset)
+    def __init__(self, groups, visible_sprites, obstacle_sprites, particle_sprites, uses_projectiles=False):
+        super().__init__(groups, visible_sprites, obstacle_sprites, particle_sprites)
 
         self.direction_label = random.choice(['up', 'down', 'left', 'right'])
         self.state = ''
@@ -262,10 +262,8 @@ class Enemy(Entity):
 
 
 class RedOctorock(Enemy):
-    def __init__(self, pos, groups, visible_sprites, obstacle_sprites, particle_sprites,
-                 enemies_tileset, particle_tileset):
-        super().__init__(groups, visible_sprites, obstacle_sprites, particle_sprites,
-                         particle_tileset, True)
+    def __init__(self, pos, groups, visible_sprites, obstacle_sprites, particle_sprites):
+        super().__init__(groups, visible_sprites, obstacle_sprites, particle_sprites, True)
 
         self.walking_frames = OCTOROCK_WALKING_FRAMES
         self.action_frames = OCTOROCK_WALKING_FRAMES
@@ -285,7 +283,7 @@ class RedOctorock(Enemy):
         self.hurt_left_frame_id = OCTOROCK_HURT_LEFT_FRAME_ID
         self.hurt_right_frame_id = OCTOROCK_HURT_LEFT_FRAME_ID
 
-        self.load_animation_frames(enemies_tileset)
+        self.load_animation_frames(tileset.ENEMIES_TILE_SET)
 
         # Set first image of the monster appearing when created, and generating corresponding hitbox
         self.image = self.spawn_animation[0]
@@ -337,7 +335,6 @@ class RedOctorock(Enemy):
              self.direction_vector,
              [self.visible_sprites, self.particle_sprites],
              self.direction_label,
-             self.particle_tileset,
              self.obstacle_sprites)
 
     def take_damage(self, amount, direction):

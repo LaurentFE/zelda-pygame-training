@@ -1,4 +1,5 @@
 import pygame.mixer
+import tileset
 
 from settings import *
 from inputs import *
@@ -26,9 +27,6 @@ from particles import PWoodenSword, Bomb, PBoomerang, Flame
 #       My version : probably won't allow it, because player won't really 'attack' or 'cast', but most likely
 #         'cast' every item, sword included, and I don't want to change directions in middle of candle for instance,
 #         or of flute.
-
-# Will need someday to SINGLETON-ify this
-
 class Player(Entity):
 
     def __init__(self, pos,
@@ -42,11 +40,8 @@ class Player(Entity):
                  purchasable_sprites,
                  npc_sprites,
                  secret_flame_sprites,
-                 secret_bomb_sprites,
-                 player_tile_set,
-                 particle_tileset,
-                 item_tileset):
-        super().__init__(groups, visible_sprites, obstacle_sprites, particle_sprites, particle_tileset)
+                 secret_bomb_sprites):
+        super().__init__(groups, visible_sprites, obstacle_sprites, particle_sprites)
 
         self.enemy_sprites = enemy_sprites
         self.visible_sprites = visible_sprites
@@ -57,8 +52,6 @@ class Player(Entity):
         self.npc_sprites = npc_sprites
         self.secret_flame_sprites = secret_flame_sprites
         self.secret_bomb_sprites = secret_bomb_sprites
-
-        self.item_tileset = item_tileset
 
         self.pickup_one_handed_animation = []
         self.pickup_two_handed_animation = []
@@ -91,7 +84,7 @@ class Player(Entity):
         self.despawn_frame_id = PLAYER_DEATH_FRAME_ID
         self.stairs_frames = PLAYER_STAIRS_FRAMES
         self.stairs_frame_id = PLAYER_STAIRS_FRAME_ID
-        self.load_animation_frames(player_tile_set)
+        self.load_animation_frames(tileset.PLAYER_TILE_SET)
 
         # Sounds
         self.shield_block_sound = pygame.mixer.Sound(SOUND_SHIELD_BLOCK)
@@ -199,22 +192,22 @@ class Player(Entity):
         self.is_boomerang_thrown = False
         self.is_candle_lit = False
 
-    def load_pickup_one_handed_frames(self, entity_tile_set):
+    def load_pickup_one_handed_frames(self, player_tile_set):
         for i in range(self.pickup_one_handed_frames):
             tiles_offset = SPRITE_SIZE // TILE_SIZE * i
             self.pickup_one_handed_animation.append(
-                entity_tile_set.get_sprite_image(self.pickup_one_handed_frame_id + tiles_offset))
+                player_tile_set.get_sprite_image(self.pickup_one_handed_frame_id + tiles_offset))
 
-    def load_pickup_two_handed_frames(self, entity_tile_set):
+    def load_pickup_two_handed_frames(self, player_tile_set):
         for i in range(self.pickup_two_handed_frames):
             tiles_offset = SPRITE_SIZE // TILE_SIZE * i
             self.pickup_two_handed_animation.append(
-                entity_tile_set.get_sprite_image(self.pickup_two_handed_frame_id + tiles_offset))
+                player_tile_set.get_sprite_image(self.pickup_two_handed_frame_id + tiles_offset))
 
-    def load_stairs_frames(self, entity_tile_set):
+    def load_stairs_frames(self, player_tile_set):
         for i in range(self.stairs_frames):
             tiles_offset = SPRITE_SIZE // TILE_SIZE * i
-            self.stairs_animation.append(entity_tile_set.get_sprite_image(self.stairs_frame_id + tiles_offset))
+            self.stairs_animation.append(player_tile_set.get_sprite_image(self.stairs_frame_id + tiles_offset))
 
     def load_animation_frames(self, player_tile_set):
         super().load_animation_frames(player_tile_set)
@@ -265,8 +258,7 @@ class Player(Entity):
                                                       self.direction_label,
                                                       [self.visible_sprites, self.particle_sprites],
                                                       self.enemy_sprites,
-                                                      self.particle_sprites,
-                                                      self.particle_tileset)
+                                                      self.particle_sprites)
             else:
                 # ItemA used not implemented, abort
                 return
@@ -282,7 +274,6 @@ class Player(Entity):
                            self.direction_vector,
                            self.direction_label,
                            [self.visible_sprites, self.particle_sprites],
-                           self.item_tileset,
                            self.enemy_sprites,
                            self.particle_sprites,
                            self.border_sprites,
@@ -295,8 +286,7 @@ class Player(Entity):
                          self.direction_vector,
                          self.direction_label,
                          [self.visible_sprites, self.particle_sprites],
-                         self.secret_bomb_sprites,
-                         self.particle_tileset)
+                         self.secret_bomb_sprites,)
                     self.bombs -= 1
                 else:
                     # Not enough bombs to operate, abort
@@ -306,7 +296,6 @@ class Player(Entity):
                       self.direction_vector,
                       self.direction_label,
                       [self.visible_sprites, self.particle_sprites],
-                      self.particle_tileset,
                       self.enemy_sprites,
                       self.secret_flame_sprites,
                       self)
@@ -390,7 +379,7 @@ class Player(Entity):
             if sprite.type == LIMIT_WATER_INDEX and self.has_ladder and not self.ladder_in_use:
                 if sprite.hitbox.colliderect(self.hitbox):
                     self.ladder_in_use = True
-                    ladder_image = self.item_tileset.get_sprite_image(LADDER_FRAME_ID)
+                    ladder_image = tileset.ITEMS_TILE_SET.get_sprite_image(LADDER_FRAME_ID)
                     ladder_pos_x = sprite.pos[0]
                     ladder_pos_y = sprite.pos[1]
                     if direction == 'horizontal':

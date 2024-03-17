@@ -5,13 +5,12 @@ from abc import ABC
 
 
 class Entity(pygame.sprite.Sprite, ABC):
-    def __init__(self, groups, visible_sprites, obstacle_sprites, particle_sprites, particle_tileset):
+    def __init__(self, groups, visible_sprites, obstacle_sprites, particle_sprites):
         super().__init__(groups)
 
         self.visible_sprites = visible_sprites
         self.obstacle_sprites = obstacle_sprites
         self.particle_sprites = particle_sprites
-        self.particle_tileset = particle_tileset
         self.walking_animations = {
             'up': [],
             'right': [],
@@ -223,8 +222,6 @@ class Entity(pygame.sprite.Sprite, ABC):
 
     @abc.abstractmethod
     def animate(self):
-        current_time = pygame.time.get_ticks()
-
         if self.state == 'walking':
             self.walking_animation_starting_time, self.walking_animation_frame_count = (
                 self.change_animation_frame(self.walking_animations[self.direction_label],
