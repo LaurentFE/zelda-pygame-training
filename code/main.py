@@ -22,7 +22,6 @@ class Game:
         tileset.PARTICLES_TILE_SET = tileset.TileSet(TILE_PARTICLES)
         tileset.PLAYER_TILE_SET = tileset.TileSet(TILE_PLAYER)
         tileset.WARPS_TILE_SET = tileset.TileSet(TILE_WARPS)
-        self.level = Level()
 
     def run(self):
         while True:
@@ -32,7 +31,7 @@ class Game:
                     sys.exit()
 
             self.screen.fill('black')
-            self.level.run()
+            Level().run()
             pygame.display.update()
             self.clock.tick(FPS)
 
