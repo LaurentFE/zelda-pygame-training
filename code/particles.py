@@ -268,7 +268,8 @@ class PBoomerang(Particle):
         # Collision with a monster
         for enemy in self.enemy_sprites:
             if (not self.go_back
-                    and enemy.hitbox.colliderect(self.hitbox)):
+                    and enemy.hitbox.colliderect(self.hitbox)
+                    and not enemy.invulnerable):
                 self.go_back = True
                 self.affects_enemy = False
                 enemy.take_damage(self.collision_damage, self.direction_label)
