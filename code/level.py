@@ -735,7 +735,7 @@ class Level(metaclass=Singleton):
             self.display_surface.blit(self.transition_surface, (0, HUD_OFFSET - y_offset))
             self.draw_hud()
             self.player.define_warping_position(0, -y_offset)
-        elif self.in_map_transition == MAP_TRANSITION_LEFT :
+        elif self.in_map_transition == MAP_TRANSITION_LEFT:
             self.display_surface.blit(self.transition_surface, (x_offset - self.floor_rect.width, HUD_OFFSET))
             self.player.define_warping_position(x_offset, 0)
 

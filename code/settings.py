@@ -129,6 +129,7 @@ WOOD_SWORD_LABEL = 'Wood Sword'
 HEART_LABEL = 'Heart'
 RUPEE_LABEL = 'Rupee'
 FAIRY_LABEL = 'Fairy'
+KEY_LABEL = 'Key'
 # Audio paths
 AUDIO_PATH = '../audio/'
 THEME_OVERWORLD = AUDIO_PATH + 'Overworld.mp3'
@@ -157,7 +158,7 @@ SOUND_FLAME = AUDIO_PATH + 'Flame.wav'
 PLAYER_HEALTH_PER_HEART = 256
 PLAYER_HEALTH_MAX = 16 * PLAYER_HEALTH_PER_HEART
 PLAYER_INITIAL_HEALTH = 3 * PLAYER_HEALTH_PER_HEART
-PLAYER_INITIAL_MONEY = 80
+PLAYER_INITIAL_MONEY = 0
 PLAYER_INITIAL_KEY = 0
 PLAYER_INITIAL_BOMB = 0
 PLAYER_INITIAL_HAS_BOMB = False
@@ -288,6 +289,8 @@ FAIRY_FRAMES = 2
 FAIRY_SPEED = 1
 HEARTRECEPTACLE_FRAME_ID = 14
 HEARTRECEPTACLE_FRAMES = 1
+KEY_FRAME_ID = 16
+KEY_FRAMES = 1
 
 # PICKUP ANIMATION PER ITEM LABEL
 #
@@ -397,6 +400,7 @@ FONT_NUMBER_OF_SPECIALS = 9
 # As a reminder, the first entry of this dict corresponds to a change_id of 4
 # See 'help' for a reminder of who is what
 NEW_LEVEL_BOTTOM_CENTER_POS = (SCREEN_WIDTH / 2 - TILE_SIZE, SCREEN_HEIGHT - TILE_SIZE * 3 - 1)
+NEW_LEVEL_TOP_CENTER_POS = (SCREEN_WIDTH / 2 - TILE_SIZE, HUD_OFFSET + TILE_SIZE + 1)
 UNDERWORLD_STAIRS = [
     {MAP_LABEL: LEVEL_PREFIX_LABEL,
      SCREEN_LABEL: '10',
@@ -429,25 +433,55 @@ UNDERWORLD_STAIRS = [
      STAIRS_LABEL: True,
      HELP_LABEL: 'This (9) is the entrance of shop00 from level11'},
     {MAP_LABEL: LEVEL_PREFIX_LABEL,
-     SCREEN_LABEL: '0',
+     SCREEN_LABEL: '4',
      PLAYER_POS_LABEL: (200, 200),
      STAIRS_LABEL: False,
-     HELP_LABEL: 'This (10) is the exit of dungeon0_0 to __level0__'},
+     HELP_LABEL: 'This (A) is the exit of dungeon0_0 to level4'},
     {MAP_LABEL: 'dungeon0_',
      SCREEN_LABEL: '0',
      PLAYER_POS_LABEL: NEW_LEVEL_BOTTOM_CENTER_POS,
      STAIRS_LABEL: True,
-     HELP_LABEL: 'This (11) is the entrance of dungeon0_0 from __level0__'},
+     HELP_LABEL: 'This (B) is the entrance of dungeon0_0 from level4'},
     {MAP_LABEL: LEVEL_PREFIX_LABEL,
-     SCREEN_LABEL: '0',
-     PLAYER_POS_LABEL: (200, 200),
+     SCREEN_LABEL: '9',
+     PLAYER_POS_LABEL: (32, HUD_OFFSET + 32),
      STAIRS_LABEL: False,
-     HELP_LABEL: 'This (12) is the exit of secret_to_everybody0 to __level0__'},
+     HELP_LABEL: 'This (C) is the exit of secret_to_everybody0 to level9'},
     {MAP_LABEL: 'secret_to_everybody',
      SCREEN_LABEL: '0',
      PLAYER_POS_LABEL: NEW_LEVEL_BOTTOM_CENTER_POS,
      STAIRS_LABEL: True,
-     HELP_LABEL: 'This (13) is the entrance of secret_to_everybody0 from __level0__'}
+     HELP_LABEL: 'This (D) is the entrance of secret_to_everybody0 from level9'},
+    {MAP_LABEL: LEVEL_PREFIX_LABEL,
+     SCREEN_LABEL: '7',
+     PLAYER_POS_LABEL: (96, HUD_OFFSET + 32),
+     STAIRS_LABEL: False,
+     HELP_LABEL: 'This (E) is the top exit of secret_tunnel0 to level7'},
+    {MAP_LABEL: 'secret_tunnel',
+     SCREEN_LABEL: '0',
+     PLAYER_POS_LABEL: NEW_LEVEL_BOTTOM_CENTER_POS,
+     STAIRS_LABEL: False,
+     HELP_LABEL: 'This (F) is the bottom entrance of secret_tunnel0 from level7'},
+    {MAP_LABEL: LEVEL_PREFIX_LABEL,
+     SCREEN_LABEL: '7',
+     PLAYER_POS_LABEL: (128, HUD_OFFSET + 224),
+     STAIRS_LABEL: False,
+     HELP_LABEL: 'This (G) is the bottom exit of secret_tunnel0 to level7'},
+    {MAP_LABEL: 'secret_tunnel',
+     SCREEN_LABEL: '0',
+     PLAYER_POS_LABEL: NEW_LEVEL_TOP_CENTER_POS,
+     STAIRS_LABEL: True,
+     HELP_LABEL: 'This (H) is the top entrance of secret_tunnel0 from level7'},
+    {MAP_LABEL: LEVEL_PREFIX_LABEL,
+     SCREEN_LABEL: '3',
+     PLAYER_POS_LABEL: (384, HUD_OFFSET + 192),
+     STAIRS_LABEL: False,
+     HELP_LABEL: 'This (I) is the exit of you_ll_need_this0 to level7'},
+    {MAP_LABEL: 'you_ll_need_this',
+     SCREEN_LABEL: '0',
+     PLAYER_POS_LABEL: NEW_LEVEL_BOTTOM_CENTER_POS,
+     STAIRS_LABEL: False,
+     HELP_LABEL: 'This (J) is the entrance of you_ll_need_this0 from level3'},
 ]
 
 # MAP SYSTEM
@@ -485,8 +519,10 @@ MAP_SECRETS_REVEALED = {
 }
 # Item content in maps
 MAP_ITEMS = {
+    LEVEL_PREFIX_LABEL + '3': {HEARTRECEPTACLE_LABEL: True},
+    LEVEL_PREFIX_LABEL + '5': {HEARTRECEPTACLE_LABEL: True},
     LEVEL_PREFIX_LABEL + '9': {HEARTRECEPTACLE_LABEL: True},
-    LEVEL_PREFIX_LABEL + '11': {LADDER_LABEL: True},
+    LEVEL_PREFIX_LABEL + '14': {LADDER_LABEL: True},
 }
 
 # NPCS
@@ -515,15 +551,18 @@ SHOPS = {
                     TEXT_LABEL: 'it\'s dangerous to go alone, take this !'},
     'shop00': {ITEMS_LABEL: {CANDLE_LABEL: 30,
                              BOMB_LABEL: 15,
-                             BOOMERANG_LABEL: 50},
+                             HEART_LABEL: 5},
                NPC_ID_LABEL: MERCHANT_ID,
                TEXT_LABEL: 'welcome to my shop.'},
     'pay_for_my_door0': {ITEMS_LABEL: {RUPEE_LABEL: 25},
                          NPC_ID_LABEL: OLD_WOMAN_ID,
                          TEXT_LABEL: 'that is for my door !'},
-    'secret_to_everybody0': {ITEMS_LABEL: {RUPEE_LABEL: 80},
+    'secret_to_everybody0': {ITEMS_LABEL: {RUPEE_LABEL: -80},
                              NPC_ID_LABEL: MOBLIN_ID,
-                             TEXT_LABEL: 'it\'s a secret to everybody.'}
+                             TEXT_LABEL: 'it\'s a secret to everybody.'},
+    'you_ll_need_this0': {ITEMS_LABEL: {KEY_LABEL: 0},
+                          NPC_ID_LABEL: OLD_MAN_ID,
+                          TEXT_LABEL: 'hey mister hero. you\'ll need this.'}
 }
 # SHOP_dict name indicates the tile set
 # Key is label of item
@@ -532,7 +571,8 @@ SHOP_CONSUMABLES = {
     BOMB_LABEL: CBOMB_FRAME_ID,
     HEARTRECEPTACLE_LABEL: HEARTRECEPTACLE_FRAME_ID,
     HEART_LABEL: HEART_FRAME_ID,
-    RUPEE_LABEL: RUPEE_FRAME_ID
+    RUPEE_LABEL: RUPEE_FRAME_ID,
+    KEY_LABEL: KEY_FRAME_ID
 }
 SHOP_ITEMS = {
     LADDER_LABEL: LADDER_FRAME_ID,
