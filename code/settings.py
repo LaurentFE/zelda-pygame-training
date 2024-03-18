@@ -14,10 +14,86 @@ NB_TILE_WIDTH = SCREEN_WIDTH//TILE_SIZE
 NB_TILE_HEIGHT = SCREEN_HEIGHT//TILE_SIZE
 COLOR_KEY = (116, 116, 116)
 TEXT_OFFSET = TEXT_MARGIN * FONT_SPRITE_SIZE
-GAME_OVER_TEXT = 'game over'
 
-# Tile sets types
+# CONSTANT STR
 #
+NONE_LABEL = 'None'
+GAME_NAME = 'A Zelda NES homage in Python'
+GAME_OVER_TEXT = 'game over'
+BLACK_LABEL = 'black'
+RED1_LABEL = 'red1'
+RED2_LABEL = 'red2'
+RED3_LABEL = 'red3'
+FONT_CHARS = '0123456789abcdefghijklmnopqrstuvwxyz,!\'&."?- '
+HORIZONTAL_LABEL = 'horizontal'
+VERTICAL_LABEL = 'vertical'
+# Error messages
+UNKNOWN_TILE_TYPE = 'tile_type must be a declared value in TILE_TYPES'
+# Directions
+UP_LABEL = 'up'
+RIGHT_LABEL = 'right'
+DOWN_LABEL = 'down'
+LEFT_LABEL = 'left'
+# Entity states
+STATE_IDLE = 'idle'
+STATE_WALKING = 'walking'
+STATE_HURT = 'hurt'
+STATE_ACTION = 'action'
+# Player states
+STATE_WARPING = 'warping'
+STATE_STAIRS = 'stairs'
+STATE_ACTION_A = STATE_ACTION + 'A'
+STATE_ACTION_B = STATE_ACTION + 'B'
+STATE_DYING = 'dying'
+STATE_SPINNING = 'spinning'
+STATE_GRAY = 'gray'
+STATE_DESPAWN = 'despawn'
+STATE_IDLE_DOWN = STATE_IDLE + '_down'
+PICKUP_PREFIX = 'pickup'
+STATE_HURT_HORIZONTAL = STATE_HURT + '_h'
+STATE_HURT_VERTICAL = STATE_HURT + '_v'
+STATE_HURT_PARTICLE = STATE_HURT + '_p'
+# Pick up animation labels are also Player states
+ONE_HANDED = 'pickup_one_handed'
+TWO_HANDED = 'pickup_two_handed'
+# Shop data structure
+ITEMS_LABEL = 'items'
+NPC_ID_LABEL = 'npc_id'
+TEXT_LABEL = 'text'
+# Map size definition structure
+OVERWORLD_LABEL = 'Overworld'
+DUNGEON_LABEL = 'Dungeon'
+LEVEL_PREFIX_LABEL = 'level'
+DUNGEON_PREFIX_LABEL = 'dungeon'
+# Overworld <-> Underworld map warp structure
+MAP_LABEL = 'map'
+STAIRS_LABEL = 'stairs'
+SCREEN_LABEL = 'screen'
+PLAYER_POS_LABEL = 'player_pos'
+HELP_LABEL = 'help'
+# Graphics paths
+GRAPHICS_EXTENSION = '.png'
+GRAPHICS_PATH = '../graphics/'
+ENEMIES_PATH = GRAPHICS_PATH + 'enemies/'
+FONT_PATH = GRAPHICS_PATH + 'font/'
+HUD_PATH = GRAPHICS_PATH + 'hud/'
+ITEMS_PATH = GRAPHICS_PATH + 'items/'
+LEVELS_PATH = GRAPHICS_PATH + 'levels/'
+NPCS_PATH = GRAPHICS_PATH + 'npcs/'
+PLAYER_PATH = GRAPHICS_PATH + 'player/'
+PAUSE_MENU_PATH = HUD_PATH + 'pause_menu.png'
+HUD_PERMA_PATH = HUD_PATH + 'hud_perma.png'
+BLACK_PATH = LEVELS_PATH + 'black.png'
+# Maps file paths
+MAPS_EXTENSION = '.csv'
+MAPS_PATH = '../map/'
+MAPS_ENEMIES = '_Enemies'
+MAPS_ITEMS = '_Items'
+MAPS_LIMITS = '_Limits'
+MAPS_BOMB = '_Secrets_Bomb'
+MAPS_FLAME = '_Secrets_Flame'
+MAPS_WARP = '_Warps'
+# Tile sets types
 TILE_CONSUMABLES = 'consumables'
 TILE_ENEMIES = 'enemies'
 TILE_FONTS = 'font'
@@ -30,13 +106,58 @@ TILE_PLAYER = 'player'
 TILE_WARPS = 'warps'
 TILE_TYPES = [TILE_CONSUMABLES, TILE_ENEMIES, TILE_FONTS, TILE_HUD, TILE_ITEMS,
               TILE_LEVELS, TILE_NPCS, TILE_PARTICLES, TILE_PLAYER, TILE_WARPS]
+# Warps types
+WARP_WARPS = 'warps'
+WARP_BOMB = 'secrets_bomb'
+WARP_FLAME = 'secrets_flame'
+# Map transitions
+MAP_TRANSITION_WARP = 'Warp'
+MAP_TRANSITION_UP = 'Warp_U'
+MAP_TRANSITION_RIGHT = 'Warp_R'
+MAP_TRANSITION_DOWN = 'Warp_D'
+MAP_TRANSITION_LEFT = 'Warp_L'
+MAP_TRANSITION_STAIRS = 'Stairs'
+MAP_TRANSITION_SILENT = 'Silent'
+MAP_TRANSITION_DONE = 'Done'
+# Items labels
+LADDER_LABEL = 'Ladder'
+BOOMERANG_LABEL = 'Boomerang'
+BOMB_LABEL = 'Bomb'
+CANDLE_LABEL = 'Candle'
+HEARTRECEPTACLE_LABEL = 'Heart Receptacle'
+WOOD_SWORD_LABEL = 'Wood Sword'
+HEART_LABEL = 'Heart'
+RUPEE_LABEL = 'Rupee'
+FAIRY_LABEL = 'Fairy'
+# Audio paths
+AUDIO_PATH = '../audio/'
+THEME_OVERWORLD = AUDIO_PATH + 'Overworld.mp3'
+THEME_DUNGEON = AUDIO_PATH + 'Dungeon.mp3'
+SOUND_GAME_OVER = AUDIO_PATH + 'Game_Over.wav'
+SOUND_SHIELD_BLOCK = AUDIO_PATH + 'Shield_Block.wav'
+SOUND_PLAYER_HURT = AUDIO_PATH + 'Player_Hurt.wav'
+SOUND_RUPEE_ACQUIRED = AUDIO_PATH + 'Rupee.wav'
+SOUND_RUPEES_ACQUIRED = AUDIO_PATH + 'Rupee_Multiple.wav'
+SOUND_LOW_HEALTH = AUDIO_PATH + 'Low_Health.wav'
+SOUND_PLAYER_DESPAWN = AUDIO_PATH + 'Player_Despawn.wav'
+SOUND_MONSTER_HURT = AUDIO_PATH + 'Monster_Hurt.wav'
+SOUND_MONSTER_DESPAWN = AUDIO_PATH + 'Monster_Despawn.wav'
+SOUND_SWORD_ATTACK = AUDIO_PATH + 'Sword_Attack.wav'
+SOUND_BOOMERANG_ATTACK = AUDIO_PATH + 'Boomerang.wav'
+SOUND_TINY_PICKUP = AUDIO_PATH + 'Tiny_Pick_Up.wav'
+SOUND_SMALL_PICKUP = AUDIO_PATH + 'Small_Pick_Up.wav'
+SOUND_PICKUP = AUDIO_PATH + 'Pick_Up.wav'
+SOUND_BOMB_DROP = AUDIO_PATH + 'Bomb_Drop.wav'
+SOUND_BOMB_EXPLODE = AUDIO_PATH + 'Bomb_Explode.wav'
+SOUND_STAIRS = AUDIO_PATH + 'Stairs.wav'
+SOUND_FLAME = AUDIO_PATH + 'Flame.wav'
 
-# Health & Damages Stats
+# HEALTH & DAMAGES STATS
 #
 PLAYER_HEALTH_PER_HEART = 256
 PLAYER_HEALTH_MAX = 16 * PLAYER_HEALTH_PER_HEART
 PLAYER_INITIAL_HEALTH = 3 * PLAYER_HEALTH_PER_HEART
-PLAYER_INITIAL_MONEY = 0
+PLAYER_INITIAL_MONEY = 80
 PLAYER_INITIAL_KEY = 0
 PLAYER_INITIAL_BOMB = 0
 PLAYER_INITIAL_HAS_BOMB = False
@@ -44,8 +165,8 @@ PLAYER_INITIAL_HAS_BOOMERANG = False
 PLAYER_INITIAL_HAS_RED_CANDLE = False
 PLAYER_INITIAL_HAS_LADDER = False
 PLAYER_INITIAL_HAS_WOOD_SWORD = False
-PLAYER_INITIAL_ITEM_A = "None"
-PLAYER_INITIAL_ITEM_B = "None"
+PLAYER_INITIAL_ITEM_A = NONE_LABEL
+PLAYER_INITIAL_ITEM_B = NONE_LABEL
 PLAYER_BOMBS_MAX = 8
 PLAYER_BOMB_LOOT_AMOUNT = 4
 WOOD_SWORD_DMG = 16
@@ -55,8 +176,7 @@ BOOMERANG_DMG = 16
 BLUE_RING_DMG_REDUCTION = 0.5
 RED_RING_DMG_REDUCTION = 0.75
 FLAME_DMG = 16
-# For test purposes, RED_OCTOROCK_HEALTH has been changed from 16 to 32
-RED_OCTOROCK_HEALTH = 32
+RED_OCTOROCK_HEALTH = 16
 RED_OCTOROCK_DMG = 128
 BLUE_OCTOROCK_HEALTH = 32
 BLUE_OCTOROCK_DMG = 128
@@ -74,7 +194,7 @@ LOOT_BIG_RUPEE_PERCENTAGE = 20
 
 # PLAYER ANIMATION & COOLDOWNS
 #
-# PLAYER HAS NO LEFT TILES, EQUAL TO FLIP(RIGHT)
+# Player has no Left sprite (Left=Right flipped)
 PLAYER_WALKING_FRAMES = 2
 PLAYER_WALKING_DOWN_FRAME_ID = 0
 PLAYER_WALKING_RIGHT_FRAME_ID = 4
@@ -121,18 +241,6 @@ ARROW_FRAME_UP_ID = 42
 ARROW_FRAME_RIGHT_ID = 44
 ARROW_FRAMES = 1
 MAGIC_EXPLOSION_TOP_LEFT_SPRITE = 130
-
-# ITEMS LABEL
-#
-LADDER_LABEL = 'Ladder'
-BOOMERANG_LABEL = 'Boomerang'
-BOMB_LABEL = 'Bomb'
-CANDLE_LABEL = 'Candle'
-HEARTRECEPTACLE_LABEL = 'Heart Receptacle'
-WOOD_SWORD_LABEL = 'Wood Sword'
-HEART_LABEL = 'Heart'
-RUPEE_LABEL = 'Rupee'
-FAIRY_LABEL = 'Fairy'
 
 # ITEMS SPRITES & INFO
 #
@@ -181,11 +289,8 @@ FAIRY_SPEED = 1
 HEARTRECEPTACLE_FRAME_ID = 14
 HEARTRECEPTACLE_FRAMES = 1
 
-# Pick up animation for items
+# PICKUP ANIMATION PER ITEM LABEL
 #
-ONE_HANDED = 'pickup_one_handed'
-TWO_HANDED = 'pickup_two_handed'
-
 ITEM_PICKUP_ANIMATION = {
     LADDER_LABEL: TWO_HANDED,
     BOOMERANG_LABEL: ONE_HANDED,
@@ -193,6 +298,7 @@ ITEM_PICKUP_ANIMATION = {
     HEARTRECEPTACLE_LABEL: TWO_HANDED,
     WOOD_SWORD_LABEL: ONE_HANDED
 }
+
 # MONSTER ANIMATION & COOLDOWNS
 #
 MONSTER_SPAWN_FRAMES = 3
@@ -203,8 +309,9 @@ MONSTER_DEATH_FRAMES = 3
 MONSTER_DEATH_FRAME_ID = 100
 MONSTER_DEATH_ANIMATION_COOLDOWN = 200
 MONSTER_HURT_ANIMATION_COOLDOWN = 150
+
 # OCTOROCK ANIMATION & COOLDOWNS
-# OCTOROCK HAS NO UP (REVERSE DOWN) NOR RIGHT (REVERSE LEFT)
+# Octorock has no Up (flip Down) nor Right (flip Left)
 OCTOROCK_WALKING_FRAMES = 2
 OCTOROCK_WALKING_DOWN_FRAME_ID = 0
 OCTOROCK_WALKING_LEFT_FRAME_ID = 4
@@ -212,8 +319,9 @@ OCTOROCK_WALKING_ANIMATION_COOLDOWN = 100
 OCTOROCK_HURT_DOWN_FRAME_ID = 88
 OCTOROCK_HURT_LEFT_FRAME_ID = 94
 OCTOROCK_ACTION_ANIMATION_COOLDOWN = 250
+
 # MOBLIN ANIMATION & COOLDOWNS
-# MOBLIN HAS NO RIGHT (REVERSE LEFT) AND ANIMATIONS FOR UP/DOWN IS FLIPPED(X)
+# Moblin has no Right (Flip Left); and animation for  Up/Down is flip(x)
 MOBLIN_WALKING_FRAMES = 2
 MOBLIN_WALKING_DOWN_FRAME_ID = 44
 MOBLIN_WALKING_UP_FRAME_ID = 46
@@ -245,24 +353,30 @@ HUD_HALF_HEART_FRAME_ID = 2
 HUD_EMPTY_HEART_FRAME_ID = 0
 HUD_NB_HEARTS_PER_LINE = 8
 
-GAME_OVER_DEATH_FLOORS = ['red1', 'red2', 'red3']
+# GAME OVER ANIMATION DETAILS
+#
+GAME_OVER_DEATH_FLOORS = [RED1_LABEL, RED2_LABEL, RED3_LABEL]
 MAP_DEATH_FADE_COOLDOWN = 500
+
+# MENU ACCESS AND SELECTOR
+#
 LEVEL_KEY_PRESSED_COOLDOWN = 150
 MENU_ITEM_SELECTOR_FRAMES = 2
 MENU_ITEM_SELECTOR_FRAME_ID = 6
 MENU_ITEM_SELECTOR_COOLDOWN = 200
 
 # MENU ITEM SPRITE COORDINATES
-# SELECTED ITEM FRAME
+#
+# Selected item frame
 MENU_SELECTED_ITEM_TOPLEFT = (128, 96)
-# PASSIVE ITEMS
+# Passive items
 MENU_RAFT_TOPLEFT = (256, 48)
 MENU_MAGIC_TOME_TOPLEFT = (296, 48)
 MENU_RING_TOPLEFT = (320, 48)
 MENU_LADDER_TOPLEFT = (352, 48)
 MENU_MAGICAL_KEY_TOPLEFT = (386, 48)
 MENU_POWER_BRACELET_TOPLEFT = (408, 48)
-# SELECTABLE ITEMS
+# Selectable items
 MENU_BOOMERANG_TOPLEFT = (256, 96)
 MENU_BOMBS_TOPLEFT = (304, 96)
 MENU_BOW_AND_ARROW_TOPLEFT = (352, 96)
@@ -273,134 +387,109 @@ MENU_MEDICINE_TOPLEFT = (352, 128)
 MENU_MAGICAL_ROD_TOPLEFT = (400, 128)
 
 # FONTS
+#
 FONT_CHARACTERS_PER_ROW = 10
 FONT_NUMBER_OF_ROWS = 5
 FONT_NUMBER_OF_SPECIALS = 9
-FONT_CHARS = '0123456789abcdefghijklmnopqrstuvwxyz,!\'&."?- '
 
-# SOUNDS
-AUDIO_PATH = '../audio/'
-THEME_OVERWORLD = AUDIO_PATH + 'Overworld.mp3'
-THEME_DUNGEON = AUDIO_PATH + 'Dungeon.mp3'
-SOUND_GAME_OVER = AUDIO_PATH + 'Game_Over.wav'
-SOUND_SHIELD_BLOCK = AUDIO_PATH + 'Shield_Block.wav'
-SOUND_PLAYER_HURT = AUDIO_PATH + 'Player_Hurt.wav'
-SOUND_RUPEE_ACQUIRED = AUDIO_PATH + 'Rupee.wav'
-SOUND_RUPEES_ACQUIRED = AUDIO_PATH + 'Rupee_Multiple.wav'
-SOUND_LOW_HEALTH = AUDIO_PATH + 'Low_Health.wav'
-SOUND_PLAYER_DESPAWN = AUDIO_PATH + 'Player_Despawn.wav'
-SOUND_MONSTER_HURT = AUDIO_PATH + 'Monster_Hurt.wav'
-SOUND_MONSTER_DESPAWN = AUDIO_PATH + 'Monster_Despawn.wav'
-SOUND_SWORD_ATTACK = AUDIO_PATH + 'Sword_Attack.wav'
-SOUND_BOOMERANG_ATTACK = AUDIO_PATH + 'Boomerang.wav'
-SOUND_TINY_PICKUP = AUDIO_PATH + 'Tiny_Pick_Up.wav'
-SOUND_SMALL_PICKUP = AUDIO_PATH + 'Small_Pick_Up.wav'
-SOUND_PICKUP = AUDIO_PATH + 'Pick_Up.wav'
-SOUND_BOMB_DROP = AUDIO_PATH + 'Bomb_Drop.wav'
-SOUND_BOMB_EXPLODE = AUDIO_PATH + 'Bomb_Explode.wav'
-SOUND_STAIRS = AUDIO_PATH + 'Stairs.wav'
-SOUND_FLAME = AUDIO_PATH + 'Flame.wav'
-
-# Underworld map id
+# OVERWORLD <-> UNDERWORLD MAP WARPS/STAIRS
+#
 # As a reminder, the first entry of this dict corresponds to a change_id of 4
 # See 'help' for a reminder of who is what
 NEW_LEVEL_BOTTOM_CENTER_POS = (SCREEN_WIDTH / 2 - TILE_SIZE, SCREEN_HEIGHT - TILE_SIZE * 3 - 1)
 UNDERWORLD_STAIRS = [
-    {'map': 'level',
-     'screen': '10',
-     'player_pos': (128, 32 + HUD_OFFSET + TILE_SIZE + 1),
-     'stairs': False,
-     'help': 'This (4) is the exit from the sword_cave0 to level10'},
-    {'map': 'sword_cave',
-     'screen': '0',
-     'player_pos': NEW_LEVEL_BOTTOM_CENTER_POS,
-     'stairs': True,
-     'help': 'This (5) is the entrance of sword_cave0 from level10'},
-    {'map': 'level',
-     'screen': '6',
-     'player_pos': (192, HUD_OFFSET + 160),
-     'stairs': False,
-     'help': 'This (6) is the exit of pay_for_my_door0 to level6'},
-    {'map': 'pay_for_my_door',
-     'screen': '0',
-     'player_pos': NEW_LEVEL_BOTTOM_CENTER_POS,
-     'stairs': False,
-     'help': 'This (7) is the secret entrance of pay_for_my_door0 from level6'},
-    {'map': 'level',
-     'screen': '11',
-     'player_pos': (144, HUD_OFFSET + 112),
-     'stairs': False,
-     'help': 'This (8) is the exit of shop00 to level11'},
-    {'map': 'shop0',
-     'screen': '0',
-     'player_pos': NEW_LEVEL_BOTTOM_CENTER_POS,
-     'stairs': True,
-     'help': 'This (9) is the entrance of shop00 from level11'},
-    {'map': 'level',
-     'screen': '0',
-     'player_pos': (200, 200),
-     'stairs': False,
-     'help': 'This (10) is the exit of dungeon0_0 to __level0__'},
-    {'map': 'dungeon0_',
-     'screen': '0',
-     'player_pos': NEW_LEVEL_BOTTOM_CENTER_POS,
-     'stairs': True,
-     'help': 'This (11) is the entrance of dungeon0_0 from __level0__'},
-    {'map': 'level',
-     'screen': '0',
-     'player_pos': (200, 200),
-     'stairs': False,
-     'help': 'This (12) is the exit of secret_to_everybody0 to __level0__'},
-    {'map': 'secret_to_everybody',
-     'screen': '0',
-     'player_pos': NEW_LEVEL_BOTTOM_CENTER_POS,
-     'stairs': True,
-     'help': 'This (13) is the entrance of secret_to_everybody0 from __level0__'}
+    {MAP_LABEL: LEVEL_PREFIX_LABEL,
+     SCREEN_LABEL: '10',
+     PLAYER_POS_LABEL: (128, 32 + HUD_OFFSET + TILE_SIZE + 1),
+     STAIRS_LABEL: False,
+     HELP_LABEL: 'This (4) is the exit from the sword_cave0 to level10'},
+    {MAP_LABEL: 'sword_cave',
+     SCREEN_LABEL: '0',
+     PLAYER_POS_LABEL: NEW_LEVEL_BOTTOM_CENTER_POS,
+     STAIRS_LABEL: True,
+     HELP_LABEL: 'This (5) is the entrance of sword_cave0 from level10'},
+    {MAP_LABEL: LEVEL_PREFIX_LABEL,
+     SCREEN_LABEL: '6',
+     PLAYER_POS_LABEL: (192, HUD_OFFSET + 160),
+     STAIRS_LABEL: False,
+     HELP_LABEL: 'This (6) is the exit of pay_for_my_door0 to level6'},
+    {MAP_LABEL: 'pay_for_my_door',
+     SCREEN_LABEL: '0',
+     PLAYER_POS_LABEL: NEW_LEVEL_BOTTOM_CENTER_POS,
+     STAIRS_LABEL: False,
+     HELP_LABEL: 'This (7) is the secret entrance of pay_for_my_door0 from level6'},
+    {MAP_LABEL: LEVEL_PREFIX_LABEL,
+     SCREEN_LABEL: '11',
+     PLAYER_POS_LABEL: (144, HUD_OFFSET + 112),
+     STAIRS_LABEL: False,
+     HELP_LABEL: 'This (8) is the exit of shop00 to level11'},
+    {MAP_LABEL: 'shop0',
+     SCREEN_LABEL: '0',
+     PLAYER_POS_LABEL: NEW_LEVEL_BOTTOM_CENTER_POS,
+     STAIRS_LABEL: True,
+     HELP_LABEL: 'This (9) is the entrance of shop00 from level11'},
+    {MAP_LABEL: LEVEL_PREFIX_LABEL,
+     SCREEN_LABEL: '0',
+     PLAYER_POS_LABEL: (200, 200),
+     STAIRS_LABEL: False,
+     HELP_LABEL: 'This (10) is the exit of dungeon0_0 to __level0__'},
+    {MAP_LABEL: 'dungeon0_',
+     SCREEN_LABEL: '0',
+     PLAYER_POS_LABEL: NEW_LEVEL_BOTTOM_CENTER_POS,
+     STAIRS_LABEL: True,
+     HELP_LABEL: 'This (11) is the entrance of dungeon0_0 from __level0__'},
+    {MAP_LABEL: LEVEL_PREFIX_LABEL,
+     SCREEN_LABEL: '0',
+     PLAYER_POS_LABEL: (200, 200),
+     STAIRS_LABEL: False,
+     HELP_LABEL: 'This (12) is the exit of secret_to_everybody0 to __level0__'},
+    {MAP_LABEL: 'secret_to_everybody',
+     SCREEN_LABEL: '0',
+     PLAYER_POS_LABEL: NEW_LEVEL_BOTTOM_CENTER_POS,
+     STAIRS_LABEL: True,
+     HELP_LABEL: 'This (13) is the entrance of secret_to_everybody0 from __level0__'}
 ]
 
-# Map system
+# MAP SYSTEM
+#
+# Map sizes
 NB_MAPS_PER_ROW = {
-    'Overworld': 4,
-    'Dungeon': 3
+    OVERWORLD_LABEL: 4,
+    DUNGEON_LABEL: 3
 }
 NB_MAPS_PER_COL = {
-    'Overworld': 4,
-    'Dungeon': 3
+    OVERWORLD_LABEL: 4,
+    DUNGEON_LABEL: 3
 }
-
+# Map scrolling animation
 MAP_SCROLL_FRAMES_COUNT = 100
 
-# Map CSV indexes and obstacle types
+# CSV FILES INDEXES
 #
+# Map CSV indexes and obstacle types
 OBSTACLE_NPC = 0
 LIMIT_BORDER_INDEX = 10
 LIMIT_TREE_INDEX = 20
 LIMIT_WATER_INDEX = 30
 LIMIT_ROCK_INDEX = 40
 LIMIT_LADDER_INDEX = 50
-
 # Secret passages sprite frame id
-#
 SECRET_CAVE_FRAME_ID = 0
 SECRET_STAIRS_FRAME_ID = 2
 SECRET_HORIZONTAL_WALL_FRAME_ID = 4
 SECRET_VERTICAL_WALL_FRAME_ID = 6
-
 # Secret content in maps
 # When a secret passage has been revealed, an entry 'level_id': True is created.
 # Warning : with this system, there can't be multiple secrets in one screen (both fire & bomb for instance)
-#
 MAP_SECRETS_REVEALED = {
 }
-
 # Item content in maps
-#
 MAP_ITEMS = {
-    'level9': {HEARTRECEPTACLE_LABEL: True},
-    'level11': {LADDER_LABEL: True},
+    LEVEL_PREFIX_LABEL + '9': {HEARTRECEPTACLE_LABEL: True},
+    LEVEL_PREFIX_LABEL + '11': {LADDER_LABEL: True},
 }
 
-# Npc
+# NPCS
 #
 NO_NPC_ID = 0
 OLD_MAN_ID = 2
@@ -410,31 +499,32 @@ MOBLIN_ID = 8
 NPC_FLAME_ID = 10
 ANIMATED_FLIPPED_NPCS = [MOBLIN_ID, NPC_FLAME_ID]
 
+# SHOP SPRITES COORDINATES
+#
 ITEM_Y = HUD_OFFSET + TEXT_OFFSET + 9 * TILE_SIZE
 NPC_X = 15 * TILE_SIZE
 NPC_Y = ITEM_Y - 4 * TILE_SIZE
 FLAME_1_POS = (NPC_X - 6 * TILE_SIZE, NPC_Y)
 FLAME_2_POS = (NPC_X + 6 * TILE_SIZE, NPC_Y)
 
-# Shops
+# SHOPS AND SHOP CONTENT
 #
 SHOPS = {
-    'sword_cave0': {'items': {WOOD_SWORD_LABEL: 0},
-                    'npc_id': OLD_MAN_ID,
-                    'text': 'it\'s dangerous to go alone, take this !'},
-    'shop00': {'items': {CANDLE_LABEL: 30,
-                         BOMB_LABEL: 15,
-                         BOOMERANG_LABEL: 50},
-               'npc_id': MERCHANT_ID,
-               'text': 'welcome to my shop.'},
-    'pay_for_my_door0': {'items': {RUPEE_LABEL: 25},
-                         'npc_id': OLD_WOMAN_ID,
-                         'text': 'that is for my door !'},
-    'secret_to_everybody0': {'items': {RUPEE_LABEL: 80},
-                             'npc_id': MOBLIN_ID,
-                             'text': 'it\'s a secret to everybody.'}
+    'sword_cave0': {ITEMS_LABEL: {WOOD_SWORD_LABEL: 0},
+                    NPC_ID_LABEL: OLD_MAN_ID,
+                    TEXT_LABEL: 'it\'s dangerous to go alone, take this !'},
+    'shop00': {ITEMS_LABEL: {CANDLE_LABEL: 30,
+                             BOMB_LABEL: 15,
+                             BOOMERANG_LABEL: 50},
+               NPC_ID_LABEL: MERCHANT_ID,
+               TEXT_LABEL: 'welcome to my shop.'},
+    'pay_for_my_door0': {ITEMS_LABEL: {RUPEE_LABEL: 25},
+                         NPC_ID_LABEL: OLD_WOMAN_ID,
+                         TEXT_LABEL: 'that is for my door !'},
+    'secret_to_everybody0': {ITEMS_LABEL: {RUPEE_LABEL: 80},
+                             NPC_ID_LABEL: MOBLIN_ID,
+                             TEXT_LABEL: 'it\'s a secret to everybody.'}
 }
-
 # SHOP_dict name indicates the tile set
 # Key is label of item
 # Value is frame_id of the item in the tile set
@@ -451,9 +541,9 @@ SHOP_ITEMS = {
     WOOD_SWORD_LABEL: WOOD_SWORD_FRAME_ID
 }
 
-# Game starting coordinates
+# GAME STARTING COORDINATES
 #
 PLAYER_START_X = SCREEN_WIDTH // 2 - TILE_SIZE
 PLAYER_START_Y = (SCREEN_HEIGHT + HUD_OFFSET) // 2 - TILE_SIZE
-STARTING_MAP = 'level'
+STARTING_MAP = LEVEL_PREFIX_LABEL
 STARTING_SCREEN = '10'

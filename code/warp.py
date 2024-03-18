@@ -49,7 +49,7 @@ class SecretPassage(Warp):
         self.is_revealed = True
         MAP_SECRETS_REVEALED[self.level_id] = True
         self.hitbox = self.rect.inflate(-16, -16)
-        if UNDERWORLD_STAIRS[int(self.warp_id) - 4]['stairs']:
+        if UNDERWORLD_STAIRS[int(self.warp_id) - 4][STAIRS_LABEL]:
             self.hitbox.top = self.rect.top
         for obstacle in self.obstacle_sprites:
             if obstacle.rect.colliderect(self.rect):

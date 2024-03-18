@@ -91,34 +91,33 @@ class PWoodenSword(Particle):
         self.particle_sprites = particle_sprites
 
         self.direction_label = owner_direction_label
-        match owner_direction_label:
-            case 'up':
-                self.pos_x += 6
-                self.pos_y -= 22
-                self.direction_vector.x = 0
-                self.direction_vector.y = -1
-            case 'right':
-                self.pos_x += 20
-                self.pos_y += 2
-                self.direction_vector.x = 1
-                self.direction_vector.y = 0
-            case 'down':
-                self.pos_x += 14
-                self.pos_y += 22
-                self.direction_vector.x = 0
-                self.direction_vector.y = 1
-            case 'left':
-                self.pos_x -= 20
-                self.pos_y += 2
-                self.direction_vector.x = -1
-                self.direction_vector.y = 0
+        if owner_direction_label == UP_LABEL:
+            self.pos_x += 6
+            self.pos_y -= 22
+            self.direction_vector.x = 0
+            self.direction_vector.y = -1
+        elif owner_direction_label == RIGHT_LABEL:
+            self.pos_x += 20
+            self.pos_y += 2
+            self.direction_vector.x = 1
+            self.direction_vector.y = 0
+        elif owner_direction_label == DOWN_LABEL:
+            self.pos_x += 14
+            self.pos_y += 22
+            self.direction_vector.x = 0
+            self.direction_vector.y = 1
+        elif owner_direction_label == LEFT_LABEL:
+            self.pos_x -= 20
+            self.pos_y += 2
+            self.direction_vector.x = -1
+            self.direction_vector.y = 0
 
         self.move_animation_cooldown = 5
         self.move_animations = {
-            'up': [],
-            'right': [],
-            'down': [],
-            'left': []
+            UP_LABEL: [],
+            RIGHT_LABEL: [],
+            DOWN_LABEL: [],
+            LEFT_LABEL: []
         }
 
         self.frame_id = WOOD_SWORD_RIGHT_FRAME_ID
@@ -129,7 +128,7 @@ class PWoodenSword(Particle):
         self.rect = self.image.get_rect(topleft=(self.pos_x, self.pos_y))
         # Hitbox will stay at full sword length despite the animation, because it is extremely fast and doesn't really
         # improve gameplay at all.
-        if owner_direction_label == 'up' or owner_direction_label == 'down':
+        if owner_direction_label == UP_LABEL or owner_direction_label == DOWN_LABEL:
             self.hitbox = self.rect.inflate(-26, 0)
             self.hitbox.left = self.rect.left + 4
             self.hitbox.top = self.rect.top
@@ -150,13 +149,13 @@ class PWoodenSword(Particle):
     def load_animation_frames(self, particle_tile_set):
         for i in range(self.nb_frames):
             tiles_offset = SPRITE_SIZE // TILE_SIZE * i
-            self.move_animations['up'].append(particle_tile_set.get_sprite_image(
+            self.move_animations[UP_LABEL].append(particle_tile_set.get_sprite_image(
                 WOOD_SWORD_UP_FRAME_ID + tiles_offset))
-            self.move_animations['right'].append(particle_tile_set.get_sprite_image(
+            self.move_animations[RIGHT_LABEL].append(particle_tile_set.get_sprite_image(
                 WOOD_SWORD_RIGHT_FRAME_ID + tiles_offset))
-            self.move_animations['down'].append(particle_tile_set.get_sprite_image(
+            self.move_animations[DOWN_LABEL].append(particle_tile_set.get_sprite_image(
                 WOOD_SWORD_DOWN_FRAME_ID + tiles_offset))
-            self.move_animations['left'].append(
+            self.move_animations[LEFT_LABEL].append(
                 pygame.transform.flip(
                     particle_tile_set.get_sprite_image(self.frame_id + tiles_offset),
                     True,
@@ -217,19 +216,18 @@ class PBoomerang(Particle):
         self.player_ref = player
 
         if self.direction_vector.x == 0 and self.direction_vector.y == 0:
-            match self.direction_label:
-                case 'up':
-                    self.direction_vector.x = 0
-                    self.direction_vector.y = -1
-                case 'right':
-                    self.direction_vector.x = 1
-                    self.direction_vector.y = 0
-                case 'down':
-                    self.direction_vector.x = 0
-                    self.direction_vector.y = 1
-                case 'left':
-                    self.direction_vector.x = -1
-                    self.direction_vector.y = 0
+            if owner_direction_label == UP_LABEL:
+                self.direction_vector.x = 0
+                self.direction_vector.y = -1
+            elif owner_direction_label == RIGHT_LABEL:
+                self.direction_vector.x = 1
+                self.direction_vector.y = 0
+            elif owner_direction_label == DOWN_LABEL:
+                self.direction_vector.x = 0
+                self.direction_vector.y = 1
+            elif owner_direction_label ==  LEFT_LABEL:
+                self.direction_vector.x = -1
+                self.direction_vector.y = 0
 
         self.move_animation_cooldown = 100
 
@@ -332,19 +330,18 @@ class Rock(Particle):
 
         self.obstacle_sprites = obstacle_sprites
 
-        match owner_direction_label:
-            case 'up':
-                self.direction_vector.x = 0
-                self.direction_vector.y = -1
-            case 'right':
-                self.direction_vector.x = 1
-                self.direction_vector.y = 0
-            case 'down':
-                self.direction_vector.x = 0
-                self.direction_vector.y = 1
-            case 'left':
-                self.direction_vector.x = -1
-                self.direction_vector.y = 0
+        if owner_direction_label == UP_LABEL:
+            self.direction_vector.x = 0
+            self.direction_vector.y = -1
+        elif owner_direction_label == RIGHT_LABEL:
+            self.direction_vector.x = 1
+            self.direction_vector.y = 0
+        elif owner_direction_label == DOWN_LABEL:
+            self.direction_vector.x = 0
+            self.direction_vector.y = 1
+        elif owner_direction_label == LEFT_LABEL:
+            self.direction_vector.x = -1
+            self.direction_vector.y = 0
 
         self.frame_id = ROCK_FRAME_ID
         self.nb_frames = ROCK_FRAMES
@@ -401,29 +398,28 @@ class Arrow(Particle):
 
         self.obstacle_sprites = obstacle_sprites
 
-        match owner_direction_label:
-            case 'up':
-                self.direction_vector.x = 0
-                self.direction_vector.y = -1
-            case 'right':
-                self.direction_vector.x = 1
-                self.direction_vector.y = 0
-            case 'down':
-                self.direction_vector.x = 0
-                self.direction_vector.y = 1
-            case 'left':
-                self.direction_vector.x = -1
-                self.direction_vector.y = 0
+        if owner_direction_label == UP_LABEL:
+            self.direction_vector.x = 0
+            self.direction_vector.y = -1
+        elif owner_direction_label == RIGHT_LABEL:
+            self.direction_vector.x = 1
+            self.direction_vector.y = 0
+        elif owner_direction_label == DOWN_LABEL:
+            self.direction_vector.x = 0
+            self.direction_vector.y = 1
+        elif owner_direction_label == LEFT_LABEL:
+            self.direction_vector.x = -1
+            self.direction_vector.y = 0
 
         self.frame_up_id = ARROW_FRAME_UP_ID
         self.frame_right_id = ARROW_FRAME_RIGHT_ID
         self.nb_frames = ARROW_FRAMES
 
         self.move_animations = {
-            'up': [],
-            'right': [],
-            'down': [],
-            'left': []
+            UP_LABEL: [],
+            RIGHT_LABEL: [],
+            DOWN_LABEL: [],
+            LEFT_LABEL: []
         }
         self.load_animation_frames(tileset.PARTICLES_TILE_SET)
 
@@ -442,16 +438,16 @@ class Arrow(Particle):
     def load_animation_frames(self, particle_tile_set):
         for i in range(self.nb_frames):
             tiles_offset = SPRITE_SIZE // TILE_SIZE * i
-            self.move_animations['up'].append(
+            self.move_animations[UP_LABEL].append(
                 particle_tile_set.get_sprite_image(self.frame_up_id + tiles_offset))
-            self.move_animations['down'].append(
+            self.move_animations[DOWN_LABEL].append(
                 pygame.transform.flip(
                     particle_tile_set.get_sprite_image(self.frame_up_id + tiles_offset),
                     False,
                     True))
-            self.move_animations['right'].append(
+            self.move_animations[RIGHT_LABEL].append(
                 particle_tile_set.get_sprite_image(self.frame_right_id + tiles_offset))
-            self.move_animations['left'].append(
+            self.move_animations[LEFT_LABEL].append(
                 pygame.transform.flip(
                     particle_tile_set.get_sprite_image(self.frame_right_id + tiles_offset),
                     True,
@@ -630,7 +626,7 @@ class CBomb(Particle):
 
 
 class Fairy(Particle):
-    def __init__(self, owner_pos, groups, obstacle_spritesl):
+    def __init__(self, owner_pos, groups, obstacle_sprites):
 
         owner_direction_vector = pygame.math.Vector2()
         super().__init__(owner_pos, owner_direction_vector, groups)
@@ -667,7 +663,7 @@ class Fairy(Particle):
     def collision(self, direction):
         # This flies, so it will only collide with screen border obstacles, that are given in obstacles_sprites
         # Be careful when creating a fairy !
-        if direction == 'horizontal':
+        if direction == HORIZONTAL_LABEL:
             for sprite in self.obstacle_sprites:
                 if sprite.hitbox.colliderect(self.hitbox):
                     if self.direction_vector.x > 0:
@@ -675,7 +671,7 @@ class Fairy(Particle):
                     if self.direction_vector.x < 0:
                         self.hitbox.left = sprite.hitbox.right
 
-        elif direction == 'vertical':
+        elif direction == VERTICAL_LABEL:
             for sprite in self.obstacle_sprites:
                 if sprite.hitbox.colliderect(self.hitbox):
                     if self.direction_vector.y > 0:
@@ -696,9 +692,9 @@ class Fairy(Particle):
                 self.direction_vector = self.direction_vector.normalize()
 
         self.hitbox.x += self.direction_vector.x * self.speed
-        self.collision('horizontal')
+        self.collision(HORIZONTAL_LABEL)
         self.hitbox.y += self.direction_vector.y * self.speed
-        self.collision('vertical')
+        self.collision(VERTICAL_LABEL)
 
         self.rect.center = self.hitbox.center
 
@@ -735,19 +731,18 @@ class Bomb(Particle):
         self.bomb_explode_sound = pygame.mixer.Sound(SOUND_BOMB_EXPLODE)
         self.bomb_explode_sound.set_volume(0.3)
 
-        match owner_direction_label:
-            case 'up':
-                self.pos_x = owner_pos[0]
-                self.pos_y = owner_pos[1] - 32
-            case 'right':
-                self.pos_x = owner_pos[0] + 24
-                self.pos_y = owner_pos[1]
-            case 'down':
-                self.pos_x = owner_pos[0]
-                self.pos_y = owner_pos[1] + 32
-            case 'left':
-                self.pos_x = owner_pos[0] - 24
-                self.pos_y = owner_pos[1]
+        if owner_direction_label == UP_LABEL:
+            self.pos_x = owner_pos[0]
+            self.pos_y = owner_pos[1] - 32
+        elif owner_direction_label == RIGHT_LABEL:
+            self.pos_x = owner_pos[0] + 24
+            self.pos_y = owner_pos[1]
+        elif owner_direction_label == DOWN_LABEL:
+            self.pos_x = owner_pos[0]
+            self.pos_y = owner_pos[1] + 32
+        elif owner_direction_label == LEFT_LABEL:
+            self.pos_x = owner_pos[0] - 24
+            self.pos_y = owner_pos[1]
         self.image = self.move_animations[0]
         self.rect = self.image.get_rect(topleft=(self.pos_x, self.pos_y))
         self.hitbox = self.rect.inflate(24, 32)
@@ -851,27 +846,26 @@ class Flame(Particle):
         self.player_ref = player
 
         self.direction_label = owner_direction_label
-        match self.direction_label:
-            case 'up':
-                self.direction_vector.x = 0
-                self.direction_vector.y = -1
-                self.pos_x = owner_pos[0]
-                self.pos_y = owner_pos[1] - TILE_SIZE
-            case 'right':
-                self.direction_vector.x = 1
-                self.direction_vector.y = 0
-                self.pos_x = owner_pos[0] + TILE_SIZE
-                self.pos_y = owner_pos[1]
-            case 'down':
-                self.direction_vector.x = 0
-                self.direction_vector.y = 1
-                self.pos_x = owner_pos[0]
-                self.pos_y = owner_pos[1] + TILE_SIZE
-            case 'left':
-                self.direction_vector.x = -1
-                self.direction_vector.y = 0
-                self.pos_x = owner_pos[0] - TILE_SIZE
-                self.pos_y = owner_pos[1]
+        if owner_direction_label == UP_LABEL:
+            self.direction_vector.x = 0
+            self.direction_vector.y = -1
+            self.pos_x = owner_pos[0]
+            self.pos_y = owner_pos[1] - TILE_SIZE
+        elif owner_direction_label == RIGHT_LABEL:
+            self.direction_vector.x = 1
+            self.direction_vector.y = 0
+            self.pos_x = owner_pos[0] + TILE_SIZE
+            self.pos_y = owner_pos[1]
+        elif owner_direction_label ==  DOWN_LABEL:
+            self.direction_vector.x = 0
+            self.direction_vector.y = 1
+            self.pos_x = owner_pos[0]
+            self.pos_y = owner_pos[1] + TILE_SIZE
+        elif owner_direction_label == LEFT_LABEL:
+            self.direction_vector.x = -1
+            self.direction_vector.y = 0
+            self.pos_x = owner_pos[0] - TILE_SIZE
+            self.pos_y = owner_pos[1]
 
         self.distance_travelled = 0
         self.max_distance = TILE_SIZE

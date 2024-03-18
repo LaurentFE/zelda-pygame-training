@@ -68,7 +68,7 @@ class Level(metaclass=Singleton):
 
         self.equipped_item_a_sprite = None
         self.equipped_item_b_sprite = None
-        self.current_selected_item = 'None'
+        self.current_selected_item = NONE_LABEL
         self.menu_item_coord_and_frame_id = {
             BOOMERANG_LABEL: (MENU_BOOMERANG_TOPLEFT, BOOMERANG_FRAME_ID),
             BOMB_LABEL: (MENU_BOMBS_TOPLEFT, BOMB_FRAME_ID),
@@ -122,13 +122,13 @@ class Level(metaclass=Singleton):
     def draw_selector(self):
         # creates the item selector for the menu screen
         selector_pos = MENU_BOOMERANG_TOPLEFT
-        if self.current_selected_item != 'None':
+        if self.current_selected_item != NONE_LABEL:
             selector_pos = self.menu_item_coord_and_frame_id[self.current_selected_item][0]
         self.item_selector = Selector([self.menu_sprites], selector_pos)
 
     def draw_menu(self):
         # Draw background
-        self.floor_surface = pygame.image.load('../graphics/hud/pause_menu.png').convert()
+        self.floor_surface = pygame.image.load(PAUSE_MENU_PATH).convert()
         self.floor_rect = self.floor_surface.get_rect(topleft=(0, 0))
         self.display_surface.blit(self.floor_surface, (0, 0))
 
@@ -139,7 +139,7 @@ class Level(metaclass=Singleton):
 
     def draw_items(self):
         # Draw (if any) the currently selected item in the frame left of the items owned
-        if self.current_selected_item != 'None':
+        if self.current_selected_item != NONE_LABEL:
             if self.item_selected_sprite is not None:
                 self.item_selected_sprite.kill()
             self.item_selected_sprite = Tile(MENU_SELECTED_ITEM_TOPLEFT,
@@ -176,7 +176,7 @@ class Level(metaclass=Singleton):
 
     def draw_hud(self):
         # Draw HUD space either at the top (level) or the bottom (pause menu) of the screen
-        self.menu_surface = pygame.image.load('../graphics/hud/hud_perma.png').convert()
+        self.menu_surface = pygame.image.load(HUD_PERMA_PATH).convert()
         if self.in_menu:
             top_left = (0, SCREEN_HEIGHT - HUD_OFFSET)
         else:
@@ -314,11 +314,11 @@ class Level(metaclass=Singleton):
 
     def draw_floor(self, death_color=''):
         # Draw the background of the level
-        if death_color == 'black':
-            self.floor_surface = pygame.image.load('../graphics/levels/black.png').convert()
+        if death_color == BLACK_LABEL:
+            self.floor_surface = pygame.image.load(BLACK_PATH).convert()
         else:
             self.floor_surface = pygame.image.load(
-                f'../graphics/levels/{self.current_map}{self.current_map_screen}{death_color}.png').convert()
+                f'{LEVELS_PATH}{self.current_map}{self.current_map_screen}{death_color}{GRAPHICS_EXTENSION}').convert()
         self.floor_rect = self.floor_surface.get_rect(topleft=(0, 0))
         self.display_surface.blit(self.floor_surface, (0, HUD_OFFSET))
 
@@ -359,18 +359,17 @@ class Level(metaclass=Singleton):
             self.equipped_item_b_sprite.kill()
 
         # Get selected item B id
-        match self.player.itemB:
-            case 'Boomerang':
-                item_frame_id = BOOMERANG_FRAME_ID
-            case 'Bomb':
-                item_frame_id = BOMB_FRAME_ID
-            case 'Candle':
-                item_frame_id = RED_CANDLE_FRAME_ID
-            case 'None':
-                item_frame_id = None
-            case _:
-                # Item B not implemented, abort
-                return
+        if self.player.itemB == BOOMERANG_LABEL:
+            item_frame_id = BOOMERANG_FRAME_ID
+        elif self.player.itemB == BOMB_LABEL:
+            item_frame_id = BOMB_FRAME_ID
+        elif self.player.itemB == CANDLE_LABEL:
+            item_frame_id = RED_CANDLE_FRAME_ID
+        elif self.player.itemB == NONE_LABEL:
+            item_frame_id = None
+        else:
+            # Item B not implemented, abort
+            return
 
         if item_frame_id is not None:
             self.equipped_item_b_sprite = Tile(item_b_pos,
@@ -380,29 +379,30 @@ class Level(metaclass=Singleton):
     def load_warps(self, level_id, warp_type):
         image = None
         revealed = False
-        match warp_type:
-            case 'warps':
-                layout = import_csv_layout(f'../map/{level_id}_Warps.csv')
-                groups = [self.warp_sprites]
-            case 'secrets_bomb':
-                layout = import_csv_layout(f'../map/{level_id}_Secrets_Bomb.csv')
-                groups = [self.visible_sprites, self.secret_bomb_sprites]
-                image = tileset.WARPS_TILE_SET.get_sprite_image(SECRET_CAVE_FRAME_ID)
-                if level_id in MAP_SECRETS_REVEALED.keys():
-                    revealed = MAP_SECRETS_REVEALED[level_id]
-                else:
-                    revealed = False
-            case 'secrets_flame':
-                layout = import_csv_layout(f'../map/{level_id}_Secrets_Flame.csv')
-                groups = [self.visible_sprites, self.secret_flame_sprites]
-                image = tileset.WARPS_TILE_SET.get_sprite_image(SECRET_STAIRS_FRAME_ID)
-                if level_id in MAP_SECRETS_REVEALED.keys():
-                    revealed = MAP_SECRETS_REVEALED[level_id]
-                else:
-                    revealed = False
-            case _:
-                # warp type not implemented, abort
-                return
+        warp_file_path = MAPS_PATH + str(level_id)
+        if warp_type == WARP_WARPS:
+            warp_file_path += MAPS_WARP
+            groups = [self.warp_sprites]
+        elif warp_type == WARP_BOMB:
+            warp_file_path += MAPS_BOMB
+            groups = [self.visible_sprites, self.secret_bomb_sprites]
+            image = tileset.WARPS_TILE_SET.get_sprite_image(SECRET_CAVE_FRAME_ID)
+            if level_id in MAP_SECRETS_REVEALED.keys():
+                revealed = MAP_SECRETS_REVEALED[level_id]
+            else:
+                revealed = False
+        elif warp_type == WARP_FLAME:
+            warp_file_path += MAPS_FLAME
+            groups = [self.visible_sprites, self.secret_flame_sprites]
+            image = tileset.WARPS_TILE_SET.get_sprite_image(SECRET_STAIRS_FRAME_ID)
+            if level_id in MAP_SECRETS_REVEALED.keys():
+                revealed = MAP_SECRETS_REVEALED[level_id]
+            else:
+                revealed = False
+        else:
+            # warp type not implemented, abort
+            return
+        layout = import_csv_layout(f'{warp_file_path}{MAPS_EXTENSION}')
 
         if layout is not None:
             for row_index, row in enumerate(layout):
@@ -412,30 +412,29 @@ class Level(metaclass=Singleton):
                     y = row_index * TILE_SIZE + HUD_OFFSET
                     sprite_id = int(col)
                     if sprite_id != -1:
-                        match warp_type:
-                            case 'warps':
-                                Warp((x, y), groups, sprite_id, self.player)
-                            case 'secrets_bomb':
-                                SecretPassage((x, y),
-                                              groups,
-                                              self.obstacle_sprites,
-                                              sprite_id,
-                                              level_id,
-                                              self.player,
-                                              image,
-                                              revealed)
-                            case 'secrets_flame':
-                                SecretPassage((x, y),
-                                              groups,
-                                              self.obstacle_sprites,
-                                              sprite_id,
-                                              level_id,
-                                              self.player,
-                                              image,
-                                              revealed)
+                        if warp_type == WARP_WARPS:
+                            Warp((x, y), groups, sprite_id, self.player)
+                        elif warp_type == WARP_BOMB:
+                            SecretPassage((x, y),
+                                          groups,
+                                          self.obstacle_sprites,
+                                          sprite_id,
+                                          level_id,
+                                          self.player,
+                                          image,
+                                          revealed)
+                        elif warp_type == WARP_FLAME:
+                            SecretPassage((x, y),
+                                          groups,
+                                          self.obstacle_sprites,
+                                          sprite_id,
+                                          level_id,
+                                          self.player,
+                                          image,
+                                          revealed)
 
     def load_limits(self, level_id):
-        layout = import_csv_layout(f'../map/{level_id}_Limits.csv')
+        layout = import_csv_layout(f'{MAPS_PATH}{level_id}{MAPS_LIMITS}{MAPS_EXTENSION}')
         # Draw lines of obstacles so no one gets into the menu or off the screen at the bottom
         for col in range(0, NB_TILE_WIDTH):
             y_top = HUD_OFFSET - TILE_SIZE
@@ -459,7 +458,7 @@ class Level(metaclass=Singleton):
                     Obstacle((x, y), [self.obstacle_sprites], sprite_id)
 
     def load_items(self, level_id):
-        layout = import_csv_layout(f'../map/{level_id}_Items.csv')
+        layout = import_csv_layout(f'{MAPS_PATH}{level_id}{MAPS_ITEMS}{MAPS_EXTENSION}')
         # Ignore all items for levels that are not supposed to have any
         if level_id in MAP_ITEMS.keys():
             map_items = MAP_ITEMS[level_id].keys()
@@ -493,7 +492,7 @@ class Level(metaclass=Singleton):
                                     level_id)
 
     def load_enemies(self, level_id):
-        layout = import_csv_layout(f'../map/{level_id}_Enemies.csv')
+        layout = import_csv_layout(f'{MAPS_PATH}{level_id}{MAPS_ENEMIES}{MAPS_EXTENSION}')
         for row_index, row in enumerate(layout):
             for col_index, col in enumerate(row):
                 x = col_index * TILE_SIZE
@@ -506,7 +505,7 @@ class Level(metaclass=Singleton):
                                 self.obstacle_sprites,
                                 self.particle_sprites)
                 elif sprite_id == 44:
-                    RedMoblin((x,y),
+                    RedMoblin((x, y),
                               [self.visible_sprites, self.enemy_sprites],
                               self.visible_sprites,
                               self.obstacle_sprites,
@@ -514,8 +513,8 @@ class Level(metaclass=Singleton):
 
     def load_shop(self, level_id):
         # Shops display from 0 to 3 items max
-        if level_id in SHOPS.keys() and 'items' in SHOPS[level_id].keys():
-            nb_items = len(SHOPS[level_id]['items'].keys())
+        if level_id in SHOPS.keys() and ITEMS_LABEL in SHOPS[level_id].keys():
+            nb_items = len(SHOPS[level_id][ITEMS_LABEL].keys())
             item_pos = []
 
             match nb_items:
@@ -540,22 +539,22 @@ class Level(metaclass=Singleton):
             Npc(FLAME_2_POS, [self.visible_sprites, self.npc_sprites], flame_images)
 
             # Caution : in python, 0 == False, so if npc_id is 0, this code is never executed
-            npc_id = SHOPS[level_id]['npc_id']
+            npc_id = SHOPS[level_id][NPC_ID_LABEL]
             if npc_id:
                 npc_images = [tileset.NPCS_TILE_SET.get_sprite_image(npc_id)]
-                if SHOPS[level_id]['npc_id'] in ANIMATED_FLIPPED_NPCS:
+                if SHOPS[level_id][NPC_ID_LABEL] in ANIMATED_FLIPPED_NPCS:
                     npc_images.append(pygame.transform.flip(npc_images[0],
                                                             True,
                                                             False))
                 Npc((NPC_X, NPC_Y), [self.visible_sprites, self.npc_sprites], npc_images)
 
-            if SHOPS[level_id]['text'] and nb_items > 0:
+            if SHOPS[level_id][TEXT_LABEL] and nb_items > 0:
                 text_pos_y = TEXT_OFFSET + HUD_OFFSET
                 TextBlock([self.visible_sprites, self.text_sprites],
-                          SHOPS[level_id]['text'],
+                          SHOPS[level_id][TEXT_LABEL],
                           text_pos_y)
 
-            items = list(SHOPS[level_id]['items'].items())
+            items = list(SHOPS[level_id][ITEMS_LABEL].items())
             for i in range(nb_items):
                 item_label, item_price = items[i]
                 if item_label in SHOP_CONSUMABLES:
@@ -607,9 +606,9 @@ class Level(metaclass=Singleton):
         # This creates all Sprites of the new map
         # This is done AFTER any map change animation
         self.load_limits(level_id)
-        self.load_warps(level_id, 'warps')
-        self.load_warps(level_id, 'secrets_bomb')
-        self.load_warps(level_id, 'secrets_flame')
+        self.load_warps(level_id, WARP_WARPS)
+        self.load_warps(level_id, WARP_BOMB)
+        self.load_warps(level_id, WARP_FLAME)
         self.load_items(level_id)
         self.load_enemies(level_id)
         self.load_shop(level_id)
@@ -621,38 +620,37 @@ class Level(metaclass=Singleton):
         next_floor_y = 0
         current_floor_x = 0
         current_floor_y = 0
-        match self.in_map_transition:
-            case 'Warp_U':
-                if 'level' in self.current_map:
-                    next_level_id = int(self.current_map_screen) - NB_MAPS_PER_ROW['Overworld']
-                else:
-                    next_level_id = int(self.current_map_screen) - NB_MAPS_PER_ROW['Dungeon']
-                self.transition_surface = pygame.Surface(
-                    (self.floor_rect.width, 2 * self.floor_rect.height))
-                current_floor_y = self.floor_rect.height
-            case 'Warp_R':
-                next_level_id = int(self.current_map_screen) + 1
-                self.transition_surface = pygame.Surface(
-                    (2 * self.floor_rect.width, self.floor_rect.height))
-                next_floor_x = self.floor_rect.width
-            case 'Warp_D':
-                if 'level' in self.current_map:
-                    next_level_id = int(self.current_map_screen) + NB_MAPS_PER_ROW['Overworld']
-                else:
-                    next_level_id = int(self.current_map_screen) + NB_MAPS_PER_ROW['Dungeon']
-                self.transition_surface = pygame.Surface(
-                    (self.floor_rect.width, 2 * self.floor_rect.height))
-                next_floor_y = self.floor_rect.height
-            case 'Warp_L':
-                next_level_id = int(self.current_map_screen) - 1
-                self.transition_surface = pygame.Surface(
-                    (2 * self.floor_rect.width, self.floor_rect.height))
-                current_floor_x = self.floor_rect.width
-            case _:
-                # Undefined warp transition, abort
-                return
+        if self.in_map_transition == MAP_TRANSITION_UP:
+            if LEVEL_PREFIX_LABEL in self.current_map:
+                next_level_id = int(self.current_map_screen) - NB_MAPS_PER_ROW[OVERWORLD_LABEL]
+            else:
+                next_level_id = int(self.current_map_screen) - NB_MAPS_PER_ROW[DUNGEON_LABEL]
+            self.transition_surface = pygame.Surface(
+                (self.floor_rect.width, 2 * self.floor_rect.height))
+            current_floor_y = self.floor_rect.height
+        elif self.in_map_transition == MAP_TRANSITION_RIGHT:
+            next_level_id = int(self.current_map_screen) + 1
+            self.transition_surface = pygame.Surface(
+                (2 * self.floor_rect.width, self.floor_rect.height))
+            next_floor_x = self.floor_rect.width
+        elif self.in_map_transition == MAP_TRANSITION_DOWN:
+            if LEVEL_PREFIX_LABEL in self.current_map:
+                next_level_id = int(self.current_map_screen) + NB_MAPS_PER_ROW[OVERWORLD_LABEL]
+            else:
+                next_level_id = int(self.current_map_screen) + NB_MAPS_PER_ROW[DUNGEON_LABEL]
+            self.transition_surface = pygame.Surface(
+                (self.floor_rect.width, 2 * self.floor_rect.height))
+            next_floor_y = self.floor_rect.height
+        elif self.in_map_transition == MAP_TRANSITION_LEFT:
+            next_level_id = int(self.current_map_screen) - 1
+            self.transition_surface = pygame.Surface(
+                (2 * self.floor_rect.width, self.floor_rect.height))
+            current_floor_x = self.floor_rect.width
+        else:
+            # Undefined warp transition, abort
+            return
 
-        next_floor = pygame.image.load(f'../graphics/levels/{self.current_map}{next_level_id}.png').convert()
+        next_floor = pygame.image.load(f'{LEVELS_PATH}{self.current_map}{next_level_id}{GRAPHICS_EXTENSION}').convert()
         self.transition_surface.blit(next_floor, (next_floor_x, next_floor_y))
         self.transition_surface.blit(self.floor_surface, (current_floor_x, current_floor_y))
         self.next_map_screen = next_level_id
@@ -684,40 +682,40 @@ class Level(metaclass=Singleton):
             match change_id:
                 case 0:
                     # Up
-                    self.in_map_transition = 'Warp_U'
+                    self.in_map_transition = MAP_TRANSITION_UP
                     self.create_transition_surface()
-                    self.player.set_state('warping')
+                    self.player.set_state(STATE_WARPING)
                     # Animate slide - will be done in update
                 case 1:
                     # Right
-                    self.in_map_transition = 'Warp_R'
+                    self.in_map_transition = MAP_TRANSITION_RIGHT
                     self.create_transition_surface()
-                    self.player.set_state('warping')
+                    self.player.set_state(STATE_WARPING)
                     # Animate slide - will be done in update
                 case 2:
                     # Down
-                    self.in_map_transition = 'Warp_D'
+                    self.in_map_transition = MAP_TRANSITION_DOWN
                     self.create_transition_surface()
-                    self.player.set_state('warping')
+                    self.player.set_state(STATE_WARPING)
                     # Animate slide - will be done in update
                 case 3:
                     # Left
-                    self.in_map_transition = 'Warp_L'
+                    self.in_map_transition = MAP_TRANSITION_LEFT
                     self.create_transition_surface()
-                    self.player.set_state('warping')
+                    self.player.set_state(STATE_WARPING)
                     # Animate slide - will be done in update
                 case _:
                     if change_id - 4 < len(UNDERWORLD_STAIRS):
-                        if UNDERWORLD_STAIRS[change_id - 4]['stairs']:
-                            self.in_map_transition = 'Stairs'
-                            self.player.set_state('stairs')
+                        if UNDERWORLD_STAIRS[change_id - 4][STAIRS_LABEL]:
+                            self.in_map_transition = MAP_TRANSITION_STAIRS
+                            self.player.set_state(STATE_STAIRS)
                             self.stairs_animation_starting_time = pygame.time.get_ticks()
                         else:
-                            self.in_map_transition = 'Silent'
+                            self.in_map_transition = MAP_TRANSITION_SILENT
 
-                        self.next_map = UNDERWORLD_STAIRS[change_id - 4]['map']
-                        self.next_map_screen = UNDERWORLD_STAIRS[change_id - 4]['screen']
-                        self.player_new_position = UNDERWORLD_STAIRS[change_id - 4]['player_pos']
+                        self.next_map = UNDERWORLD_STAIRS[change_id - 4][MAP_LABEL]
+                        self.next_map_screen = UNDERWORLD_STAIRS[change_id - 4][SCREEN_LABEL]
+                        self.player_new_position = UNDERWORLD_STAIRS[change_id - 4][PLAYER_POS_LABEL]
 
     def animate_map_transition(self):
         self.map_scroll_animation_counter += 1
@@ -726,21 +724,20 @@ class Level(metaclass=Singleton):
         x_offset = x_fixed_offset * self.map_scroll_animation_counter
         y_offset = y_fixed_offset * self.map_scroll_animation_counter
 
-        match self.in_map_transition:
-            case 'Warp_U':
-                self.display_surface.blit(self.transition_surface, (0, HUD_OFFSET - self.floor_rect.height + y_offset))
-                self.draw_hud()
-                self.player.define_warping_position(0, y_offset)
-            case 'Warp_R':
-                self.display_surface.blit(self.transition_surface, (-x_offset, HUD_OFFSET))
-                self.player.define_warping_position(-x_offset, 0)
-            case 'Warp_D':
-                self.display_surface.blit(self.transition_surface, (0, HUD_OFFSET - y_offset))
-                self.draw_hud()
-                self.player.define_warping_position(0, -y_offset)
-            case 'Warp_L':
-                self.display_surface.blit(self.transition_surface, (x_offset - self.floor_rect.width, HUD_OFFSET))
-                self.player.define_warping_position(x_offset, 0)
+        if self.in_map_transition == MAP_TRANSITION_UP:
+            self.display_surface.blit(self.transition_surface, (0, HUD_OFFSET - self.floor_rect.height + y_offset))
+            self.draw_hud()
+            self.player.define_warping_position(0, y_offset)
+        elif self.in_map_transition == MAP_TRANSITION_RIGHT:
+            self.display_surface.blit(self.transition_surface, (-x_offset, HUD_OFFSET))
+            self.player.define_warping_position(-x_offset, 0)
+        elif self.in_map_transition == MAP_TRANSITION_DOWN:
+            self.display_surface.blit(self.transition_surface, (0, HUD_OFFSET - y_offset))
+            self.draw_hud()
+            self.player.define_warping_position(0, -y_offset)
+        elif self.in_map_transition == MAP_TRANSITION_LEFT :
+            self.display_surface.blit(self.transition_surface, (x_offset - self.floor_rect.width, HUD_OFFSET))
+            self.player.define_warping_position(x_offset, 0)
 
     def death(self):
         self.draw_hud()
@@ -759,7 +756,7 @@ class Level(metaclass=Singleton):
         if self.death_motion_index == 2:
             if self.death_hurt_starting_time == 0:
                 self.death_hurt_starting_time = current_time
-                self.player.set_state('dying')
+                self.player.set_state(STATE_DYING)
             elif current_time - self.death_hurt_starting_time >= self.death_hurt_cooldown:
                 self.death_motion_index += 1
                 self.game_over_sound.play()
@@ -770,11 +767,11 @@ class Level(metaclass=Singleton):
             self.draw_floor(self.death_floors[self.death_floor_index])
             # Spin ! By default, 3 times (cf init of self.death_spin_cooldown)
             if current_time - self.death_spin_starting_time < self.death_spin_cooldown:
-                self.player.set_state('spinning')
+                self.player.set_state(STATE_SPINNING)
             else:
                 self.death_motion_index += 1
                 self.death_floor_index += 1
-                self.player.set_state('idle_d')
+                self.player.set_state(STATE_IDLE_DOWN)
 
         # Switch map img to 3 darker shades successively
         if self.death_motion_index == 4 and self.death_floor_index < self.number_of_death_floors:
@@ -789,13 +786,13 @@ class Level(metaclass=Singleton):
 
         # No more floor, just black
         if self.death_motion_index > 4:
-            self.draw_floor('black')
+            self.draw_floor(BLACK_LABEL)
 
         # Put player in gray state for animation
         if self.death_motion_index == 5:
             if self.death_gray_starting_time == 0:
                 self.death_gray_starting_time = current_time
-                self.player.set_state('gray')
+                self.player.set_state(STATE_GRAY)
             if current_time - self.death_gray_starting_time >= self.death_gray_cooldown:
                 self.death_motion_index += 1
 
@@ -803,7 +800,7 @@ class Level(metaclass=Singleton):
         if self.death_motion_index == 6:
             if self.death_despawn_starting_time == 0:
                 self.death_despawn_starting_time = current_time
-                self.player.set_state('despawn')
+                self.player.set_state(STATE_DESPAWN)
             if current_time - self.death_despawn_starting_time >= self.death_despawn_cooldown:
                 self.death_motion_index += 1
 
@@ -836,12 +833,12 @@ class Level(metaclass=Singleton):
         return False
 
     def is_right_key_pressed_in_menu_with_item(self, keys):
-        if is_right_key_pressed(keys) and self.in_menu and self.current_selected_item != 'None':
+        if is_right_key_pressed(keys) and self.in_menu and self.current_selected_item != NONE_LABEL:
             return True
         return False
 
     def is_left_key_pressed_in_menu_with_item(self, keys):
-        if is_left_key_pressed(keys) and self.in_menu and self.current_selected_item != 'None':
+        if is_left_key_pressed(keys) and self.in_menu and self.current_selected_item != NONE_LABEL:
             return True
         return False
 
@@ -921,21 +918,21 @@ class Level(metaclass=Singleton):
             x_offset = 0
             y_offset = - TILE_SIZE * 2
             if item_label == HEARTRECEPTACLE_LABEL:
-                item_image = self.consumables_tile_set.get_sprite_image(HEARTRECEPTACLE_FRAME_ID)
+                item_image = tileset.CONSUMABLES_TILE_SET.get_sprite_image(HEARTRECEPTACLE_FRAME_ID)
                 x_offset -= 2
                 y_offset += 4
             elif item_label == WOOD_SWORD_LABEL:
-                item_image = self.items_tile_set.get_sprite_image(WOOD_SWORD_FRAME_ID)
+                item_image = tileset.ITEMS_TILE_SET.get_sprite_image(WOOD_SWORD_FRAME_ID)
                 x_offset -= 12
             elif item_label == CANDLE_LABEL:
-                item_image = self.items_tile_set.get_sprite_image(RED_CANDLE_FRAME_ID)
+                item_image = tileset.ITEMS_TILE_SET.get_sprite_image(RED_CANDLE_FRAME_ID)
                 x_offset -= 12
             elif item_label == BOOMERANG_LABEL:
-                item_image = self.items_tile_set.get_sprite_image(BOOMERANG_FRAME_ID)
+                item_image = tileset.ITEMS_TILE_SET.get_sprite_image(BOOMERANG_FRAME_ID)
                 x_offset -= 12
                 y_offset += 9
             elif item_label == LADDER_LABEL:
-                item_image = self.items_tile_set.get_sprite_image(LADDER_FRAME_ID)
+                item_image = tileset.ITEMS_TILE_SET.get_sprite_image(LADDER_FRAME_ID)
                 x_offset = 3
             else:
                 # Item not implemented yet ? abort
@@ -968,7 +965,7 @@ class Level(metaclass=Singleton):
                 # Reset attack cooldown timer until game is resumed
                 monster.attack_starting_time = pygame.time.get_ticks()
 
-        if self.item_picked_up is not None and 'pickup' not in self.player.state:
+        if self.item_picked_up is not None and PICKUP_PREFIX not in self.player.state:
             self.item_picked_up.kill()
             self.item_picked_up = None
 
@@ -1007,7 +1004,7 @@ class Level(metaclass=Singleton):
         # During map transition, all existing sprite is paused, not being updated until the transition is over
         else:
             # Warp makes a scrolling transition of the screen level
-            if 'Warp' in self.in_map_transition:
+            if MAP_TRANSITION_WARP in self.in_map_transition:
                 # Delete the cave stairs sprite when transitioning screen
                 for secret_bomb in self.secret_bomb_sprites:
                     secret_bomb.kill()
@@ -1017,7 +1014,7 @@ class Level(metaclass=Singleton):
                     self.current_map_screen = self.next_map_screen
                     self.draw_floor()
                     self.create_map(self.current_map + str(self.current_map_screen))
-                    self.player.set_state('idle')
+                    self.player.set_state(STATE_IDLE)
                     self.player.set_position((self.player.warping_x, self.player.warping_y))
                     self.map_scroll_animation_counter = 0
                     self.in_map_transition = None
@@ -1025,10 +1022,10 @@ class Level(metaclass=Singleton):
             # Which, I know, is strange, but how the NES game operates from the player POV
             else:
                 # Wait for the stairs animation (and sound) to be over with, if any
-                if self.in_map_transition == 'Stairs':
+                if self.in_map_transition == MAP_TRANSITION_STAIRS:
                     current_time = pygame.time.get_ticks()
                     if current_time - self.stairs_animation_starting_time >= self.stairs_animation_duration:
-                        self.in_map_transition = 'Done'
+                        self.in_map_transition = MAP_TRANSITION_DONE
 
                 # Generate new map's sprites (enemies, borders, ...), use appropriate music (if any), move the player
                 else:
@@ -1039,12 +1036,12 @@ class Level(metaclass=Singleton):
                     self.current_map = self.next_map
                     self.current_map_screen = self.next_map_screen
                     self.create_map(self.current_map + self.current_map_screen)
-                    if 'level' in self.current_map:
+                    if LEVEL_PREFIX_LABEL in self.current_map:
                         self.overworld_background_theme.play(loops=-1)
                     else:
                         self.overworld_background_theme.stop()
                     # Play dungeon music if in dungeon
-                    if 'dungeon' in self.current_map:
+                    if DUNGEON_PREFIX_LABEL in self.current_map:
                         self.dungeon_background_theme.play(loops=-1)
                     else:
                         self.dungeon_background_theme.stop()

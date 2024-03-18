@@ -7,7 +7,7 @@ class TileSet(pygame.sprite.Sprite):
         super().__init__()
 
         if tile_type in cfg.TILE_TYPES:
-            self.file = f'../graphics/{tile_type}/{tile_type}.png'
+            self.file = f'{cfg.GRAPHICS_PATH}{tile_type}/{tile_type}{cfg.GRAPHICS_EXTENSION}'
             self.image = pygame.image.load(self.file)
             self.image.set_colorkey(cfg.COLOR_KEY)
             self.rec = self.image.get_rect()
@@ -16,13 +16,13 @@ class TileSet(pygame.sprite.Sprite):
 
             self.img_width = cfg.SPRITE_SIZE // cfg.TILE_SIZE
             self.img_height = cfg.SPRITE_SIZE // cfg.TILE_SIZE
-            if tile_type == 'font':
+            if tile_type == cfg.TILE_FONTS:
                 self.img_width = cfg.FONT_SPRITE_SIZE // cfg.TILE_SIZE
                 self.img_height = cfg.FONT_SPRITE_SIZE // cfg.TILE_SIZE
 
             self.items_per_row = self.rec.width // cfg.TILE_SIZE
         else:
-            raise ValueError('tile_type must be a declared value in TILE_TYPES')
+            raise ValueError(cfg.UNKNOWN_TILE_TYPE)
 
     def get_sprite_image(self, sprite_id):
         sprite_width = cfg.TILE_SIZE * self.img_width

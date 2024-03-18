@@ -10,7 +10,7 @@ class Game:
         # general setup
         pygame.init()
         self.screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
-        pygame.display.set_caption('Getting even closer to completion - A Zelda NES demo developed with Pygame')
+        pygame.display.set_caption(GAME_NAME)
         self.clock = pygame.time.Clock()
         tileset.CONSUMABLES_TILE_SET = tileset.TileSet(TILE_CONSUMABLES)
         tileset.ENEMIES_TILE_SET = tileset.TileSet(TILE_ENEMIES)
@@ -30,7 +30,7 @@ class Game:
                     pygame.quit()
                     sys.exit()
 
-            self.screen.fill('black')
+            self.screen.fill(BLACK_LABEL)
             Level().run()
             pygame.display.update()
             self.clock.tick(FPS)
