@@ -225,7 +225,7 @@ class PBoomerang(Particle):
             elif owner_direction_label == DOWN_LABEL:
                 self.direction_vector.x = 0
                 self.direction_vector.y = 1
-            elif owner_direction_label ==  LEFT_LABEL:
+            elif owner_direction_label == LEFT_LABEL:
                 self.direction_vector.x = -1
                 self.direction_vector.y = 0
 
@@ -370,7 +370,8 @@ class Rock(Particle):
         for sprite in self.obstacle_sprites:
             if (sprite.hitbox.colliderect(self.hitbox)
                     and sprite.type != LIMIT_WATER_INDEX
-                    and sprite.type != LIMIT_LADDER_INDEX):
+                    and sprite.type != LIMIT_LADDER_INDEX
+                    and sprite.type != LIMIT_LAKE_BORDER_INDEX):
                 self.kill()
 
     def move(self):
@@ -462,7 +463,76 @@ class Arrow(Particle):
             if (sprite.hitbox.colliderect(self.hitbox)
                     and sprite.type != LIMIT_TREE_INDEX
                     and sprite.type != LIMIT_WATER_INDEX
-                    and sprite.type != LIMIT_LADDER_INDEX):
+                    and sprite.type != LIMIT_LADDER_INDEX
+                    and sprite.type != LIMIT_LAKE_BORDER_INDEX):
+                self.kill()
+
+    def move(self):
+        self.hitbox.x += self.direction_vector.x * self.speed
+        self.rect.x += self.direction_vector.x * self.speed
+        self.hitbox.y += self.direction_vector.y * self.speed
+        self.rect.y += self.direction_vector.y * self.speed
+
+    def effect(self):
+        # None, it's a damaging particle
+        pass
+
+    def update(self):
+        super().update()
+
+
+class MagicMissile(Particle):
+    def __init__(self,
+                 owner_pos,
+                 owner_direction_vector,
+                 groups,
+                 obstacle_sprites):
+        super().__init__(owner_pos, owner_direction_vector, groups)
+
+        self.obstacle_sprites = obstacle_sprites
+
+        self.frame_id = MAGIC_MISSILE_FRAME_ID
+        self.nb_frames = MAGIC_MISSILE_FRAMES
+
+        self.move_animations = []
+        self.move_animation_cooldown = 100
+        self.load_animation_frames(tileset.PARTICLES_TILE_SET)
+
+        self.image = self.move_animations[0]
+        self.rect = self.image.get_rect(topleft=(self.pos_x, self.pos_y))
+        self.hitbox = self.rect.inflate(-16, -12)
+        self.hitbox.left = self.rect.left
+        self.hitbox.top = self.rect.top + 6
+
+        x_displacement = self.rect.centerx - game.Level().player.rect.centerx
+        y_displacement = self.rect.centery - game.Level().player.rect.centery
+        self.direction_vector = pygame.math.Vector2(-x_displacement, -y_displacement)
+        if self.direction_vector.magnitude() != 0:
+            self.direction_vector = self.direction_vector.normalize()
+
+        self.affects_player = True
+        self.bypasses_shield = True
+        self.collision_damage = MAGIC_MISSILE_DMG
+        self.speed = MAGIC_MISSILE_SPEED
+
+        self.is_active = True
+
+    def load_animation_frames(self, particle_tile_set):
+        for i in range(self.nb_frames):
+            tiles_offset = SPRITE_SIZE // TILE_SIZE * i
+            self.move_animations.append(
+                particle_tile_set.get_sprite_image(self.frame_id + tiles_offset))
+
+    def animate(self):
+        super().animate()
+
+    def collision(self, direction):
+        for sprite in self.obstacle_sprites:
+            if (sprite.hitbox.colliderect(self.hitbox)
+                    and sprite.type != LIMIT_TREE_INDEX
+                    and sprite.type != LIMIT_WATER_INDEX
+                    and sprite.type != LIMIT_LADDER_INDEX
+                    and sprite.type != LIMIT_LAKE_BORDER_INDEX):
                 self.kill()
 
     def move(self):
@@ -856,7 +926,7 @@ class Flame(Particle):
             self.direction_vector.y = 0
             self.pos_x = owner_pos[0] + TILE_SIZE
             self.pos_y = owner_pos[1]
-        elif owner_direction_label ==  DOWN_LABEL:
+        elif owner_direction_label == DOWN_LABEL:
             self.direction_vector.x = 0
             self.direction_vector.y = 1
             self.pos_x = owner_pos[0]

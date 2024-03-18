@@ -2,9 +2,10 @@ import abc
 import pygame
 import random
 import tileset
+import level as game
 from settings import *
 from entities import Entity
-from particles import Rock, Arrow
+from particles import Rock, Arrow, MagicMissile
 
 
 # Known issue : Monster waits for STATE_ACTION to end before getting hurt
@@ -15,8 +16,16 @@ class Enemy(Entity):
         self.direction_label = random.choice([UP_LABEL, DOWN_LABEL, LEFT_LABEL, RIGHT_LABEL])
         self.state = ''
         self.speed = 1
+        self.can_dive = False
+        self.is_above_ground = True
 
         # Initialisation of values common to all Enemy used to load the different animations
+        self.dive_animations = []
+        self.dive_frames = 0
+        self.dive_frame_id = 0
+        self.rise_animations = []
+        self.rise_frames = 0
+        self.rise_frame_id = 0
         self.hurt_frames = MONSTER_HURT_FRAMES
         self.spawn_frames = MONSTER_SPAWN_FRAMES
         self.spawn_frame_id = MONSTER_SPAWN_FRAME_ID
@@ -36,6 +45,10 @@ class Enemy(Entity):
         self.hurt_starting_time = 0
         self.hurt_animation_cooldown = MONSTER_HURT_ANIMATION_COOLDOWN
         self.hurt_cooldown = (MONSTER_HURT_FRAMES + 1) * self.hurt_animation_cooldown
+        self.dive_cooldown = 0
+        self.dive_starting_time = 0
+        self.rise_cooldown = 0
+        self.rise_starting_time = 0
 
         self.spawn_animation_frame_count = 0
         self.spawn_animation_starting_time = 0
@@ -43,6 +56,17 @@ class Enemy(Entity):
         self.despawn_animation_frame_count = 0
         self.despawn_animation_starting_time = 0
         self.despawn_animation_cooldown = MONSTER_DEATH_ANIMATION_COOLDOWN
+
+        self.above_ground_starting_time = pygame.time.get_ticks()
+        self.under_ground_starting_time = 0
+        self.above_ground_cooldown = MONSTER_ABOVE_GROUND_COOLDOWN
+        self.under_ground_cooldown = MONSTER_UNDER_GROUND_COOLDOWN
+        self.dive_animation_starting_time = 0
+        self.dive_animation_frame_count = 0
+        self.dive_animation_cooldown = 0
+        self.rise_animation_starting_time = pygame.time.get_ticks()
+        self.rise_animation_frame_count = 0
+        self.rise_animation_cooldown = 0
 
         # Sounds
         self.monster_hurt_sound = pygame.mixer.Sound(SOUND_MONSTER_HURT)
@@ -60,8 +84,20 @@ class Enemy(Entity):
         self.deathPlayed = False
 
     @abc.abstractmethod
+    def load_dive_frames(self, enemies_tile_set):
+        for i in range(self.dive_frames):
+            tile_offset = (SPRITE_SIZE // TILE_SIZE) * i
+            self.dive_animations.append(
+                enemies_tile_set.get_sprite_image(self.dive_frame_id + tile_offset))
+            self.rise_animations.insert(
+                0,
+                enemies_tile_set.get_sprite_image(self.dive_frame_id + tile_offset))
+
+    @abc.abstractmethod
     def load_animation_frames(self, enemies_tile_set):
         super().load_animation_frames(enemies_tile_set)
+        if self.can_dive:
+            self.load_dive_frames(enemies_tile_set)
 
     @abc.abstractmethod
     def cooldowns(self):
@@ -117,7 +153,7 @@ class Enemy(Entity):
         elif not self.isDead:
             super().animate()
         else:
-            self.hitbox = self.rect.inflate(-32, -32)
+            self.hitbox = self.rect.inflate(-TILE_SIZE * 2, -TILE_SIZE * 2)
             self.despawn_animation_starting_time, self.despawn_animation_frame_count = (
                 self.change_animation_frame(self.despawn_animation,
                                             self.despawn_animation_frame_count,
@@ -135,7 +171,9 @@ class Enemy(Entity):
     def collision(self, direction):
         if direction == HORIZONTAL_LABEL:
             for sprite in self.obstacle_sprites:
-                if sprite.hitbox.colliderect(self.hitbox) and sprite.type != LIMIT_LADDER_INDEX:
+                if (sprite.hitbox.colliderect(self.hitbox)
+                        and sprite.type != LIMIT_LADDER_INDEX
+                        and sprite.type != LIMIT_LAKE_BORDER_INDEX):
                     if self.direction_vector.x > 0:
                         self.hitbox.right = sprite.hitbox.left
                     if self.direction_vector.x < 0:
@@ -143,7 +181,9 @@ class Enemy(Entity):
 
         elif direction == VERTICAL_LABEL:
             for sprite in self.obstacle_sprites:
-                if sprite.hitbox.colliderect(self.hitbox) and sprite.type != LIMIT_LADDER_INDEX:
+                if (sprite.hitbox.colliderect(self.hitbox)
+                        and sprite.type != LIMIT_LADDER_INDEX
+                        and sprite.type != LIMIT_LAKE_BORDER_INDEX):
                     if self.direction_vector.y > 0:
                         self.hitbox.bottom = sprite.hitbox.top
                     if self.direction_vector.y < 0:
@@ -236,7 +276,7 @@ class Enemy(Entity):
                 self.direction_label = random.choice([UP_LABEL, DOWN_LABEL, LEFT_LABEL, RIGHT_LABEL])
                 self.direction_starting_time = current_time
                 self.direction_cooldown = random.randrange(500, 2000, 100)
-            if self. isSpawned and self.can_attack and not self.has_attacked:
+            if self.isSpawned and self.can_attack and not self.has_attacked:
                 self.state = STATE_ACTION
                 self.attack_starting_time = current_time
         else:
@@ -296,6 +336,9 @@ class RedOctorock(Enemy):
         # Cooldown between animation frames
         self.walking_animation_cooldown = OCTOROCK_WALKING_ANIMATION_COOLDOWN
         self.action_animation_cooldown = OCTOROCK_ACTION_ANIMATION_COOLDOWN
+
+    def load_dive_frames(self, enemies_tile_set):
+        super().load_dive_frames(enemies_tile_set)
 
     def load_animation_frames(self, enemies_tile_set):
         super().load_animation_frames(enemies_tile_set)
@@ -380,6 +423,9 @@ class RedMoblin(Enemy):
         self.walking_animation_cooldown = MOBLIN_WALKING_ANIMATION_COOLDOWN
         self.action_animation_cooldown = MOBLIN_ACTION_ANIMATION_COOLDOWN
 
+    def load_dive_frames(self, enemies_tile_set):
+        super().load_dive_frames(enemies_tile_set)
+
     def load_animation_frames(self, enemies_tile_set):
         super().load_animation_frames(enemies_tile_set)
 
@@ -423,3 +469,245 @@ class RedMoblin(Enemy):
 
     def update(self):
         super().update()
+
+
+class Zora(Enemy):
+    def __init__(self, pos, groups, visible_sprites, obstacle_sprites, particle_sprites):
+        super().__init__(groups, visible_sprites, obstacle_sprites, particle_sprites, True)
+
+        self.can_dive = True
+        self.direction_label = DOWN_LABEL
+
+        self.dive_frames = ZORA_DIVE_FRAMES
+        self.rise_frames = ZORA_DIVE_FRAMES
+        self.walking_frames = ZORA_WALKING_FRAMES
+        self.action_frames = ZORA_WALKING_FRAMES
+        self.walking_up_frame_id = ZORA_WALKING_UP_FRAME_ID
+        self.walking_down_frame_id = ZORA_WALKING_DOWN_FRAME_ID
+        self.action_up_frame_id = ZORA_WALKING_UP_FRAME_ID
+        self.action_down_frame_id = ZORA_WALKING_DOWN_FRAME_ID
+        self.hurt_up_frame_id = ZORA_HURT_UP_FRAME_ID
+        self.hurt_down_frame_id = ZORA_HURT_DOWN_FRAME_ID
+        self.dive_frame_id = ZORA_DIVE_FRAME_ID
+
+        self.walking_animations = {
+            UP_LABEL: [],
+            DOWN_LABEL: []
+        }
+        self.action_animations = {
+            UP_LABEL: [],
+            DOWN_LABEL: []
+        }
+        self.hurt_animations = {
+            UP_LABEL: [],
+            DOWN_LABEL: []
+        }
+        self.load_animation_frames(tileset.ENEMIES_TILE_SET)
+
+        # Set first image of the monster appearing when created, and generating corresponding hitbox
+        self.image = pygame.Surface((TILE_SIZE * 2, TILE_SIZE * 2))
+        self.rect = self.image.get_rect(topleft=pos)
+        self.hitbox = self.rect
+
+        # Zora Stats
+        self.health = ZORA_HEALTH
+        self.collision_damage = ZORA_DMG
+
+        # All cooldowns are in milliseconds
+        # Cooldown between animation frames
+        self.walking_animation_cooldown = ZORA_WALKING_ANIMATION_COOLDOWN
+        self.action_animation_cooldown = ZORA_ACTION_ANIMATION_COOLDOWN
+        self.dive_animation_cooldown = ZORA_DIVE_ANIMATION_COOLDOWN
+        self.rise_animation_cooldown = ZORA_DIVE_ANIMATION_COOLDOWN
+
+        self.above_ground_starting_time = pygame.time.get_ticks()
+        self.has_attacked = False
+        self.attack_cooldown = MONSTER_ABOVE_GROUND_COOLDOWN // 2
+        self.dive_cooldown = ZORA_DIVE_ANIMATION_COOLDOWN * ZORA_DIVE_FRAMES
+        self.rise_cooldown = ZORA_DIVE_ANIMATION_COOLDOWN * ZORA_DIVE_FRAMES
+
+    def load_walking_frames(self, entity_tile_set):
+        for i in range(self.walking_frames):
+            tiles_offset = (SPRITE_SIZE // TILE_SIZE) * i
+            self.walking_animations[UP_LABEL].append(
+                entity_tile_set.get_sprite_image(self.walking_up_frame_id + tiles_offset))
+            self.walking_animations[DOWN_LABEL].append(
+                entity_tile_set.get_sprite_image(self.walking_down_frame_id + tiles_offset))
+
+    def load_action_frames(self, entity_tile_set):
+        for i in range(self.action_frames):
+            tiles_offset = (SPRITE_SIZE // TILE_SIZE) * i
+            self.action_animations[UP_LABEL].append(
+                entity_tile_set.get_sprite_image(self.action_up_frame_id + tiles_offset))
+            self.action_animations[DOWN_LABEL].append(
+                entity_tile_set.get_sprite_image(self.action_down_frame_id + tiles_offset))
+
+    def load_hurt_frames(self, entity_tile_set):
+        for i in range(self.hurt_frames):
+            tiles_offset = (SPRITE_SIZE // TILE_SIZE) * i
+            self.hurt_animations[UP_LABEL].append(
+                entity_tile_set.get_sprite_image(self.hurt_up_frame_id + tiles_offset))
+            self.hurt_animations[DOWN_LABEL].append(
+                entity_tile_set.get_sprite_image(self.hurt_down_frame_id + tiles_offset))
+
+    def load_dive_frames(self, enemies_tile_set):
+        super().load_dive_frames(enemies_tile_set)
+
+    def load_animation_frames(self, enemies_tile_set):
+        super().load_animation_frames(enemies_tile_set)
+
+    def cooldowns(self):
+        current_time = pygame.time.get_ticks()
+
+        if self.state == STATE_RISING:
+            if current_time - self.rise_starting_time >= self.rise_cooldown:
+                self.invulnerable = False
+                self.state = STATE_WALKING
+                if self.rect.y <= game.Level().player.hitbox.centery:
+                    self.direction_label = DOWN_LABEL
+                else:
+                    self.direction_label = UP_LABEL
+        elif self.state == STATE_DIVING:
+            self.invulnerable = True
+            if current_time - self.dive_starting_time >= self.dive_cooldown:
+                self.state = STATE_IDLE
+        elif self.is_above_ground:
+            # Hurt monster is invulnerable during animation, this is reset here
+            if STATE_HURT in self.state:
+                if current_time - self.hurt_starting_time >= self.hurt_cooldown:
+                    self.state = STATE_WALKING
+                    self.invulnerable = False
+                    self.hurt_animation_frame_count = 0
+            elif current_time - self.above_ground_starting_time >= self.above_ground_cooldown:
+                self.state = STATE_DIVING
+                self.is_above_ground = False
+                self.has_attacked = False
+                self.under_ground_starting_time = current_time
+                self.dive_starting_time = current_time
+        else:
+            if current_time - self.under_ground_starting_time >= self.under_ground_cooldown:
+                self.state = STATE_RISING
+                self.is_above_ground = True
+                self.above_ground_starting_time = current_time
+                self.rise_starting_time = current_time
+
+    def change_animation_frame(self,
+                               animation_list,
+                               animation_frame_count,
+                               animation_starting_time,
+                               animation_cooldown,
+                               animation_frames_nb,
+                               reset_for_loop=True,
+                               idle_after=False):
+        return super().change_animation_frame(animation_list,
+                                              animation_frame_count,
+                                              animation_starting_time,
+                                              animation_cooldown,
+                                              animation_frames_nb,
+                                              reset_for_loop,
+                                              idle_after)
+
+    def animate(self):
+        super().animate()
+        if self.state == STATE_DIVING:
+            self.dive_animation_starting_time, self.dive_animation_frame_count = (
+                self.change_animation_frame(self.dive_animations,
+                                            self.dive_animation_frame_count,
+                                            self.dive_animation_starting_time,
+                                            self.dive_animation_cooldown,
+                                            self.dive_frames))
+        elif self.state == STATE_RISING:
+            self.rise_animation_starting_time, self.rise_animation_frame_count = (
+                self.change_animation_frame(self.rise_animations,
+                                            self.rise_animation_frame_count,
+                                            self.rise_animation_starting_time,
+                                            self.rise_animation_cooldown,
+                                            self.rise_frames))
+
+    def collision(self, direction):
+        if direction == HORIZONTAL_LABEL:
+            for obstacle in self.obstacle_sprites:
+                if obstacle.hitbox.colliderect(self.hitbox) and obstacle.type != LIMIT_WATER_INDEX:
+                    if self.direction_vector.x > 0:
+                        self.hitbox.right = obstacle.hitbox.left
+                    if self.direction_vector.x < 0:
+                        self.hitbox.left = obstacle.hitbox.right
+
+        elif direction == VERTICAL_LABEL:
+            for obstacle in self.obstacle_sprites:
+                if obstacle.hitbox.colliderect(self.hitbox) and obstacle.type != LIMIT_WATER_INDEX:
+                    if self.direction_vector.y > 0:
+                        self.hitbox.bottom = obstacle.hitbox.top
+                    if self.direction_vector.y < 0:
+                        self.hitbox.top = obstacle.hitbox.bottom
+
+    def move(self):
+        if self.state == STATE_IDLE:
+            if self.direction_label == UP_LABEL:
+                self.direction_vector.x = 0
+                self.direction_vector.y = -1
+            elif self.direction_label == DOWN_LABEL:
+                self.direction_vector.x = 0
+                self.direction_vector.y = 1
+            elif self.direction_label == LEFT_LABEL:
+                self.direction_vector.x = -1
+                self.direction_vector.y = 0
+            elif self.direction_label == RIGHT_LABEL:
+                self.direction_vector.x = 1
+                self.direction_vector.y = 0
+            else:
+                # Illegal move, ignore
+                return
+
+        self.hitbox.x += self.direction_vector.x * self.current_speed
+        self.collision(HORIZONTAL_LABEL)
+        self.hitbox.y += self.direction_vector.y * self.current_speed
+        self.collision(VERTICAL_LABEL)
+
+        self.rect.center = self.hitbox.center
+
+    def attack(self):
+        MagicMissile(self.rect.topleft,
+                     self.direction_vector,
+                     [self.visible_sprites, self.particle_sprites],
+                     self.obstacle_sprites)
+
+    def take_damage(self, amount, direction):
+        if STATE_HURT not in self.state and not self.invulnerable:
+            self.state = STATE_HURT
+            self.hurt_starting_time = pygame.time.get_ticks()
+            self.hurt_animation_starting_time = self.hurt_starting_time
+            self.invulnerable = True
+
+            # Zora isn't fazed by your attack, he isn't pushed anywhere.
+            # But, still, it hurts.
+            self.health -= amount
+            if self.health > 0:
+                self.monster_hurt_sound.play()
+
+    def update(self):
+        current_time = pygame.time.get_ticks()
+        if self.isSpawned and not self.isDead:
+            if self.is_above_ground:
+                if self.state == STATE_WALKING:
+                    if (not self.has_attacked
+                            and current_time - self.above_ground_starting_time >= self.attack_cooldown):
+                        self.has_attacked = True
+                        self.attack()
+            else:
+                if (self.isSpawned
+                        and current_time - self.direction_starting_time >= self.direction_cooldown):
+                    self.direction_label = random.choice([UP_LABEL, DOWN_LABEL, LEFT_LABEL, RIGHT_LABEL])
+                    self.direction_starting_time = current_time
+                    self.direction_cooldown = random.randrange(500, 2000, 100)
+                self.move()
+            if self.health <= 0:
+                self.despawn_animation_starting_time = pygame.time.get_ticks()
+                self.isDead = True
+                self.monster_despawn_sound.play()
+
+        self.animate()
+        self.cooldowns()
+
+        if self.state != STATE_IDLE:
+            pygame.display.get_surface().blit(self.image, self.rect.topleft)
