@@ -12,7 +12,6 @@ MAX_CHAR_PER_ROW = SCREEN_WIDTH // FONT_SPRITE_SIZE - 2 * TEXT_MARGIN
 TILE_SIZE = 16
 NB_TILE_WIDTH = SCREEN_WIDTH//TILE_SIZE
 NB_TILE_HEIGHT = SCREEN_HEIGHT//TILE_SIZE
-COLOR_KEY = (116, 116, 116)
 TEXT_OFFSET = TEXT_MARGIN * FONT_SPRITE_SIZE
 
 # CONSTANT STR
@@ -24,11 +23,14 @@ BLACK_LABEL = 'black'
 RED1_LABEL = 'red1'
 RED2_LABEL = 'red2'
 RED3_LABEL = 'red3'
+RED4_LABEL = 'red4'
+RED_LIST = [RED1_LABEL, RED2_LABEL, RED3_LABEL, RED4_LABEL]
 FONT_CHARS = '0123456789abcdefghijklmnopqrstuvwxyz,!\'&."?- '
 HORIZONTAL_LABEL = 'horizontal'
 VERTICAL_LABEL = 'vertical'
 # Error messages
 UNKNOWN_TILE_TYPE = 'tile_type must be a declared value in TILE_TYPES'
+INCOMPATIBLE_PALETTES = 'Both palettes[Colors] must be of the same length'
 # Directions
 UP_LABEL = 'up'
 RIGHT_LABEL = 'right'
@@ -152,6 +154,53 @@ SOUND_BOMB_DROP = AUDIO_PATH + 'Bomb_Drop.wav'
 SOUND_BOMB_EXPLODE = AUDIO_PATH + 'Bomb_Explode.wav'
 SOUND_STAIRS = AUDIO_PATH + 'Stairs.wav'
 SOUND_FLAME = AUDIO_PATH + 'Flame.wav'
+
+# COLOR PALETTE INFO
+COLOR_KEY = (116, 116, 116)
+PALETTE_NATURAL_LEVEL = [
+    (0, 0, 0),  # Main Black
+    (0, 168, 0),  # Main Green
+    (252, 216, 168),  # Main Beige
+    (32, 56, 236)  # Main Blue
+]
+PALETTE_NATURAL_DUNGEON = [
+    (0, 0, 0),
+    (24, 60, 92),
+    (0, 128, 136),
+    (0, 232, 216)
+]
+PALETTE_NATURAL_CAVE = [
+    (0, 0, 0),
+    (216, 40, 0),
+    (252, 152, 56),
+    (252, 116, 96)
+]
+PALETTE_DEATH = {
+    RED1_LABEL: [
+        (0, 0, 0),
+        (200, 76, 12),
+        (216, 40, 0),
+        (252, 116, 96)
+    ],
+    RED2_LABEL: [
+        (0, 0, 0),
+        (164, 0, 0),
+        (200, 76, 12),
+        (216, 40, 0)
+    ],
+    RED3_LABEL: [
+        (0, 0, 0),
+        (124, 8, 0),
+        (164, 0, 0),
+        (216, 40, 0)
+    ],
+    RED4_LABEL: [
+        (0, 0, 0),
+        (0, 0, 0),
+        (124, 8, 0),
+        (164, 0, 0)
+    ]
+}
 
 # HEALTH & DAMAGES STATS
 #
@@ -358,7 +407,6 @@ HUD_NB_HEARTS_PER_LINE = 8
 
 # GAME OVER ANIMATION DETAILS
 #
-GAME_OVER_DEATH_FLOORS = [RED1_LABEL, RED2_LABEL, RED3_LABEL]
 MAP_DEATH_FADE_COOLDOWN = 500
 
 # MENU ACCESS AND SELECTOR
