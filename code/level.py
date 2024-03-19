@@ -33,8 +33,6 @@ class Level(metaclass=Singleton):
         # Set up variables
         self.player = None
         self.death_played = False
-        self.death_floors = GAME_OVER_DEATH_FLOORS
-        self.number_of_death_floors = len(self.death_floors)
         self.death_floor_index = 0
         self.in_menu = False
         self.kill_count = 0
@@ -751,17 +749,35 @@ class Level(metaclass=Singleton):
             self.display_surface.blit(self.transition_surface, (x_offset - self.floor_rect.width, HUD_OFFSET))
             self.player.define_warping_position(x_offset, 0)
 
+    def palette_shift_floor(self, palette_in, palette_out, red_level):
+        if len(palette_in) != len(palette_out[red_level]):
+            raise ValueError(INCOMPATIBLE_PALETTES)
+        for i in range(len(palette_in)):
+            img_copy = self.floor_surface.copy()
+            img_copy.fill(PALETTE_DEATH[red_level][i])
+            self.floor_surface.set_colorkey(palette_in[i])
+            img_copy.blit(self.floor_surface, (0, 0))
+            self.floor_surface = img_copy
+
     def death(self):
         self.draw_hud()
         self.draw_floor()
         current_time = pygame.time.get_ticks()
 
-        # Kill every enemy sprite and every particle sprite
+        # Kill every sprite
         if self.death_motion_index == 1:
             for enemy in self.enemy_sprites:
                 enemy.kill()
             for particle in self.particle_sprites:
                 particle.kill()
+            for npc in self.npc_sprites:
+                npc.kill()
+            for text in self.text_sprites:
+                text.kill()
+            for loot in self.lootable_items_sprites:
+                loot.kill()
+            for merch in self.purchasable_sprites:
+                merch.kill()
             self.death_motion_index += 1
 
         # Player is in a hurt state for death_hurt_cooldown, by default 3 cycles of the hurt animation
@@ -776,7 +792,14 @@ class Level(metaclass=Singleton):
 
         # Set map img to red version
         if self.death_motion_index == 3:
-            self.draw_floor(self.death_floors[self.death_floor_index])
+            if LEVEL_PREFIX_LABEL in self.current_map:
+                palette_in = PALETTE_NATURAL_LEVEL
+            elif DUNGEON_PREFIX_LABEL in self.current_map:
+                palette_in = PALETTE_NATURAL_DUNGEON
+            else:
+                palette_in = PALETTE_NATURAL_CAVE
+            self.palette_shift_floor(palette_in, PALETTE_DEATH, RED_LIST[self.death_floor_index])
+            self.display_surface.blit(self.floor_surface, (0, HUD_OFFSET))
             # Spin ! By default, 3 times (cf init of self.death_spin_cooldown)
             if current_time - self.death_spin_starting_time < self.death_spin_cooldown:
                 self.player.set_state(STATE_SPINNING)
@@ -786,14 +809,21 @@ class Level(metaclass=Singleton):
                 self.player.set_state(STATE_IDLE_DOWN)
 
         # Switch map img to 3 darker shades successively
-        if self.death_motion_index == 4 and self.death_floor_index < self.number_of_death_floors:
+        if self.death_motion_index == 4 and self.death_floor_index < len(RED_LIST):
             if self.death_floor_switch_starting_time == 0:
                 self.death_floor_switch_starting_time = current_time
-            self.draw_floor(self.death_floors[self.death_floor_index])
+            if LEVEL_PREFIX_LABEL in self.current_map:
+                palette_in = PALETTE_NATURAL_LEVEL
+            elif DUNGEON_PREFIX_LABEL in self.current_map:
+                palette_in = PALETTE_NATURAL_DUNGEON
+            else:
+                palette_in = PALETTE_NATURAL_CAVE
+            self.palette_shift_floor(palette_in, PALETTE_DEATH, RED_LIST[self.death_floor_index])
+            self.display_surface.blit(self.floor_surface, (0, HUD_OFFSET))
             if current_time - self.death_floor_switch_starting_time >= self.death_floor_switch_cooldown:
                 self.death_floor_switch_starting_time = 0
                 self.death_floor_index += 1
-        elif self.death_motion_index == 4 and self.death_floor_index == self.number_of_death_floors:
+        elif self.death_motion_index == 4 and self.death_floor_index == len(RED_LIST):
             self.death_motion_index += 1
 
         # No more floor, just black

@@ -1002,10 +1002,13 @@ class Flame(Particle):
     def effect(self):
         pass
 
+    def kill(self):
+        self.player_ref.is_candle_lit = False
+        super().kill()
+
     def update(self):
         current_time = pygame.time.get_ticks()
         if current_time - self.ignited_starting_time >= self.extinction_cooldown:
-            self.player_ref.is_candle_lit = False
             self.kill()
         else:
             super().update()
