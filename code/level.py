@@ -521,10 +521,10 @@ class Level(metaclass=Singleton):
                          self.particle_sprites)
                 elif sprite_id == LEEVER_WALKING_FRAME_ID:
                     Leever((x, y),
-                         [self.visible_sprites, self.enemy_sprites],
-                         self.visible_sprites,
-                         self.obstacle_sprites,
-                         self.particle_sprites)
+                           [self.visible_sprites, self.enemy_sprites],
+                           self.visible_sprites,
+                           self.obstacle_sprites,
+                           self.particle_sprites)
 
     def load_shop(self, level_id):
         # Shops display from 0 to 3 items max
