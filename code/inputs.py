@@ -24,42 +24,46 @@ def is_move_key_pressed(keys):
 
 
 def is_up_key_pressed(keys):
-    if keys[UP_KEY_1] or keys[UP_KEY_2]:
+    if (UP_KEY_1 in keys
+            or UP_KEY_2 in keys):
         return True
     return False
 
 
 def is_down_key_pressed(keys):
-    if keys[DOWN_KEY_1] or keys[DOWN_KEY_2]:
+    if (DOWN_KEY_1 in keys
+            or DOWN_KEY_2 in keys):
         return True
     return False
 
 
 def is_left_key_pressed(keys):
-    if keys[LEFT_KEY_1] or keys[LEFT_KEY_2]:
+    if (LEFT_KEY_1 in keys
+            or LEFT_KEY_2 in keys):
         return True,
     return False
 
 
 def is_right_key_pressed(keys):
-    if keys[RIGHT_KEY_1] or keys[RIGHT_KEY_2]:
+    if (RIGHT_KEY_1 in keys
+            or RIGHT_KEY_2 in keys):
         return True
     return False
 
 
 def is_action_a_key_pressed(keys):
-    if keys[ACTION_A_KEY]:
+    if ACTION_A_KEY in keys:
         return True
     return False
 
 
 def is_action_b_key_pressed(keys):
-    if keys[ACTION_B_KEY]:
+    if ACTION_B_KEY in keys:
         return True
     return False
 
 
 def is_menu_key_pressed(keys):
-    if keys[MENU_KEY]:
+    if MENU_KEY in keys:
         return True
     return False

@@ -24,16 +24,22 @@ class Game:
         tileset.WARPS_TILE_SET = tileset.TileSet(TILE_WARPS)
 
     def run(self):
+        keys_pressed = []
         while True:
-            for event in pygame.event.get():
-                if event.type == pygame.QUIT:
-                    pygame.quit()
-                    sys.exit()
-
             self.screen.fill(BLACK_LABEL)
             Level().run()
             pygame.display.update()
             self.clock.tick(FPS)
+
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    pygame.quit()
+                    sys.exit()
+                if event.type == pygame.KEYDOWN:
+                    keys_pressed.append(event.key)
+                if event.type == pygame.KEYUP:
+                    keys_pressed.remove(event.key)
+            Level().handle_input(keys_pressed)
 
 
 if __name__ == '__main__':
