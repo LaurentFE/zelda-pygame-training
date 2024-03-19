@@ -10,7 +10,7 @@ import tileset
 from tile import Tile
 from obstacle import Obstacle
 from player import Player
-from enemies import RedOctorock, RedMoblin
+from enemies import RedOctorock, RedMoblin, Zora
 from particles import Heart, Rupee, CBomb, Fairy, HeartReceptacle, Ladder, RedCandle, Boomerang, WoodenSword
 from selector import Selector
 from warp import Warp, SecretPassage
@@ -498,18 +498,24 @@ class Level(metaclass=Singleton):
                 x = col_index * TILE_SIZE
                 y = row_index * TILE_SIZE + HUD_OFFSET  # Skipping menu tiles at the top of screen
                 sprite_id = int(col)
-                if sprite_id == 4:
+                if sprite_id == OCTOROCK_WALKING_DOWN_FRAME_ID:
                     RedOctorock((x, y),
                                 [self.visible_sprites, self.enemy_sprites],
                                 self.visible_sprites,
                                 self.obstacle_sprites,
                                 self.particle_sprites)
-                elif sprite_id == 44:
+                elif sprite_id == MOBLIN_WALKING_DOWN_FRAME_ID:
                     RedMoblin((x, y),
                               [self.visible_sprites, self.enemy_sprites],
                               self.visible_sprites,
                               self.obstacle_sprites,
                               self.particle_sprites)
+                elif sprite_id == ZORA_WALKING_DOWN_FRAME_ID:
+                    Zora((x, y),
+                         [self.visible_sprites, self.enemy_sprites],
+                         self.visible_sprites,
+                         self.obstacle_sprites,
+                         self.particle_sprites)
 
     def load_shop(self, level_id):
         # Shops display from 0 to 3 items max
@@ -735,7 +741,7 @@ class Level(metaclass=Singleton):
             self.display_surface.blit(self.transition_surface, (0, HUD_OFFSET - y_offset))
             self.draw_hud()
             self.player.define_warping_position(0, -y_offset)
-        elif self.in_map_transition == MAP_TRANSITION_LEFT :
+        elif self.in_map_transition == MAP_TRANSITION_LEFT:
             self.display_surface.blit(self.transition_surface, (x_offset - self.floor_rect.width, HUD_OFFSET))
             self.player.define_warping_position(x_offset, 0)
 

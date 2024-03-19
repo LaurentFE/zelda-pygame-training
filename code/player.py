@@ -402,7 +402,7 @@ class Player(Entity):
                 # If it's water under the ladder, make it walkable
                 sprite.type = LIMIT_LADDER_INDEX
 
-            elif sprite.type != LIMIT_LADDER_INDEX:
+            elif sprite.type != LIMIT_LADDER_INDEX and sprite.type != LIMIT_LAKE_BORDER_INDEX:
                 # If it's anything but a walkable water, block Player's path
                 if sprite.hitbox.colliderect(self.hitbox):
                     if direction == HORIZONTAL_LABEL:
@@ -425,7 +425,7 @@ class Player(Entity):
                         self.ladder.kill()
                         self.ladder = None
                         self.ladder_in_use = False
-                else:
+                elif sprite.type != LIMIT_LAKE_BORDER_INDEX:
                     sprite.type = LIMIT_WATER_INDEX
 
         # Collision with Particles
