@@ -25,7 +25,8 @@ class Purchasable(pygame.sprite.Sprite):
         item_amount = 0
         if self.label == BOMB_LABEL:
             item_amount = PLAYER_BOMB_LOOT_AMOUNT
-        elif self.label == HEART_LABEL:
+        elif (self.label == HEART_LABEL
+              or self.label == KEY_LABEL):
             item_amount = 1
 
         game.Level().player_pick_up(self.label, item_amount)

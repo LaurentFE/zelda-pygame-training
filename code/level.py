@@ -991,6 +991,8 @@ class Level(metaclass=Singleton):
                 self.player.add_money(amount)
             elif item_label == BOMB_LABEL:
                 self.player.add_bombs(amount)
+            elif item_label == KEY_LABEL:
+                self.player.add_keys(amount)
             else:
                 # Item not implemented yet ? abort
                 return

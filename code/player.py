@@ -95,6 +95,8 @@ class Player(Entity):
         self.rupee_acquired_sound.set_volume(0.3)
         self.rupees_acquired_sound = pygame.mixer.Sound(SOUND_RUPEES_ACQUIRED)
         self.rupees_acquired_sound.set_volume(0.3)
+        self.key_acquired_sound = pygame.mixer.Sound(SOUND_SMALL_PICKUP)
+        self.key_acquired_sound.set_volume(0.3)
         self.is_low_health = False
         self.low_health_sound = pygame.mixer.Sound(SOUND_LOW_HEALTH)
         self.low_health_sound.set_volume(0.3)
@@ -681,6 +683,11 @@ class Player(Entity):
             self.bombs += amount
             if self.bombs > PLAYER_BOMBS_MAX:
                 self.bombs = PLAYER_BOMBS_MAX
+
+    def add_keys(self, amount):
+        if amount >= 0:
+            self.key_acquired_sound.play()
+            self.keys += amount
 
     def add_item(self, label):
         if label == HEARTRECEPTACLE_LABEL:

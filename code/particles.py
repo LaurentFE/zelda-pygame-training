@@ -619,9 +619,6 @@ class Rupee(Particle):
         self.bypasses_shield = True
         self.collision_damage = 0
 
-        self.rupee_pickup_sound = pygame.mixer.Sound(SOUND_TINY_PICKUP)
-        self.rupee_pickup_sound.set_volume(0.3)
-
         self.is_active = True
 
     def load_animation_frames(self, particle_tile_set):
@@ -640,7 +637,6 @@ class Rupee(Particle):
         pass
 
     def effect(self):
-        self.rupee_pickup_sound.play()
         game.Level().player_pick_up(RUPEE_LABEL, self.amount)
 
     def update(self):
