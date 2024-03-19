@@ -817,6 +817,7 @@ class Key(Particle):
     def update(self):
         super().update()
 
+
 class Bomb(Particle):
     def __init__(self, owner_pos,
                  owner_direction_vector,
