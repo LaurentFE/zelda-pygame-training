@@ -773,6 +773,50 @@ class Fairy(Particle):
         super().update()
 
 
+class Key(Particle):
+    def __init__(self, owner_pos, groups, level_id):
+
+        owner_direction_vector = pygame.math.Vector2()
+        super().__init__(owner_pos, owner_direction_vector, groups)
+
+        self.level_id = level_id
+
+        self.frame_id = KEY_FRAME_ID
+        self.nb_frames = KEY_FRAMES
+        self.load_animation_frames(tileset.CONSUMABLES_TILE_SET)
+
+        self.image = self.move_animations[0]
+        self.rect = self.image.get_rect(topleft=(self.pos_x, self.pos_y))
+        self.hitbox = self.rect.inflate(-16, 0)
+
+        self.affects_player = True
+        self.collision_damage = 0
+
+        self.is_active = True
+
+    def load_animation_frames(self, particle_tile_set):
+        super().load_animation_frames(particle_tile_set)
+
+    def animate(self):
+        # This doesn't animate
+        pass
+
+    def collision(self, direction):
+        # This doesn't move, so it won't collide with things.
+        # But things will collide with it, and they will handle the collision
+        pass
+
+    def move(self):
+        # This doesn't move
+        pass
+
+    def effect(self):
+        MAP_ITEMS[self.level_id][KEY_LABEL] = False
+        game.Level().player_pick_up(KEY_LABEL, 1)
+
+    def update(self):
+        super().update()
+
 class Bomb(Particle):
     def __init__(self, owner_pos,
                  owner_direction_vector,

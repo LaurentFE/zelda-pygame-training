@@ -11,7 +11,8 @@ from tile import Tile
 from obstacle import Obstacle
 from player import Player
 from enemies import RedOctorock, RedMoblin, Zora, Leever
-from particles import Heart, Rupee, CBomb, Fairy, HeartReceptacle, Ladder, RedCandle, Boomerang, WoodenSword
+from particles import (Heart, Rupee, CBomb, Fairy, Key, HeartReceptacle,
+                       Ladder, RedCandle, Boomerang, WoodenSword)
 from selector import Selector
 from warp import Warp, SecretPassage
 from purchasable import Purchasable
@@ -488,6 +489,10 @@ class Level(metaclass=Singleton):
                         WoodenSword((x, y),
                                     [self.visible_sprites, self.lootable_items_sprites],
                                     level_id)
+                    elif sprite_id == KEY_FRAME_ID and MAP_ITEMS[level_id][KEY_LABEL]:
+                        Key((x, y),
+                            [self.visible_sprites, self.lootable_items_sprites, self.particle_sprites],
+                            level_id)
 
     def load_enemies(self, level_id):
         layout = import_csv_layout(f'{MAPS_PATH}{level_id}{MAPS_ENEMIES}{MAPS_EXTENSION}')
