@@ -10,7 +10,7 @@ import tileset
 from tile import Tile
 from obstacle import Obstacle
 from player import Player
-from enemies import RedOctorock, RedMoblin, Zora
+from enemies import RedOctorock, RedMoblin, Zora, Leever
 from particles import Heart, Rupee, CBomb, Fairy, HeartReceptacle, Ladder, RedCandle, Boomerang, WoodenSword
 from selector import Selector
 from warp import Warp, SecretPassage
@@ -512,6 +512,12 @@ class Level(metaclass=Singleton):
                               self.particle_sprites)
                 elif sprite_id == ZORA_WALKING_DOWN_FRAME_ID:
                     Zora((x, y),
+                         [self.visible_sprites, self.enemy_sprites],
+                         self.visible_sprites,
+                         self.obstacle_sprites,
+                         self.particle_sprites)
+                elif sprite_id == LEEVER_WALKING_FRAME_ID:
+                    Leever((x, y),
                          [self.visible_sprites, self.enemy_sprites],
                          self.visible_sprites,
                          self.obstacle_sprites,
