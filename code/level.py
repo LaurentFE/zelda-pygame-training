@@ -703,6 +703,10 @@ class Level(metaclass=Singleton):
                 purchasable.kill()
             for text in self.text_sprites:
                 text.kill()
+            if self.player.ladder_in_use:
+                self.player.ladder_in_use = False
+                self.player.ladder.kill()
+                self.player.ladder = None
 
             # change_id 0 -> 3 is a side scrolling map change, respectively Up/Right/Down/Left
             # change_id > 3 is a stairs map change, with sound and a completely different map
