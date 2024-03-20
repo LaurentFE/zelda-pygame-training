@@ -10,7 +10,7 @@ import tileset
 from tile import Tile
 from obstacle import Obstacle
 from player import Player
-from enemies import RedOctorock, RedMoblin, Zora, Leever
+from enemies import RedOctorock, BlueOctorock, RedMoblin, Zora, Leever
 from particles import (Heart, Rupee, CBomb, Fairy, Key, HeartReceptacle,
                        Ladder, RedCandle, Boomerang, WoodenSword)
 from selector import Selector
@@ -501,12 +501,18 @@ class Level(metaclass=Singleton):
                 x = col_index * TILE_SIZE
                 y = row_index * TILE_SIZE + HUD_OFFSET  # Skipping menu tiles at the top of screen
                 sprite_id = int(col)
-                if sprite_id == OCTOROCK_WALKING_DOWN_FRAME_ID:
+                if sprite_id == RED_OCTOROCK_WALKING_DOWN_FRAME_ID:
                     RedOctorock((x, y),
                                 [self.visible_sprites, self.enemy_sprites],
                                 self.visible_sprites,
                                 self.obstacle_sprites,
                                 self.particle_sprites)
+                elif sprite_id == BLUE_OCTOROCK_WALKING_DOWN_FRAME_ID:
+                    BlueOctorock((x, y),
+                                 [self.visible_sprites, self.enemy_sprites],
+                                 self.visible_sprites,
+                                 self.obstacle_sprites,
+                                 self.particle_sprites)
                 elif sprite_id == MOBLIN_WALKING_DOWN_FRAME_ID:
                     RedMoblin((x, y),
                               [self.visible_sprites, self.enemy_sprites],
