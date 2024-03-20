@@ -83,6 +83,8 @@ class Level(metaclass=Singleton):
         self.dungeon_background_theme.set_volume(0.2)
         self.game_over_sound = pygame.mixer.Sound(SOUND_GAME_OVER)
         self.game_over_sound.set_volume(0.4)
+        self.event_cleared_sound = pygame.mixer.Sound(SOUND_EVENT_CLEARED)
+        self.event_cleared_sound.set_volume(0.4)
 
         # Sprite setup
         # Player spawns at the center of the game surface
@@ -97,6 +99,7 @@ class Level(metaclass=Singleton):
         self.next_map = None
         self.next_map_screen = None
         self.player_new_position = None
+        self.dead_monsters_event_played = False
 
         self.key_pressed_start_timer = 0
         self.key_pressed_cooldown = LEVEL_KEY_PRESSED_COOLDOWN
@@ -642,6 +645,7 @@ class Level(metaclass=Singleton):
         self.load_items(level_id)
         self.load_enemies(level_id)
         self.load_shop(level_id)
+        self.dead_monsters_event_played = False
 
     def create_transition_surface(self):
         # Only Overworld and Dungeon maps will have warp tiles to border scroll
@@ -957,22 +961,13 @@ class Level(metaclass=Singleton):
             match loot:
                 case 0 | 2 | 4 | 8:
                     rupee_amount = 5 if random.randint(1, 100) <= LOOT_BIG_RUPEE_PERCENTAGE else 1
-                    Rupee(pos,
-                          [self.visible_sprites, self.particle_sprites],
-                          self.obstacle_sprites,
-                          rupee_amount)
+                    Rupee(pos, [self.visible_sprites, self.particle_sprites], rupee_amount)
                 case 1 | 7:
-                    CBomb(pos,
-                          [self.visible_sprites, self.particle_sprites],
-                          self.obstacle_sprites)
+                    CBomb(pos, [self.visible_sprites, self.particle_sprites])
                 case 3:
-                    Fairy(pos,
-                          [self.visible_sprites, self.particle_sprites],
-                          self.border_sprites)
+                    Fairy(pos, [self.visible_sprites, self.particle_sprites], self.border_sprites)
                 case 5 | 6 | 9:
-                    Heart(pos,
-                          [self.visible_sprites, self.particle_sprites],
-                          self.obstacle_sprites)
+                    Heart(pos, [self.visible_sprites, self.particle_sprites])
 
     def player_pick_up(self, item_label, amount=0):
         if item_label in ITEM_PICKUP_ANIMATION.keys():
@@ -1016,12 +1011,47 @@ class Level(metaclass=Singleton):
                 # Item not implemented yet ? abort
                 return
 
+    def map_kill_event_done(self):
+        self.event_cleared_sound.play()
+        level_id = str(self.current_map) + str(self.current_map_screen)
+        event_label = MONSTER_KILL_EVENT[level_id]
+        item_pos = (SCREEN_WIDTH // 2 - TILE_SIZE, (SCREEN_HEIGHT + HUD_OFFSET) // 2 - TILE_SIZE)
+        if event_label == BOMB_LABEL:
+            CBomb(item_pos,
+                  [self.visible_sprites, self.particle_sprites],
+                  True)
+        elif event_label == RUPEE_LABEL:
+            Rupee(item_pos,
+                  [self.visible_sprites, self.particle_sprites],
+                  DUNGEON_RUPEE_AMOUNT,
+                  True)
+        elif event_label == HEART_LABEL:
+            Heart(item_pos,
+                  [self.visible_sprites, self.particle_sprites],
+                  True)
+        elif event_label == KEY_LABEL:
+            Key(item_pos,
+                [self.visible_sprites, self.particle_sprites],
+                level_id,
+                True)
+        elif event_label == HEARTRECEPTACLE_LABEL:
+            HeartReceptacle(item_pos,
+                            [self.visible_sprites, self.particle_sprites],
+                            level_id,
+                            True)
+        elif event_label == OPEN_DOORS_LABEL:
+            # kill all closed_event_door_sprites
+            pass
+        self.dead_monsters_event_played = True
+
     def run(self):
+        dead_monsters_counter = 0
         for monster in self.enemy_sprites:
             if monster.isDead and monster.deathPlayed:
                 # Delete monsters that have played their death animation
                 self.drop_loot(monster.rect.topleft)
                 monster.kill()
+                dead_monsters_counter += 1
             elif self.in_menu:
                 # Reset attack cooldown timer until game is resumed
                 monster.attack_starting_time = pygame.time.get_ticks()
@@ -1056,6 +1086,10 @@ class Level(metaclass=Singleton):
         # Sprites are updated until map transitions
         if self.in_map_transition is None:
             if not self.in_menu:
+                if (dead_monsters_counter == len(self.enemy_sprites.sprites())
+                        and (str(self.current_map) + str(self.current_map_screen)) in MONSTER_KILL_EVENT.keys()
+                        and not self.dead_monsters_event_played):
+                    self.map_kill_event_done()
                 self.visible_sprites.update()
                 self.warp_sprites.update()
             else:
