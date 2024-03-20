@@ -205,7 +205,8 @@ class PBoomerang(Particle):
                  enemy_sprites,
                  particle_sprites,
                  border_sprites,
-                 player):
+                 owner,
+                 monster_variant=False):
         super().__init__(owner_pos, owner_direction_vector, groups)
 
         self.direction_vector = pygame.math.Vector2(owner_direction_vector)
@@ -213,7 +214,8 @@ class PBoomerang(Particle):
         self.enemy_sprites = enemy_sprites
         self.particle_sprites = particle_sprites
         self.border_sprites = border_sprites
-        self.player_ref = player
+        self.owner_ref = owner
+        self.monster_variant = monster_variant
 
         if self.direction_vector.x == 0 and self.direction_vector.y == 0:
             if owner_direction_label == UP_LABEL:
@@ -241,9 +243,16 @@ class PBoomerang(Particle):
         self.hitbox = self.rect.inflate(-22, -16)
         self.hitbox.center = self.rect.center
 
-        self.affects_enemy = True
-        self.collision_damage = BOOMERANG_DMG
-        self.speed = BOOMERANG_SPEED
+        if self.monster_variant:
+            self.affects_player = True
+            self.collision_damage = PLAYER_HEALTH_PER_HEART
+            self.speed = BOOMERANG_SPEED
+            self.boomerang_starting_time = pygame.time.get_ticks()
+            self.boomerang_go_back_cooldown = self.owner_ref.boomerang_timerange
+        else:
+            self.affects_enemy = True
+            self.collision_damage = BOOMERANG_DMG
+            self.speed = BOOMERANG_SPEED
 
         self.boomerang_attack_sound = pygame.mixer.Sound(SOUND_BOOMERANG_ATTACK)
         self.boomerang_attack_sound.set_volume(0.5)
@@ -265,39 +274,41 @@ class PBoomerang(Particle):
         super().animate()
 
     def collision(self, direction):
-        # Collision with a monster
-        for enemy in self.enemy_sprites:
-            if (not self.go_back
-                    and enemy.hitbox.colliderect(self.hitbox)
-                    and not enemy.invulnerable):
-                self.go_back = True
-                self.affects_enemy = False
-                enemy.take_damage(self.collision_damage, self.direction_label)
+        if not self.monster_variant:
+            # Collision with a monster
+            for enemy in self.enemy_sprites:
+                if (not self.go_back
+                        and enemy.hitbox.colliderect(self.hitbox)
+                        and not enemy.invulnerable):
+                    self.go_back = True
+                    self.affects_enemy = False
+                    enemy.take_damage(self.collision_damage, self.direction_label)
 
-        # Collision with a lootable particle
-        for particle in self.particle_sprites:
-            if (not self.go_back
-                    and particle.hitbox.colliderect(self.hitbox)
-                    and particle.affects_player
-                    and particle.collision_damage == 0):
-                particle.effect()
-                particle.kill()
-                self.go_back = True
-                self.affects_enemy = False
+            # Collision with a lootable particle
+            for particle in self.particle_sprites:
+                if (not self.go_back
+                        and particle.hitbox.colliderect(self.hitbox)
+                        and particle.affects_player
+                        and particle.collision_damage == 0):
+                    particle.effect()
+                    particle.kill()
+                    self.go_back = True
+                    self.affects_enemy = False
 
         # Collision with screen borders
         for border in self.border_sprites:
             if not self.go_back and border.hitbox.colliderect(self.hitbox):
                 self.go_back = True
+                self.collision_damage = 0
                 self.affects_enemy = False
 
-        if self.go_back and self.player_ref.hitbox.colliderect(self.hitbox):
+        if self.go_back and self.owner_ref.hitbox.colliderect(self.hitbox):
             self.kill()
 
     def move(self):
         if self.go_back:
-            x_displacement = self.rect.left - self.player_ref.rect.left
-            y_displacement = self.rect.top - self.player_ref.rect.top
+            x_displacement = self.rect.left - self.owner_ref.rect.left
+            y_displacement = self.rect.top - self.owner_ref.rect.top
             self.direction_vector = pygame.math.Vector2(-x_displacement, -y_displacement)
             if self.direction_vector.magnitude() != 0:
                 self.direction_vector = self.direction_vector.normalize()
@@ -313,10 +324,15 @@ class PBoomerang(Particle):
 
     def update(self):
         super().update()
+        current_time = pygame.time.get_ticks()
+        if (self.monster_variant
+                and current_time - self.boomerang_starting_time >= self.boomerang_go_back_cooldown):
+            self.go_back = True
+            self.collision_damage = 0
 
     def kill(self):
         self.boomerang_attack_sound.stop()
-        self.player_ref.is_boomerang_thrown = False
+        self.owner_ref.is_boomerang_thrown = False
         super().kill()
 
 
