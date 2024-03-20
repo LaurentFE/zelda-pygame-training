@@ -379,10 +379,12 @@ class Level(metaclass=Singleton):
         image = None
         revealed = False
         warp_file_path = MAPS_PATH + str(level_id)
+        ignore_non_existing_file = False
         if warp_type == WARP_WARPS:
             warp_file_path += MAPS_WARP
             groups = [self.warp_sprites]
         elif warp_type == WARP_BOMB:
+            ignore_non_existing_file = True
             warp_file_path += MAPS_BOMB
             groups = [self.visible_sprites, self.secret_bomb_sprites]
             image = tileset.WARPS_TILE_SET.get_sprite_image(SECRET_CAVE_FRAME_ID)
@@ -391,6 +393,7 @@ class Level(metaclass=Singleton):
             else:
                 revealed = False
         elif warp_type == WARP_FLAME:
+            ignore_non_existing_file = True
             warp_file_path += MAPS_FLAME
             groups = [self.visible_sprites, self.secret_flame_sprites]
             image = tileset.WARPS_TILE_SET.get_sprite_image(SECRET_STAIRS_FRAME_ID)
@@ -401,7 +404,7 @@ class Level(metaclass=Singleton):
         else:
             # warp type not implemented, abort
             return
-        layout = import_csv_layout(f'{warp_file_path}{MAPS_EXTENSION}')
+        layout = import_csv_layout(f'{warp_file_path}{MAPS_EXTENSION}', ignore_non_existing_file)
 
         if layout is not None:
             for row_index, row in enumerate(layout):
@@ -457,9 +460,9 @@ class Level(metaclass=Singleton):
                     Obstacle((x, y), [self.obstacle_sprites], sprite_id)
 
     def load_items(self, level_id):
-        layout = import_csv_layout(f'{MAPS_PATH}{level_id}{MAPS_ITEMS}{MAPS_EXTENSION}')
+        layout = import_csv_layout(f'{MAPS_PATH}{level_id}{MAPS_ITEMS}{MAPS_EXTENSION}', True)
         # Ignore all items for levels that are not supposed to have any
-        if level_id in MAP_ITEMS.keys():
+        if layout is not None and level_id in MAP_ITEMS.keys():
             map_items = MAP_ITEMS[level_id].keys()
             for row_index, row in enumerate(layout):
                 for col_index, col in enumerate(row):
@@ -495,48 +498,49 @@ class Level(metaclass=Singleton):
                             level_id)
 
     def load_enemies(self, level_id):
-        layout = import_csv_layout(f'{MAPS_PATH}{level_id}{MAPS_ENEMIES}{MAPS_EXTENSION}')
-        for row_index, row in enumerate(layout):
-            for col_index, col in enumerate(row):
-                x = col_index * TILE_SIZE
-                y = row_index * TILE_SIZE + HUD_OFFSET  # Skipping menu tiles at the top of screen
-                sprite_id = int(col)
-                if sprite_id == RED_OCTOROCK_WALKING_DOWN_FRAME_ID:
-                    RedOctorock((x, y),
-                                [self.visible_sprites, self.enemy_sprites],
-                                self.visible_sprites,
-                                self.obstacle_sprites,
-                                self.particle_sprites)
-                elif sprite_id == BLUE_OCTOROCK_WALKING_DOWN_FRAME_ID:
-                    BlueOctorock((x, y),
-                                 [self.visible_sprites, self.enemy_sprites],
-                                 self.visible_sprites,
-                                 self.obstacle_sprites,
-                                 self.particle_sprites)
-                elif sprite_id == RED_MOBLIN_WALKING_DOWN_FRAME_ID:
-                    RedMoblin((x, y),
-                              [self.visible_sprites, self.enemy_sprites],
-                              self.visible_sprites,
-                              self.obstacle_sprites,
-                              self.particle_sprites)
-                elif sprite_id == BLACK_MOBLIN_WALKING_DOWN_FRAME_ID:
-                    BlackMoblin((x, y),
-                                [self.visible_sprites, self.enemy_sprites],
-                                self.visible_sprites,
-                                self.obstacle_sprites,
-                                self.particle_sprites)
-                elif sprite_id == ZORA_WALKING_DOWN_FRAME_ID:
-                    Zora((x, y),
-                         [self.visible_sprites, self.enemy_sprites],
-                         self.visible_sprites,
-                         self.obstacle_sprites,
-                         self.particle_sprites)
-                elif sprite_id == LEEVER_WALKING_FRAME_ID:
-                    Leever((x, y),
-                           [self.visible_sprites, self.enemy_sprites],
-                           self.visible_sprites,
-                           self.obstacle_sprites,
-                           self.particle_sprites)
+        layout = import_csv_layout(f'{MAPS_PATH}{level_id}{MAPS_ENEMIES}{MAPS_EXTENSION}', True)
+        if layout is not None:
+            for row_index, row in enumerate(layout):
+                for col_index, col in enumerate(row):
+                    x = col_index * TILE_SIZE
+                    y = row_index * TILE_SIZE + HUD_OFFSET  # Skipping menu tiles at the top of screen
+                    sprite_id = int(col)
+                    if sprite_id == OCTOROCK_WALKING_DOWN_FRAME_ID:
+                        RedOctorock((x, y),
+                                    [self.visible_sprites, self.enemy_sprites],
+                                    self.visible_sprites,
+                                    self.obstacle_sprites,
+                                    self.particle_sprites)
+                    elif sprite_id == BLUE_OCTOROCK_WALKING_DOWN_FRAME_ID:
+                        BlueOctorock((x, y),
+                                     [self.visible_sprites, self.enemy_sprites],
+                                     self.visible_sprites,
+                                     self.obstacle_sprites,
+                                     self.particle_sprites)
+                    elif sprite_id == MOBLIN_WALKING_DOWN_FRAME_ID:
+                        RedMoblin((x, y),
+                                  [self.visible_sprites, self.enemy_sprites],
+                                  self.visible_sprites,
+                                  self.obstacle_sprites,
+                                  self.particle_sprites)
+                    elif sprite_id == BLACK_MOBLIN_WALKING_DOWN_FRAME_ID:
+                        BlackMoblin((x, y),
+                                    [self.visible_sprites, self.enemy_sprites],
+                                    self.visible_sprites,
+                                    self.obstacle_sprites,
+                                    self.particle_sprites)
+                    elif sprite_id == ZORA_WALKING_DOWN_FRAME_ID:
+                        Zora((x, y),
+                             [self.visible_sprites, self.enemy_sprites],
+                             self.visible_sprites,
+                             self.obstacle_sprites,
+                             self.particle_sprites)
+                    elif sprite_id == LEEVER_WALKING_FRAME_ID:
+                        Leever((x, y),
+                               [self.visible_sprites, self.enemy_sprites],
+                               self.visible_sprites,
+                               self.obstacle_sprites,
+                               self.particle_sprites)
 
     def load_shop(self, level_id):
         # Shops display from 0 to 3 items max
