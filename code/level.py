@@ -876,11 +876,6 @@ class Level(metaclass=Singleton):
                       game_over_message_pos_y)
             self.death_motion_index += 1
 
-        if self.death_motion_index == 9:
-            keys = pygame.key.get_pressed()
-            if is_action_a_key_pressed(keys):
-                self.death_played = True
-
     def is_menu_key_pressed_out_of_menu(self, keys):
         if is_menu_key_pressed(keys) and not self.in_menu:
             return True
@@ -915,11 +910,9 @@ class Level(metaclass=Singleton):
 
         return self.menu_item_coord_and_frame_id[self.current_selected_item][0]
 
-    def input(self):
-        # Known issue : When key press is short, it is sometimes not registered and the menu doesn't open/close
-        # How to fix that ?
+    def handle_input(self, keys):
+        self.player.handle_input(keys)
         current_time = pygame.time.get_ticks()
-        keys = pygame.key.get_pressed()
         if current_time - self.key_pressed_start_timer >= self.key_pressed_cooldown:
             self.key_pressed_start_timer = current_time
 
@@ -940,6 +933,8 @@ class Level(metaclass=Singleton):
             elif self.is_left_key_pressed_in_menu_with_item(keys):
                 item_pos = self.get_selector_position_for_next_item(True)
                 self.item_selector.move(item_pos)
+            elif self.death_motion_index == 9 and len(keys) != 0:
+                self.death_played = True
 
     def drop_loot(self, pos):
         # Loot system follows (loosely) the system used in the NES game
@@ -1015,8 +1010,6 @@ class Level(metaclass=Singleton):
                 return
 
     def run(self):
-        self.input()
-
         for monster in self.enemy_sprites:
             if monster.isDead and monster.deathPlayed:
                 # Delete monsters that have played their death animation
@@ -1051,8 +1044,7 @@ class Level(metaclass=Singleton):
 
         elif self.death_played:
             # Close game
-            pygame.quit()
-            sys.exit()
+            pygame.event.post(pygame.event.Event(pygame.QUIT))
 
         # Sprites are updated until map transitions
         if self.in_map_transition is None:
