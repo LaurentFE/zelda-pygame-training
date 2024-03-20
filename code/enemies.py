@@ -223,7 +223,7 @@ class Enemy(Entity):
 
     @abc.abstractmethod
     def take_damage(self, amount, direction):
-        if STATE_HURT not in self.state and not self.invulnerable:
+        if self.isSpawned and STATE_HURT not in self.state and not self.invulnerable:
             self.state = STATE_HURT
             self.hurt_starting_time = pygame.time.get_ticks()
             self.hurt_animation_starting_time = self.hurt_starting_time
@@ -892,7 +892,7 @@ class Zora(Enemy):
                      self.obstacle_sprites)
 
     def take_damage(self, amount, direction):
-        if STATE_HURT not in self.state and not self.invulnerable:
+        if self.isSpawned and STATE_HURT not in self.state and not self.invulnerable:
             self.state = STATE_HURT
             self.hurt_starting_time = pygame.time.get_ticks()
             self.hurt_animation_starting_time = self.hurt_starting_time
