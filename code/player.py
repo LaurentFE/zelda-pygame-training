@@ -524,6 +524,8 @@ class Player(Entity):
             self.despawn_animation_starting_time = current_time
         elif state == STATE_WARPING:
             self.state = state
+        elif state == STATE_WARPING_DUNGEON:
+            self.state = state
         elif state == STATE_STAIRS:
             self.state = state
             self.stairs_sound.play()
@@ -569,6 +571,8 @@ class Player(Entity):
         if self.state == STATE_IDLE:
             # Stops all animation, resetting to 1st walking frame of the current direction
             self.image = self.walking_animations[self.direction_label][0]
+        elif self.state == STATE_WARPING_DUNGEON:
+            self.image = tileset.PLAYER_TILE_SET.get_sprite_image(PLAYER_TRANSPARENT_FRAME_ID)
         elif self.state == STATE_WALKING or self.state == STATE_WARPING:
             self.walking_animation_starting_time, self.walking_animation_frame_count = (
                 self.change_animation_frame(self.walking_animations[self.direction_label],
@@ -727,19 +731,28 @@ class Player(Entity):
         if self.has_item(label):
             self.itemB = label
 
-    def define_warping_position(self, offset_x, offset_y):
+    def define_warping_position(self, offset_x, offset_y, map_name):
         new_x = self.rect.x + offset_x
         new_y = self.rect.y + offset_y
 
-        if TILE_SIZE >= new_x:
-            new_x = TILE_SIZE + 1
-        elif new_x >= SCREEN_WIDTH - TILE_SIZE * 3:
-            new_x = SCREEN_WIDTH - TILE_SIZE * 3 - 1
+        left_border = TILE_SIZE
+        right_border = SCREEN_WIDTH - TILE_SIZE * 3
+        top_border = TILE_SIZE + HUD_OFFSET
+        bottom_border = SCREEN_HEIGHT - TILE_SIZE * 3
+        if DUNGEON_PREFIX_LABEL in map_name:
+            left_border += TILE_SIZE * 2 + 4
+            right_border -= TILE_SIZE * 2 + 4
+            top_border += TILE_SIZE * 2 + 4
+            bottom_border -= TILE_SIZE * 2 + 4
+        if left_border >= new_x:
+            new_x = left_border + 1
+        elif new_x >= right_border:
+            new_x = right_border - 1
 
-        if TILE_SIZE + HUD_OFFSET >= new_y:
-            new_y = TILE_SIZE + HUD_OFFSET + 1
-        elif new_y >= SCREEN_HEIGHT - TILE_SIZE * 3:
-            new_y = SCREEN_HEIGHT - TILE_SIZE * 3 - 1
+        if top_border >= new_y:
+            new_y = top_border + 1
+        elif new_y >= bottom_border:
+            new_y = bottom_border - 1
 
         self.warping_x = new_x
         self.warping_y = new_y
@@ -758,7 +771,7 @@ class Player(Entity):
             else:
                 self.current_speed = (PLAYER_HURT_FRAMES - self.hurt_animation_frame_count)
 
-            if self.state != STATE_WARPING:
+            if STATE_WARPING not in self.state:
                 self.move()
                 if self.health < 0:
                     self.health = 0

@@ -713,30 +713,34 @@ class Level(metaclass=Singleton):
 
             # change_id 0 -> 3 is a side scrolling map change, respectively Up/Right/Down/Left
             # change_id > 3 is a stairs map change, with sound and a completely different map
+            if DUNGEON_PREFIX_LABEL in self.current_map:
+                new_state = STATE_WARPING_DUNGEON
+            else:
+                new_state = STATE_WARPING
             match change_id:
                 case 0:
                     # Up
                     self.in_map_transition = MAP_TRANSITION_UP
                     self.create_transition_surface()
-                    self.player.set_state(STATE_WARPING)
+                    self.player.set_state(new_state)
                     # Animate slide - will be done in update
                 case 1:
                     # Right
                     self.in_map_transition = MAP_TRANSITION_RIGHT
                     self.create_transition_surface()
-                    self.player.set_state(STATE_WARPING)
+                    self.player.set_state(new_state)
                     # Animate slide - will be done in update
                 case 2:
                     # Down
                     self.in_map_transition = MAP_TRANSITION_DOWN
                     self.create_transition_surface()
-                    self.player.set_state(STATE_WARPING)
+                    self.player.set_state(new_state)
                     # Animate slide - will be done in update
                 case 3:
                     # Left
                     self.in_map_transition = MAP_TRANSITION_LEFT
                     self.create_transition_surface()
-                    self.player.set_state(STATE_WARPING)
+                    self.player.set_state(new_state)
                     # Animate slide - will be done in update
                 case _:
                     if change_id - 4 < len(UNDERWORLD_STAIRS):
@@ -761,17 +765,17 @@ class Level(metaclass=Singleton):
         if self.in_map_transition == MAP_TRANSITION_UP:
             self.display_surface.blit(self.transition_surface, (0, HUD_OFFSET - self.floor_rect.height + y_offset))
             self.draw_hud()
-            self.player.define_warping_position(0, y_offset)
+            self.player.define_warping_position(0, y_offset, self.current_map)
         elif self.in_map_transition == MAP_TRANSITION_RIGHT:
             self.display_surface.blit(self.transition_surface, (-x_offset, HUD_OFFSET))
-            self.player.define_warping_position(-x_offset, 0)
+            self.player.define_warping_position(-x_offset, 0, self.current_map)
         elif self.in_map_transition == MAP_TRANSITION_DOWN:
             self.display_surface.blit(self.transition_surface, (0, HUD_OFFSET - y_offset))
             self.draw_hud()
-            self.player.define_warping_position(0, -y_offset)
+            self.player.define_warping_position(0, -y_offset, self.current_map)
         elif self.in_map_transition == MAP_TRANSITION_LEFT:
             self.display_surface.blit(self.transition_surface, (x_offset - self.floor_rect.width, HUD_OFFSET))
-            self.player.define_warping_position(x_offset, 0)
+            self.player.define_warping_position(x_offset, 0, self.current_map)
 
     def palette_shift_floor(self, palette_in, palette_out, red_level):
         if len(palette_in) != len(palette_out[red_level]):
