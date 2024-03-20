@@ -973,11 +973,11 @@ class Level(metaclass=Singleton):
 
     def player_pick_up(self, item_label, amount=0):
         if item_label in ITEM_PICKUP_ANIMATION.keys():
-            x_offset = 0
-            y_offset = - TILE_SIZE * 2
+            x_offset = 0 + self.player.direction_vector[0] * self.player.speed
+            y_offset = - TILE_SIZE * 2 + self.player.direction_vector[1] * self.player.speed
             if item_label == HEARTRECEPTACLE_LABEL:
                 item_image = tileset.CONSUMABLES_TILE_SET.get_sprite_image(HEARTRECEPTACLE_FRAME_ID)
-                x_offset -= 2
+                x_offset += 1
                 y_offset += 4
             elif item_label == WOOD_SWORD_LABEL:
                 item_image = tileset.ITEMS_TILE_SET.get_sprite_image(WOOD_SWORD_FRAME_ID)
@@ -988,10 +988,10 @@ class Level(metaclass=Singleton):
             elif item_label == BOOMERANG_LABEL:
                 item_image = tileset.ITEMS_TILE_SET.get_sprite_image(BOOMERANG_FRAME_ID)
                 x_offset -= 12
-                y_offset += 9
+                y_offset += 10
             elif item_label == LADDER_LABEL:
                 item_image = tileset.ITEMS_TILE_SET.get_sprite_image(LADDER_FRAME_ID)
-                x_offset = 3
+                x_offset += 0
             else:
                 # Item not implemented yet ? abort
                 return
