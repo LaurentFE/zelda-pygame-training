@@ -504,7 +504,7 @@ class Level(metaclass=Singleton):
                     x = col_index * TILE_SIZE
                     y = row_index * TILE_SIZE + HUD_OFFSET  # Skipping menu tiles at the top of screen
                     sprite_id = int(col)
-                    if sprite_id == OCTOROCK_WALKING_DOWN_FRAME_ID:
+                    if sprite_id == RED_OCTOROCK_WALKING_DOWN_FRAME_ID:
                         RedOctorock((x, y),
                                     [self.visible_sprites, self.enemy_sprites],
                                     self.visible_sprites,
@@ -516,7 +516,7 @@ class Level(metaclass=Singleton):
                                      self.visible_sprites,
                                      self.obstacle_sprites,
                                      self.particle_sprites)
-                    elif sprite_id == MOBLIN_WALKING_DOWN_FRAME_ID:
+                    elif sprite_id == RED_MOBLIN_WALKING_DOWN_FRAME_ID:
                         RedMoblin((x, y),
                                   [self.visible_sprites, self.enemy_sprites],
                                   self.visible_sprites,
