@@ -386,7 +386,10 @@ class Level(metaclass=Singleton):
             ignore_non_existing_file = True
             warp_file_path += MAPS_BOMB
             groups = [self.visible_sprites, self.secret_bomb_sprites]
-            image = tileset.WARPS_TILE_SET.get_sprite_image(SECRET_CAVE_FRAME_ID)
+            if DUNGEON_PREFIX_LABEL in level_id:
+                image = tileset.WARPS_TILE_SET.get_sprite_image(SECRET_WALL_FRAME_ID)
+            else:
+                image = tileset.WARPS_TILE_SET.get_sprite_image(SECRET_CAVE_FRAME_ID)
             if level_id in MAP_SECRETS_REVEALED.keys():
                 revealed = MAP_SECRETS_REVEALED[level_id]
             else:
