@@ -659,7 +659,7 @@ class Player(Entity):
     def add_max_health(self):
         if self.current_max_health < PLAYER_HEALTH_MAX:
             self.current_max_health += PLAYER_HEALTH_PER_HEART
-            self.heal(PLAYER_HEALTH_PER_HEART)
+            self.heal(1)
         else:
             self.current_max_health = PLAYER_HEALTH_MAX
 
