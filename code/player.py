@@ -116,9 +116,9 @@ class Player(Entity):
         self.warping_y = 0
         self.image = self.walking_animations[self.direction_label][0]
         self.rect = self.image.get_rect(topleft=pos)
-        self.hitbox = self.rect.inflate(-8, -16)
-        self.hitbox.top = self.rect.top + 14
-        self.hitbox.left = self.rect.left + 4
+        self.hitbox = self.rect.inflate(-PLAYER_HITBOX_X_DEFLATE, -PLAYER_HITBOX_Y_DEFLATE)
+        self.hitbox.top = self.rect.top + PLAYER_HITBOX_Y_OFFSET
+        self.hitbox.left = self.rect.left + PLAYER_HITBOX_X_OFFSET
 
         # All cooldowns are in milliseconds
         # Cooldown between animation frames
@@ -500,8 +500,8 @@ class Player(Entity):
         self.collision(VERTICAL_LABEL)
 
         if not self.isDead:
-            self.rect.top = self.hitbox.top - 12
-            self.rect.left = self.hitbox.left - 4
+            self.rect.top = self.hitbox.top - PLAYER_HITBOX_Y_OFFSET
+            self.rect.left = self.hitbox.left - PLAYER_HITBOX_X_OFFSET
 
     def set_state(self, state):
         current_time = pygame.time.get_ticks()
@@ -760,8 +760,8 @@ class Player(Entity):
     def set_position(self, pos):
         self.rect.x = pos[0]
         self.rect.y = pos[1]
-        self.hitbox.top = self.rect.top + 12
-        self.hitbox.left = self.rect.left + 4
+        self.hitbox.top = self.rect.top + PLAYER_HITBOX_Y_OFFSET
+        self.hitbox.left = self.rect.left + PLAYER_HITBOX_X_OFFSET
 
     def update(self):
         player_draw_pos = self.rect.topleft
