@@ -504,14 +504,14 @@ class RedMoblin(Enemy):
         self.is_right_x_flipped = True
         self.is_walking_animation_x_flipped = True
         self.is_action_animation_x_flipped = True
-        self.walking_up_frame_id = MOBLIN_WALKING_UP_FRAME_ID
-        self.walking_down_frame_id = MOBLIN_WALKING_DOWN_FRAME_ID
-        self.walking_left_frame_id = MOBLIN_WALKING_LEFT_FRAME_ID
-        self.walking_right_frame_id = MOBLIN_WALKING_LEFT_FRAME_ID
-        self.action_up_frame_id = MOBLIN_WALKING_UP_FRAME_ID
-        self.action_down_frame_id = MOBLIN_WALKING_DOWN_FRAME_ID
-        self.action_left_frame_id = MOBLIN_WALKING_LEFT_FRAME_ID
-        self.action_right_frame_id = MOBLIN_WALKING_LEFT_FRAME_ID
+        self.walking_up_frame_id = RED_MOBLIN_WALKING_UP_FRAME_ID
+        self.walking_down_frame_id = RED_MOBLIN_WALKING_DOWN_FRAME_ID
+        self.walking_left_frame_id = RED_MOBLIN_WALKING_LEFT_FRAME_ID
+        self.walking_right_frame_id = RED_MOBLIN_WALKING_LEFT_FRAME_ID
+        self.action_up_frame_id = RED_MOBLIN_WALKING_UP_FRAME_ID
+        self.action_down_frame_id = RED_MOBLIN_WALKING_DOWN_FRAME_ID
+        self.action_left_frame_id = RED_MOBLIN_WALKING_LEFT_FRAME_ID
+        self.action_right_frame_id = RED_MOBLIN_WALKING_LEFT_FRAME_ID
         self.hurt_up_frame_id = MOBLIN_HURT_UP_FRAME_ID
         self.hurt_down_frame_id = MOBLIN_HURT_DOWN_FRAME_ID
         self.hurt_left_frame_id = MOBLIN_HURT_LEFT_FRAME_ID
@@ -570,6 +570,114 @@ class RedMoblin(Enemy):
     def attack(self):
         Arrow(self.rect.topleft,
               self.direction_vector,
+              [self.visible_sprites, self.particle_sprites],
+              self.direction_label,
+              self.obstacle_sprites)
+
+    def take_damage(self, amount, direction):
+        super().take_damage(amount, direction)
+
+    def update(self):
+        super().update()
+
+
+class BlackMoblin(Enemy):
+    def __init__(self, pos, groups, visible_sprites, obstacle_sprites, particle_sprites):
+        super().__init__(groups, visible_sprites, obstacle_sprites, particle_sprites, True)
+
+        self.walking_frames = MOBLIN_WALKING_FRAMES
+        self.action_frames = MOBLIN_WALKING_FRAMES
+        self.is_right_x_flipped = True
+        self.is_walking_animation_x_flipped = True
+        self.is_action_animation_x_flipped = True
+        self.walking_up_frame_id = BLACK_MOBLIN_WALKING_UP_FRAME_ID
+        self.walking_down_frame_id = BLACK_MOBLIN_WALKING_DOWN_FRAME_ID
+        self.walking_left_frame_id = BLACK_MOBLIN_WALKING_LEFT_FRAME_ID
+        self.walking_right_frame_id = BLACK_MOBLIN_WALKING_LEFT_FRAME_ID
+        self.action_up_frame_id = BLACK_MOBLIN_WALKING_UP_FRAME_ID
+        self.action_down_frame_id = BLACK_MOBLIN_WALKING_DOWN_FRAME_ID
+        self.action_left_frame_id = BLACK_MOBLIN_WALKING_LEFT_FRAME_ID
+        self.action_right_frame_id = BLACK_MOBLIN_WALKING_LEFT_FRAME_ID
+        self.hurt_up_frame_id = MOBLIN_HURT_UP_FRAME_ID
+        self.hurt_down_frame_id = MOBLIN_HURT_DOWN_FRAME_ID
+        self.hurt_left_frame_id = MOBLIN_HURT_LEFT_FRAME_ID
+        self.hurt_right_frame_id = MOBLIN_HURT_LEFT_FRAME_ID
+
+        self.load_animation_frames(tileset.ENEMIES_TILE_SET)
+
+        # Set first image of the monster appearing when created, and generating corresponding hitbox
+        self.image = self.spawn_animation[0]
+        self.rect = self.image.get_rect(topleft=pos)
+        self.hitbox = self.rect
+
+        # Red Octorock Stats
+        self.health = BLACK_MOBLIN_HEALTH
+        self.collision_damage = BLACK_MOBLIN_DMG
+        self.speed = BLACK_MOBLIN_SPEED
+
+        # All cooldowns are in milliseconds
+        # Cooldown between animation frames
+        self.walking_animation_cooldown = MOBLIN_WALKING_ANIMATION_COOLDOWN
+        self.action_animation_cooldown = MOBLIN_ACTION_ANIMATION_COOLDOWN
+        self.attack_range_start = BLACK_MOBLIN_ATTACK_RANGE_START
+        self.attack_range_stop = BLACK_MOBLIN_ATTACK_RANGE_STOP
+
+    def load_dive_frames(self, enemies_tile_set):
+        super().load_dive_frames(enemies_tile_set)
+
+    def load_animation_frames(self, enemies_tile_set):
+        super().load_animation_frames(enemies_tile_set)
+
+    def cooldowns(self):
+        super().cooldowns()
+
+    def change_animation_frame(self,
+                               animation_list,
+                               animation_frame_count,
+                               animation_starting_time,
+                               animation_cooldown,
+                               animation_frames_nb,
+                               reset_for_loop=True,
+                               idle_after=False):
+        return super().change_animation_frame(animation_list,
+                                              animation_frame_count,
+                                              animation_starting_time,
+                                              animation_cooldown,
+                                              animation_frames_nb,
+                                              reset_for_loop,
+                                              idle_after)
+
+    def animate(self):
+        super().animate()
+
+    def collision(self, direction):
+        super().collision(direction)
+
+    def move(self):
+        super().move()
+
+    def attack(self):
+        # Arrow is aimed "towards" the player, not randomly.
+        # Still on a mutually exclusive x/y-axis, not like Zora shots
+        x_displacement = self.rect.centerx - game.Level().player.rect.centerx
+        y_displacement = self.rect.centery - game.Level().player.rect.centery
+        direction_vector = pygame.math.Vector2(-x_displacement, -y_displacement)
+        if direction_vector.magnitude() != 0:
+            direction_vector = direction_vector.normalize()
+        if abs(direction_vector.x) >= abs(direction_vector.y):
+            if direction_vector.x >= 0:
+                self.direction_label = RIGHT_LABEL
+            else:
+                self.direction_label = LEFT_LABEL
+        else:
+            if direction_vector.y >= 0:
+                self.direction_label = DOWN_LABEL
+            else:
+                self.direction_label = UP_LABEL
+        self.animate()
+
+        Arrow(self.rect.topleft,
+              direction_vector,
               [self.visible_sprites, self.particle_sprites],
               self.direction_label,
               self.obstacle_sprites)

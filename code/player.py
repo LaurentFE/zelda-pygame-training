@@ -375,6 +375,8 @@ class Player(Entity):
                     if self.health <= PLAYER_HEALTH_PER_HEART and not self.is_low_health:
                         self.low_health_sound.play(loops=-1)
                         self.is_low_health = True
+                    if self.health < 0:
+                        self.health = 0
 
         # Collision with Obstacles
         for sprite in self.obstacle_sprites:
