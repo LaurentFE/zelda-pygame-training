@@ -10,7 +10,7 @@ import tileset
 from tile import Tile
 from obstacle import Obstacle
 from player import Player
-from enemies import RedOctorock, RedMoblin, Zora, Leever
+from enemies import RedOctorock, BlueOctorock, RedMoblin, BlackMoblin, Zora, Leever
 from particles import (Heart, Rupee, CBomb, Fairy, Key, HeartReceptacle,
                        Ladder, RedCandle, Boomerang, WoodenSword)
 from selector import Selector
@@ -511,12 +511,24 @@ class Level(metaclass=Singleton):
                                     self.visible_sprites,
                                     self.obstacle_sprites,
                                     self.particle_sprites)
+                    elif sprite_id == BLUE_OCTOROCK_WALKING_DOWN_FRAME_ID:
+                        BlueOctorock((x, y),
+                                     [self.visible_sprites, self.enemy_sprites],
+                                     self.visible_sprites,
+                                     self.obstacle_sprites,
+                                     self.particle_sprites)
                     elif sprite_id == MOBLIN_WALKING_DOWN_FRAME_ID:
                         RedMoblin((x, y),
                                   [self.visible_sprites, self.enemy_sprites],
                                   self.visible_sprites,
                                   self.obstacle_sprites,
                                   self.particle_sprites)
+                    elif sprite_id == BLACK_MOBLIN_WALKING_DOWN_FRAME_ID:
+                        BlackMoblin((x, y),
+                                    [self.visible_sprites, self.enemy_sprites],
+                                    self.visible_sprites,
+                                    self.obstacle_sprites,
+                                    self.particle_sprites)
                     elif sprite_id == ZORA_WALKING_DOWN_FRAME_ID:
                         Zora((x, y),
                              [self.visible_sprites, self.enemy_sprites],
@@ -695,6 +707,10 @@ class Level(metaclass=Singleton):
                 purchasable.kill()
             for text in self.text_sprites:
                 text.kill()
+            if self.player.ladder_in_use:
+                self.player.ladder_in_use = False
+                self.player.ladder.kill()
+                self.player.ladder = None
 
             # change_id 0 -> 3 is a side scrolling map change, respectively Up/Right/Down/Left
             # change_id > 3 is a stairs map change, with sound and a completely different map
@@ -868,11 +884,6 @@ class Level(metaclass=Singleton):
                       game_over_message_pos_y)
             self.death_motion_index += 1
 
-        if self.death_motion_index == 9:
-            keys = pygame.key.get_pressed()
-            if is_action_a_key_pressed(keys):
-                self.death_played = True
-
     def is_menu_key_pressed_out_of_menu(self, keys):
         if is_menu_key_pressed(keys) and not self.in_menu:
             return True
@@ -907,11 +918,9 @@ class Level(metaclass=Singleton):
 
         return self.menu_item_coord_and_frame_id[self.current_selected_item][0]
 
-    def input(self):
-        # Known issue : When key press is short, it is sometimes not registered and the menu doesn't open/close
-        # How to fix that ?
+    def handle_input(self, keys):
+        self.player.handle_input(keys)
         current_time = pygame.time.get_ticks()
-        keys = pygame.key.get_pressed()
         if current_time - self.key_pressed_start_timer >= self.key_pressed_cooldown:
             self.key_pressed_start_timer = current_time
 
@@ -932,6 +941,8 @@ class Level(metaclass=Singleton):
             elif self.is_left_key_pressed_in_menu_with_item(keys):
                 item_pos = self.get_selector_position_for_next_item(True)
                 self.item_selector.move(item_pos)
+            elif self.death_motion_index == 9 and len(keys) != 0:
+                self.death_played = True
 
     def drop_loot(self, pos):
         # Loot system follows (loosely) the system used in the NES game
@@ -966,11 +977,11 @@ class Level(metaclass=Singleton):
 
     def player_pick_up(self, item_label, amount=0):
         if item_label in ITEM_PICKUP_ANIMATION.keys():
-            x_offset = 0
-            y_offset = - TILE_SIZE * 2
+            x_offset = 0 + self.player.direction_vector[0] * self.player.speed
+            y_offset = - TILE_SIZE * 2 + self.player.direction_vector[1] * self.player.speed
             if item_label == HEARTRECEPTACLE_LABEL:
                 item_image = tileset.CONSUMABLES_TILE_SET.get_sprite_image(HEARTRECEPTACLE_FRAME_ID)
-                x_offset -= 2
+                x_offset += 1
                 y_offset += 4
             elif item_label == WOOD_SWORD_LABEL:
                 item_image = tileset.ITEMS_TILE_SET.get_sprite_image(WOOD_SWORD_FRAME_ID)
@@ -981,10 +992,10 @@ class Level(metaclass=Singleton):
             elif item_label == BOOMERANG_LABEL:
                 item_image = tileset.ITEMS_TILE_SET.get_sprite_image(BOOMERANG_FRAME_ID)
                 x_offset -= 12
-                y_offset += 9
+                y_offset += 10
             elif item_label == LADDER_LABEL:
                 item_image = tileset.ITEMS_TILE_SET.get_sprite_image(LADDER_FRAME_ID)
-                x_offset = 3
+                x_offset += 0
             else:
                 # Item not implemented yet ? abort
                 return
@@ -1007,8 +1018,6 @@ class Level(metaclass=Singleton):
                 return
 
     def run(self):
-        self.input()
-
         for monster in self.enemy_sprites:
             if monster.isDead and monster.deathPlayed:
                 # Delete monsters that have played their death animation
@@ -1043,8 +1052,7 @@ class Level(metaclass=Singleton):
 
         elif self.death_played:
             # Close game
-            pygame.quit()
-            sys.exit()
+            pygame.event.post(pygame.event.Event(pygame.QUIT))
 
         # Sprites are updated until map transitions
         if self.in_map_transition is None:
