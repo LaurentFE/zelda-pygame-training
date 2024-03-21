@@ -227,89 +227,88 @@ class Player(Entity):
             return True
         return False
 
-    def input(self):
-        keys = pygame.key.get_pressed()
-
-        self.direction_vector.x = 0
-        self.direction_vector.y = 0
-        if is_move_key_pressed(keys) and self.can_move():
-            if is_up_key_pressed(keys):
-                self.direction_vector.y = -1
-                self.direction_label = UP_LABEL
-            elif is_down_key_pressed(keys):
-                self.direction_vector.y = 1
-                self.direction_label = DOWN_LABEL
-            if is_left_key_pressed(keys):
-                self.direction_vector.x = -1
-                self.direction_label = LEFT_LABEL
-            elif is_right_key_pressed(keys):
-                self.direction_vector.x = 1
-                self.direction_label = RIGHT_LABEL
-            if self.state != STATE_WALKING:
-                self.state = STATE_WALKING
-                self.walking_animation_starting_time = pygame.time.get_ticks()
-                self.idle_time = pygame.time.get_ticks()
-
-        # ActionA input has prio over Move input
-        # Can't move during sword use
-        if is_action_a_key_pressed(keys) and self.can_action() and self.itemA != NONE_LABEL:
-            # Define here all different item A weapons implemented
-            if self.itemA == WOOD_SWORD_LABEL:
-                self.action_a_particle = PWoodenSword(self.rect.topleft,
-                                                      self.direction_vector,
-                                                      self.direction_label,
-                                                      [self.visible_sprites, self.particle_sprites],
-                                                      self.enemy_sprites,
-                                                      self.particle_sprites)
-            else:
-                # ItemA used not implemented, abort
-                return
-            self.state = STATE_ACTION_A
-            self.action_starting_time = pygame.time.get_ticks()
+    def handle_input(self, keys):
+        if STATE_HURT not in self.state:
             self.direction_vector.x = 0
             self.direction_vector.y = 0
+            if is_move_key_pressed(keys) and self.can_move():
+                if is_up_key_pressed(keys):
+                    self.direction_vector.y = -1
+                    self.direction_label = UP_LABEL
+                elif is_down_key_pressed(keys):
+                    self.direction_vector.y = 1
+                    self.direction_label = DOWN_LABEL
+                if is_left_key_pressed(keys):
+                    self.direction_vector.x = -1
+                    self.direction_label = LEFT_LABEL
+                elif is_right_key_pressed(keys):
+                    self.direction_vector.x = 1
+                    self.direction_label = RIGHT_LABEL
+                if self.state != STATE_WALKING:
+                    self.state = STATE_WALKING
+                    self.walking_animation_starting_time = pygame.time.get_ticks()
+                    self.idle_time = pygame.time.get_ticks()
 
-        # Can't move during item use
-        if is_action_b_key_pressed(keys) and self.can_action() and self.itemB != NONE_LABEL:
-            if self.itemB == BOOMERANG_LABEL and not self.is_boomerang_thrown:
-                PBoomerang(self.rect.topleft,
-                           self.direction_vector,
-                           self.direction_label,
-                           [self.visible_sprites, self.particle_sprites],
-                           self.enemy_sprites,
-                           self.particle_sprites,
-                           self.border_sprites,
-                           self)
-                self.is_boomerang_thrown = True
-            elif self.itemB == BOMB_LABEL:
-                if self.bombs > 0:
-                    # Bombs are dropped and forgotten, won't get deleted upon timer but when they die by themselves
-                    Bomb(self.rect.topleft,
-                         self.direction_vector,
-                         self.direction_label,
-                         [self.visible_sprites, self.particle_sprites],
-                         self.secret_bomb_sprites,)
-                    self.bombs -= 1
+            # ActionA input has prio over Move input
+            # Can't move during sword use
+            if is_action_a_key_pressed(keys) and self.can_action() and self.itemA != NONE_LABEL:
+                # Define here all different item A weapons implemented
+                if self.itemA == WOOD_SWORD_LABEL:
+                    self.action_a_particle = PWoodenSword(self.rect.topleft,
+                                                          self.direction_vector,
+                                                          self.direction_label,
+                                                          [self.visible_sprites, self.particle_sprites],
+                                                          self.enemy_sprites,
+                                                          self.particle_sprites)
                 else:
-                    # Not enough bombs to operate, abort
+                    # ItemA used not implemented, abort
                     return
-            elif self.itemB == CANDLE_LABEL and not self.is_candle_lit:
-                Flame(self.rect.topleft,
-                      self.direction_vector,
-                      self.direction_label,
-                      [self.visible_sprites, self.particle_sprites],
-                      self.enemy_sprites,
-                      self.secret_flame_sprites,
-                      self)
-                self.is_candle_lit = True
-            else:
-                # ItemB used not implemented, abort
-                return
+                self.state = STATE_ACTION_A
+                self.action_starting_time = pygame.time.get_ticks()
+                self.direction_vector.x = 0
+                self.direction_vector.y = 0
 
-            self.state = STATE_ACTION_B
-            self.action_starting_time = pygame.time.get_ticks()
-            self.direction_vector.x = 0
-            self.direction_vector.y = 0
+            # Can't move during item use
+            if is_action_b_key_pressed(keys) and self.can_action() and self.itemB != NONE_LABEL:
+                if self.itemB == BOOMERANG_LABEL and not self.is_boomerang_thrown:
+                    PBoomerang(self.rect.topleft,
+                               self.direction_vector,
+                               self.direction_label,
+                               [self.visible_sprites, self.particle_sprites],
+                               self.enemy_sprites,
+                               self.particle_sprites,
+                               self.border_sprites,
+                               self)
+                    self.is_boomerang_thrown = True
+                elif self.itemB == BOMB_LABEL:
+                    if self.bombs > 0:
+                        # Bombs are dropped and forgotten, won't get deleted upon timer but when they die by themselves
+                        Bomb(self.rect.topleft,
+                             self.direction_vector,
+                             self.direction_label,
+                             [self.visible_sprites, self.particle_sprites],
+                             self.secret_bomb_sprites,)
+                        self.bombs -= 1
+                    else:
+                        # Not enough bombs to operate, abort
+                        return
+                elif self.itemB == CANDLE_LABEL and not self.is_candle_lit:
+                    Flame(self.rect.topleft,
+                          self.direction_vector,
+                          self.direction_label,
+                          [self.visible_sprites, self.particle_sprites],
+                          self.enemy_sprites,
+                          self.secret_flame_sprites,
+                          self)
+                    self.is_candle_lit = True
+                else:
+                    # ItemB used not implemented, abort
+                    return
+
+                self.state = STATE_ACTION_B
+                self.action_starting_time = pygame.time.get_ticks()
+                self.direction_vector.x = 0
+                self.direction_vector.y = 0
 
     def cooldowns(self):
         current_time = pygame.time.get_ticks()
@@ -658,7 +657,7 @@ class Player(Entity):
     def add_max_health(self):
         if self.current_max_health < PLAYER_HEALTH_MAX:
             self.current_max_health += PLAYER_HEALTH_PER_HEART
-            self.heal(PLAYER_HEALTH_PER_HEART)
+            self.heal(1)
         else:
             self.current_max_health = PLAYER_HEALTH_MAX
 
@@ -755,13 +754,14 @@ class Player(Entity):
         player_draw_pos = self.rect.topleft
         if not self.isDead:
             if STATE_HURT not in self.state:
-                self.input()
                 self.current_speed = self.speed
             else:
                 self.current_speed = (PLAYER_HURT_FRAMES - self.hurt_animation_frame_count)
 
             if self.state != STATE_WARPING:
                 self.move()
+                if self.health < 0:
+                    self.health = 0
             else:
                 player_draw_pos = (self.warping_x, self.warping_y)
             self.animate()
