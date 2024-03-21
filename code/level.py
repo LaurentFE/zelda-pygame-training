@@ -949,7 +949,9 @@ class Level(metaclass=Singleton):
         return self.menu_item_coord_and_frame_id[self.current_selected_item][0]
 
     def handle_input(self, keys):
-        self.player.handle_input(keys)
+        if (not self.player.isDead
+                and not self.in_menu):
+            self.player.handle_input(keys)
         current_time = pygame.time.get_ticks()
         if current_time - self.key_pressed_start_timer >= self.key_pressed_cooldown:
             self.key_pressed_start_timer = current_time
