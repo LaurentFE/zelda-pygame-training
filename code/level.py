@@ -504,7 +504,8 @@ class Level(metaclass=Singleton):
 
     def load_enemies(self, level_id):
         layout = import_csv_layout(f'{MAPS_PATH}{level_id}{MAPS_ENEMIES}{MAPS_EXTENSION}', True)
-        if layout is not None:
+        if (layout is not None
+                and DUNGEON_PREFIX_LABEL in level_id and not DUNGEON_DECIMATION[level_id]):
             for row_index, row in enumerate(layout):
                 for col_index, col in enumerate(row):
                     x = col_index * TILE_SIZE
@@ -1105,10 +1106,12 @@ class Level(metaclass=Singleton):
         # Sprites are updated until map transitions
         if self.in_map_transition is None:
             if not self.in_menu:
-                if (dead_monsters_counter == len(self.enemy_sprites.sprites())
-                        and (str(self.current_map) + str(self.current_map_screen)) in MONSTER_KILL_EVENT.keys()
-                        and not self.dead_monsters_event_played):
-                    self.map_kill_event_done()
+                if dead_monsters_counter == len(self.enemy_sprites.sprites()):
+                    level_id = str(self.current_map) + str(self.current_map_screen)
+                    DUNGEON_DECIMATION[level_id] = True
+                    if(level_id in MONSTER_KILL_EVENT.keys()
+                            and not self.dead_monsters_event_played):
+                        self.map_kill_event_done()
                 self.visible_sprites.update()
                 self.warp_sprites.update()
             else:
