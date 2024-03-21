@@ -17,7 +17,11 @@ class Warp(pygame.sprite.Sprite):
         self.hitbox = self.rect.inflate(-4, -4)
 
     def collisions(self):
-        if not self.in_transition and self.player_ref.hitbox.colliderect(self.hitbox):
+        player_hitbox_revised = self.player_ref.hitbox
+        if self.warp_id < 4:
+            player_hitbox_revised = player_hitbox_revised.inflate(0, PLAYER_HITBOX_Y_DEFLATE)
+        player_hitbox_revised.center = self.player_ref.hitbox.center
+        if not self.in_transition and player_hitbox_revised.colliderect(self.hitbox):
             self.in_transition = True
             game.Level().change_map(self.warp_id)
 
@@ -36,7 +40,7 @@ class SecretPassage(Warp):
 
         self.image = surface
         self.rect = self.image.get_rect(topleft=(self.pos_x, self.pos_y))
-        self.hitbox = self.rect
+        self.hitbox = self.rect.inflate(-4, -4)
 
         # Ensure Obstacle destruction if secret is already revealed
         if self.is_revealed:
@@ -48,7 +52,7 @@ class SecretPassage(Warp):
     def reveal(self):
         self.is_revealed = True
         MAP_SECRETS_REVEALED[self.level_id] = True
-        self.hitbox = self.rect.inflate(-16, -16)
+        self.hitbox = self.rect.inflate(-TILE_SIZE, -TILE_SIZE)
         if UNDERWORLD_STAIRS[int(self.warp_id) - 4][STAIRS_LABEL]:
             self.hitbox.top = self.rect.top
         for obstacle in self.obstacle_sprites:
