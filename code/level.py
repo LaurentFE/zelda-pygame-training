@@ -9,7 +9,7 @@ import tileset
 from tile import Tile
 from obstacle import Obstacle
 from player import Player
-from enemies import RedOctorock, BlueOctorock, RedMoblin, BlackMoblin, Zora, Leever
+from enemies import RedOctorock, BlueOctorock, RedMoblin, BlackMoblin, Stalfos, Zora, Leever
 from particles import (Heart, Rupee, CBomb, Fairy, Key, HeartReceptacle,
                        Ladder, RedCandle, Boomerang, WoodenSword)
 from selector import Selector
@@ -528,6 +528,12 @@ class Level(metaclass=Singleton):
                                     self.visible_sprites,
                                     self.obstacle_sprites,
                                     self.particle_sprites)
+                    elif sprite_id == STALFOS_WALKING_FRAME_ID:
+                        Stalfos((x, y),
+                                [self.visible_sprites, self.enemy_sprites],
+                                self.visible_sprites,
+                                self.obstacle_sprites,
+                                self.particle_sprites)
                     elif sprite_id == ZORA_WALKING_DOWN_FRAME_ID:
                         Zora((x, y),
                              [self.visible_sprites, self.enemy_sprites],
