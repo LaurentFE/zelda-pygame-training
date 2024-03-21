@@ -1115,7 +1115,6 @@ class Level(metaclass=Singleton):
         # Sprites are updated until map transitions
         if self.in_map_transition is None:
             if not self.in_menu:
-                print(f'{self.monsters_killed_in_the_room} out of {self.enemies_spawned_in_the_room}')
                 if self.monsters_killed_in_the_room == self.enemies_spawned_in_the_room:
                     level_id = str(self.current_map) + str(self.current_map_screen)
                     DUNGEON_DECIMATION[level_id] = True
