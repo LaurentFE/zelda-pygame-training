@@ -567,12 +567,12 @@ class MagicMissile(Particle):
 
 
 class Heart(Particle):
-    def __init__(self, owner_pos, groups, obstacle_sprites):
+    def __init__(self, owner_pos, groups, dropped_by_event=False):
 
         owner_direction_vector = pygame.math.Vector2()
         super().__init__(owner_pos, owner_direction_vector, groups)
 
-        self.obstacle_sprites = obstacle_sprites
+        self.dropped_by_event = dropped_by_event
 
         self.frame_id = HEART_FRAME_ID
         self.nb_frames = HEART_FRAMES
@@ -607,6 +607,9 @@ class Heart(Particle):
         pass
 
     def effect(self):
+        if self.dropped_by_event:
+            level_id = str(game.Level().current_map) + str(game.Level().current_map_screen)
+            MONSTER_KILL_EVENT.pop(level_id)
         self.heart_pickup_sound.play()
         game.Level().player_pick_up(HEART_LABEL, 1)
 
@@ -615,13 +618,13 @@ class Heart(Particle):
 
 
 class Rupee(Particle):
-    def __init__(self, owner_pos, groups, obstacle_sprites, amount):
+    def __init__(self, owner_pos, groups, amount, dropped_by_event=False):
 
         owner_direction_vector = pygame.math.Vector2()
         super().__init__(owner_pos, owner_direction_vector, groups)
 
-        self.obstacle_sprites = obstacle_sprites
         self.amount = amount
+        self.dropped_by_event = dropped_by_event
 
         self.frame_id = RUPEE_FRAME_ID
         self.nb_frames = RUPEE_FRAMES
@@ -653,6 +656,9 @@ class Rupee(Particle):
         pass
 
     def effect(self):
+        if self.dropped_by_event:
+            level_id = str(game.Level().current_map) + str(game.Level().current_map_screen)
+            MONSTER_KILL_EVENT.pop(level_id)
         game.Level().player_pick_up(RUPEE_LABEL, self.amount)
 
     def update(self):
@@ -660,12 +666,12 @@ class Rupee(Particle):
 
 
 class CBomb(Particle):
-    def __init__(self, owner_pos, groups, obstacle_sprites):
+    def __init__(self, owner_pos, groups, dropped_by_event=False):
 
         owner_direction_vector = pygame.math.Vector2()
         super().__init__(owner_pos, owner_direction_vector, groups)
 
-        self.obstacle_sprites = obstacle_sprites
+        self.dropped_by_event = dropped_by_event
 
         self.frame_id = CBOMB_FRAME_ID
         self.nb_frames = CBOMB_FRAMES
@@ -701,6 +707,9 @@ class CBomb(Particle):
         pass
 
     def effect(self):
+        if self.dropped_by_event:
+            level_id = str(game.Level().current_map) + str(game.Level().current_map_screen)
+            MONSTER_KILL_EVENT.pop(level_id)
         self.bomb_pickup_sound.play()
         game.Level().player_pick_up(BOMB_LABEL, PLAYER_BOMB_LOOT_AMOUNT)
 
@@ -790,12 +799,13 @@ class Fairy(Particle):
 
 
 class Key(Particle):
-    def __init__(self, owner_pos, groups, level_id):
+    def __init__(self, owner_pos, groups, level_id, dropped_by_event=False):
 
         owner_direction_vector = pygame.math.Vector2()
         super().__init__(owner_pos, owner_direction_vector, groups)
 
         self.level_id = level_id
+        self.dropped_by_event = dropped_by_event
 
         self.frame_id = KEY_FRAME_ID
         self.nb_frames = KEY_FRAMES
@@ -827,7 +837,11 @@ class Key(Particle):
         pass
 
     def effect(self):
-        MAP_ITEMS[self.level_id][KEY_LABEL] = False
+        if self.dropped_by_event:
+            level_id = str(game.Level().current_map) + str(game.Level().current_map_screen)
+            MONSTER_KILL_EVENT.pop(level_id)
+        else:
+            MAP_ITEMS[self.level_id][KEY_LABEL] = False
         game.Level().player_pick_up(KEY_LABEL, 1)
 
     def update(self):
@@ -1072,12 +1086,13 @@ class Flame(Particle):
 
 
 class HeartReceptacle(Particle):
-    def __init__(self, owner_pos, groups, level_id):
+    def __init__(self, owner_pos, groups, level_id, dropped_by_event=False):
 
         owner_direction_vector = pygame.math.Vector2()
         super().__init__(owner_pos, owner_direction_vector, groups)
 
         self.level_id = level_id
+        self.dropped_by_event = dropped_by_event
 
         self.frame_id = HEARTRECEPTACLE_FRAME_ID
         self.nb_frames = HEARTRECEPTACLE_FRAMES
@@ -1110,7 +1125,11 @@ class HeartReceptacle(Particle):
         pass
 
     def effect(self):
-        MAP_ITEMS[self.level_id][HEARTRECEPTACLE_LABEL] = False
+        if self.dropped_by_event:
+            level_id = str(game.Level().current_map) + str(game.Level().current_map_screen)
+            MONSTER_KILL_EVENT.pop(level_id)
+        else:
+            MAP_ITEMS[self.level_id][HEARTRECEPTACLE_LABEL] = False
         game.Level().player_pick_up(HEARTRECEPTACLE_LABEL)
 
     def update(self):
