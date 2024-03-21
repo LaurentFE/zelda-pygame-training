@@ -99,6 +99,8 @@ class Level(metaclass=Singleton):
         self.next_map = None
         self.next_map_screen = None
         self.player_new_position = None
+        self.enemies_spawned_in_the_room = 0
+        self.monsters_killed_in_the_room = 0
         self.dead_monsters_event_played = False
 
         self.key_pressed_start_timer = 0
@@ -504,6 +506,8 @@ class Level(metaclass=Singleton):
 
     def load_enemies(self, level_id):
         layout = import_csv_layout(f'{MAPS_PATH}{level_id}{MAPS_ENEMIES}{MAPS_EXTENSION}', True)
+        self.enemies_spawned_in_the_room = 0
+        self.monsters_killed_in_the_room = 0
         if (layout is not None
                 and DUNGEON_PREFIX_LABEL in level_id and not DUNGEON_DECIMATION[level_id]):
             for row_index, row in enumerate(layout):
@@ -511,6 +515,7 @@ class Level(metaclass=Singleton):
                     x = col_index * TILE_SIZE
                     y = row_index * TILE_SIZE + HUD_OFFSET  # Skipping menu tiles at the top of screen
                     sprite_id = int(col)
+                    self.enemies_spawned_in_the_room += 1
                     if sprite_id == RED_OCTOROCK_WALKING_DOWN_FRAME_ID:
                         RedOctorock((x, y),
                                     [self.visible_sprites, self.enemy_sprites],
@@ -560,6 +565,9 @@ class Level(metaclass=Singleton):
                                self.visible_sprites,
                                self.obstacle_sprites,
                                self.particle_sprites)
+                    else:
+                        # If the sprite_id is undefined/-1, it didn't generate an Enemy
+                        self.enemies_spawned_in_the_room -= 1
 
     def load_shop(self, level_id):
         # Shops display from 0 to 3 items max
@@ -1064,13 +1072,12 @@ class Level(metaclass=Singleton):
         self.dead_monsters_event_played = True
 
     def run(self):
-        dead_monsters_counter = 0
         for monster in self.enemy_sprites:
             if monster.isDead and monster.deathPlayed:
                 # Delete monsters that have played their death animation
                 self.drop_loot(monster.rect.topleft)
                 monster.kill()
-                dead_monsters_counter += 1
+                self.monsters_killed_in_the_room += 1
             elif self.in_menu:
                 # Reset attack cooldown timer until game is resumed
                 monster.attack_starting_time = pygame.time.get_ticks()
@@ -1106,7 +1113,8 @@ class Level(metaclass=Singleton):
         # Sprites are updated until map transitions
         if self.in_map_transition is None:
             if not self.in_menu:
-                if dead_monsters_counter == len(self.enemy_sprites.sprites()):
+                print(f'{self.monsters_killed_in_the_room} out of {self.enemies_spawned_in_the_room}')
+                if self.monsters_killed_in_the_room == self.enemies_spawned_in_the_room:
                     level_id = str(self.current_map) + str(self.current_map_screen)
                     DUNGEON_DECIMATION[level_id] = True
                     if(level_id in MONSTER_KILL_EVENT.keys()
