@@ -5,7 +5,7 @@ import tileset
 import level as game
 from settings import *
 from entities import Entity
-from particles import Rock, Arrow, MagicMissile
+from particles import Rock, Arrow, MagicMissile, PBoomerang
 
 
 # Known issue : Monster waits for STATE_ACTION to end before getting hurt
@@ -524,7 +524,7 @@ class RedMoblin(Enemy):
         self.rect = self.image.get_rect(topleft=pos)
         self.hitbox = self.rect
 
-        # Red Octorock Stats
+        # Red Moblin Stats
         self.health = RED_MOBLIN_HEALTH
         self.collision_damage = RED_MOBLIN_DMG
 
@@ -688,7 +688,7 @@ class BlackMoblin(Enemy):
     def update(self):
         super().update()
 
-
+        
 class Stalfos(Enemy):
     def __init__(self, pos, groups, visible_sprites, obstacle_sprites, particle_sprites):
         super().__init__(groups, visible_sprites, obstacle_sprites, particle_sprites, True)
@@ -888,6 +888,118 @@ class Stalfos(Enemy):
         self.cooldowns()
 
         pygame.display.get_surface().blit(self.image, self.rect.topleft)
+
+        
+class Goriya(Enemy):
+    def __init__(self, pos, groups, visible_sprites, obstacle_sprites, particle_sprites, border_sprites):
+        super().__init__(groups, visible_sprites, obstacle_sprites, particle_sprites, True)
+
+        self.border_sprites = border_sprites
+
+        self.walking_frames = GORIYA_WALKING_FRAMES
+        self.action_frames = GORIYA_WALKING_FRAMES
+        self.is_right_x_flipped = True
+        self.is_walking_animation_x_flipped = True
+        self.is_action_animation_x_flipped = True
+        self.walking_up_frame_id = GORIYA_WALKING_UP_FRAME_ID
+        self.walking_down_frame_id = GORIYA_WALKING_DOWN_FRAME_ID
+        self.walking_left_frame_id = GORIYA_WALKING_LEFT_FRAME_ID
+        self.walking_right_frame_id = GORIYA_WALKING_LEFT_FRAME_ID
+        self.action_up_frame_id = GORIYA_WALKING_UP_FRAME_ID
+        self.action_down_frame_id = GORIYA_WALKING_DOWN_FRAME_ID
+        self.action_left_frame_id = GORIYA_WALKING_LEFT_FRAME_ID
+        self.action_right_frame_id = GORIYA_WALKING_LEFT_FRAME_ID
+        self.hurt_up_frame_id = GORIYA_HURT_UP_FRAME_ID
+        self.hurt_down_frame_id = GORIYA_HURT_DOWN_FRAME_ID
+        self.hurt_left_frame_id = GORIYA_HURT_LEFT_FRAME_ID
+        self.hurt_right_frame_id = GORIYA_HURT_LEFT_FRAME_ID
+
+        self.load_animation_frames(tileset.ENEMIES_TILE_SET)
+
+        # Set first image of the monster appearing when created, and generating corresponding hitbox
+        self.image = self.spawn_animation[0]
+        self.rect = self.image.get_rect(topleft=pos)
+        self.hitbox = self.rect
+
+        # Goriya Stats
+        self.health = GORIYA_HEALTH
+        self.collision_damage = GORIYA_DMG
+        self.is_boomerang_thrown = False
+        self.boomerang_timerange = GORIYA_BOOMERANG_TIMERANGE
+
+        # All cooldowns are in milliseconds
+        # Cooldown between animation frames
+        self.walking_animation_cooldown = GORIYA_WALKING_ANIMATION_COOLDOWN
+        self.action_animation_cooldown = GORIYA_ACTION_ANIMATION_COOLDOWN
+
+    def load_dive_frames(self, enemies_tile_set):
+        pass
+
+    def load_animation_frames(self, enemies_tile_set):
+        super().load_animation_frames(enemies_tile_set)
+
+    def cooldowns(self):
+        super().cooldowns()
+
+    def change_animation_frame(self,
+                               animation_list,
+                               animation_frame_count,
+                               animation_starting_time,
+                               animation_cooldown,
+                               animation_frames_nb,
+                               reset_for_loop=True,
+                               idle_after=False):
+        return super().change_animation_frame(animation_list,
+                                              animation_frame_count,
+                                              animation_starting_time,
+                                              animation_cooldown,
+                                              animation_frames_nb,
+                                              reset_for_loop,
+                                              idle_after)
+
+    def animate(self):
+        super().animate()
+
+    def collision(self, direction):
+        super().collision(direction)
+
+    def move(self):
+        super().move()
+
+    def attack(self):
+        x_displacement = self.rect.centerx - game.Level().player.rect.centerx
+        y_displacement = self.rect.centery - game.Level().player.rect.centery
+        direction_vector = pygame.math.Vector2(-x_displacement, -y_displacement)
+        if direction_vector.magnitude() != 0:
+            direction_vector = direction_vector.normalize()
+        if abs(direction_vector.x) >= abs(direction_vector.y):
+            if direction_vector.x >= 0:
+                self.direction_label = RIGHT_LABEL
+            else:
+                self.direction_label = LEFT_LABEL
+        else:
+            if direction_vector.y >= 0:
+                self.direction_label = DOWN_LABEL
+            else:
+                self.direction_label = UP_LABEL
+        self.animate()
+
+        if not self.is_boomerang_thrown:
+            PBoomerang(self.rect.topleft,
+                       direction_vector,
+                       self.direction_label,
+                       [self.visible_sprites, self.particle_sprites],
+                       None,
+                       self.particle_sprites,
+                       self.border_sprites,
+                       self,
+                       True)
+
+    def take_damage(self, amount, direction):
+        super().take_damage(amount, direction)
+
+    def update(self):
+        super().update()
 
 
 class Zora(Enemy):

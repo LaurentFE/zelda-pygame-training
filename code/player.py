@@ -442,7 +442,11 @@ class Player(Entity):
                                  or (self.direction_label == RIGHT_LABEL and particle.direction_vector.x < 0))):
                         # Successful block !
                         self.shield_block_sound.play()
-                        particle.kill()
+                        if not isinstance(particle, PBoomerang):
+                            particle.kill()
+                        else:
+                            particle.go_back = True
+                            particle.collision_damage = 0
                     else:
                         if particle.collision_damage != 0:
                             self.state = STATE_HURT_PARTICLE
