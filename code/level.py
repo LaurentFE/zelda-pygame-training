@@ -806,23 +806,21 @@ class Level(metaclass=Singleton):
         current_time = pygame.time.get_ticks()
 
         # Kill every sprite
-        if self.death_motion_index == 1:
-            for enemy in self.enemy_sprites:
-                enemy.kill()
-            for particle in self.particle_sprites:
-                particle.kill()
-            for npc in self.npc_sprites:
-                npc.kill()
-            for text in self.text_sprites:
-                text.kill()
-            for loot in self.lootable_items_sprites:
-                loot.kill()
-            for merch in self.purchasable_sprites:
-                merch.kill()
-            self.death_motion_index += 1
+        for enemy in self.enemy_sprites:
+            enemy.kill()
+        for particle in self.particle_sprites:
+            particle.kill()
+        for npc in self.npc_sprites:
+            npc.kill()
+        for text in self.text_sprites:
+            text.kill()
+        for loot in self.lootable_items_sprites:
+            loot.kill()
+        for merch in self.purchasable_sprites:
+            merch.kill()
 
         # Player is in a hurt state for death_hurt_cooldown, by default 3 cycles of the hurt animation
-        if self.death_motion_index == 2:
+        if self.death_motion_index == 1:
             if self.death_hurt_starting_time == 0:
                 self.death_hurt_starting_time = current_time
                 self.player.set_state(STATE_DYING)
@@ -832,7 +830,7 @@ class Level(metaclass=Singleton):
                 self.death_spin_starting_time = current_time
 
         # Set map img to red version
-        if self.death_motion_index == 3:
+        if self.death_motion_index == 2:
             if LEVEL_PREFIX_LABEL in self.current_map:
                 palette_in = PALETTE_NATURAL_LEVEL
             elif DUNGEON_PREFIX_LABEL in self.current_map:
@@ -850,7 +848,7 @@ class Level(metaclass=Singleton):
                 self.player.set_state(STATE_IDLE_DOWN)
 
         # Switch map img to 3 darker shades successively
-        if self.death_motion_index == 4 and self.death_floor_index < len(RED_LIST):
+        if self.death_motion_index == 3 and self.death_floor_index < len(RED_LIST):
             if self.death_floor_switch_starting_time == 0:
                 self.death_floor_switch_starting_time = current_time
             if LEVEL_PREFIX_LABEL in self.current_map:
@@ -864,15 +862,15 @@ class Level(metaclass=Singleton):
             if current_time - self.death_floor_switch_starting_time >= self.death_floor_switch_cooldown:
                 self.death_floor_switch_starting_time = 0
                 self.death_floor_index += 1
-        elif self.death_motion_index == 4 and self.death_floor_index == len(RED_LIST):
+        elif self.death_motion_index == 3 and self.death_floor_index == len(RED_LIST):
             self.death_motion_index += 1
 
         # No more floor, just black
-        if self.death_motion_index > 4:
+        if self.death_motion_index > 3:
             self.draw_floor(BLACK_LABEL)
 
         # Put player in gray state for animation
-        if self.death_motion_index == 5:
+        if self.death_motion_index == 4:
             if self.death_gray_starting_time == 0:
                 self.death_gray_starting_time = current_time
                 self.player.set_state(STATE_GRAY)
@@ -880,7 +878,7 @@ class Level(metaclass=Singleton):
                 self.death_motion_index += 1
 
         # Put player in despawn state for animation
-        if self.death_motion_index == 6:
+        if self.death_motion_index == 5:
             if self.death_despawn_starting_time == 0:
                 self.death_despawn_starting_time = current_time
                 self.player.set_state(STATE_DESPAWN)
@@ -888,14 +886,14 @@ class Level(metaclass=Singleton):
                 self.death_motion_index += 1
 
         # Kill player sprite
-        if self.death_motion_index == 7:
+        if self.death_motion_index == 6:
             self.player.kill()
             self.death_motion_index += 1
 
         # Print GAME OVER in middle of screen until key is pressed to exit game
-        if self.death_motion_index == 8:
+        if self.death_motion_index == 7:
             game_over_message_pos_y = (SCREEN_HEIGHT // 2) + (HUD_OFFSET // 2) - (TILE_SIZE // 2)
-            TextBlock([self.visible_sprites, self.text_sprites],
+            TextBlock([self.visible_sprites],
                       GAME_OVER_TEXT,
                       game_over_message_pos_y)
             self.death_motion_index += 1
@@ -957,7 +955,7 @@ class Level(metaclass=Singleton):
             elif self.is_left_key_pressed_in_menu_with_item(keys):
                 item_pos = self.get_selector_position_for_next_item(True)
                 self.item_selector.move(item_pos)
-            elif self.death_motion_index == 9 and len(keys) != 0:
+            elif self.death_motion_index == 8 and len(keys) != 0:
                 self.death_played = True
 
     def drop_loot(self, pos):
@@ -1063,6 +1061,7 @@ class Level(metaclass=Singleton):
             # Play death & game over animation
             if self.death_motion_index == 0:
                 self.overworld_background_theme.stop()
+                self.dungeon_background_theme.stop()
                 self.death_motion_index = 1
             self.death()
 

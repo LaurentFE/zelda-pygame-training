@@ -749,14 +749,14 @@ class Player(Entity):
             top_border += TILE_SIZE * 2 + 4
             bottom_border -= TILE_SIZE * 2 + 4
         if left_border >= new_x:
-            new_x = left_border + 1
+            new_x = left_border + 4
         elif new_x >= right_border:
-            new_x = right_border - 1
+            new_x = right_border - 4
 
         if top_border >= new_y:
-            new_y = top_border + 1
+            new_y = top_border + 4
         elif new_y >= bottom_border:
-            new_y = bottom_border - 1
+            new_y = bottom_border - 4
 
         self.warping_x = new_x
         self.warping_y = new_y
