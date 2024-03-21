@@ -651,8 +651,7 @@ LIMIT_LADDER_INDEX = 50
 # Secret passages sprite frame id
 SECRET_CAVE_FRAME_ID = 0
 SECRET_STAIRS_FRAME_ID = 2
-SECRET_HORIZONTAL_WALL_FRAME_ID = 4
-SECRET_VERTICAL_WALL_FRAME_ID = 6
+SECRET_WALL_FRAME_ID = 4
 # Secret content in maps
 # When a secret passage has been revealed, an entry 'level_id': True is created.
 # Warning : with this system, there can't be multiple secrets in one screen (both fire & bomb for instance)

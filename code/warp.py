@@ -39,6 +39,8 @@ class SecretPassage(Warp):
         self.is_revealed = is_revealed
 
         self.image = surface
+        if warp_id < 4:
+            self.image = pygame.transform.rotate(self.image, -warp_id * 90)
         self.rect = self.image.get_rect(topleft=(self.pos_x, self.pos_y))
         self.hitbox = self.rect.inflate(-4, -4)
 
