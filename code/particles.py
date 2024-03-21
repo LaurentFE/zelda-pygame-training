@@ -302,7 +302,9 @@ class PBoomerang(Particle):
                 self.collision_damage = 0
                 self.affects_enemy = False
 
-        if self.go_back and self.owner_ref.hitbox.colliderect(self.hitbox):
+        if (self.go_back and
+                (self.owner_ref.hitbox.colliderect(self.hitbox)
+                 or self.owner_ref.isDead)):
             self.kill()
 
     def move(self):
