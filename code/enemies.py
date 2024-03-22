@@ -374,7 +374,9 @@ class RedOctorock(Enemy):
         super().move()
 
     def attack(self):
-        Rock(self.rect.topleft,
+        rock_pos_x = self.rect.left + self.direction_vector.x * TILE_SIZE
+        rock_pos_y = self.rect.top + self.direction_vector.y * TILE_SIZE
+        Rock((rock_pos_x, rock_pos_y),
              self.direction_vector,
              (self.visible_sprites, self.particle_sprites),
              self.direction_label,
@@ -473,13 +475,17 @@ class BlueOctorock(Enemy):
         if abs(direction_vector.x) >= abs(direction_vector.y):
             if direction_vector.x >= 0:
                 self.direction_label = RIGHT_LABEL
+                rock_pos_x = self.rect.left + TILE_SIZE
             else:
                 self.direction_label = LEFT_LABEL
+                rock_pos_x = self.rect.left - TILE_SIZE
         else:
             if direction_vector.y >= 0:
                 self.direction_label = DOWN_LABEL
+                rock_pos_y = self.rect.top + TILE_SIZE
             else:
                 self.direction_label = UP_LABEL
+                rock_pos_y = self.rect.top - TILE_SIZE
         self.animate()
 
         Rock(self.rect.topleft,
