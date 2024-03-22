@@ -127,7 +127,7 @@ class Level(metaclass=Singleton):
         selector_pos = MENU_BOOMERANG_TOPLEFT
         if self.current_selected_item != NONE_LABEL:
             selector_pos = self.menu_item_coord_and_frame_id[self.current_selected_item][0]
-        self.item_selector = Selector([self.menu_sprites], selector_pos)
+        self.item_selector = Selector((self.menu_sprites,), selector_pos)
 
     def draw_menu(self):
         # Draw background
@@ -146,30 +146,30 @@ class Level(metaclass=Singleton):
             if self.item_selected_sprite is not None:
                 self.item_selected_sprite.kill()
             self.item_selected_sprite = Tile(MENU_SELECTED_ITEM_TOPLEFT,
-                                             [self.menu_sprites],
+                                             (self.menu_sprites,),
                                              tileset.ITEMS_TILE_SET.get_sprite_image(
                                                  self.menu_item_coord_and_frame_id[self.current_selected_item][1]))
 
         # Passive Items
         if self.player.has_item(LADDER_LABEL):
             Tile(MENU_LADDER_TOPLEFT,
-                 [self.menu_sprites],
+                 (self.menu_sprites,),
                  tileset.ITEMS_TILE_SET.get_sprite_image(LADDER_FRAME_ID))
 
         # Selectable items
         if self.player.has_item(BOOMERANG_LABEL):
             # Didn't implement red/blue boomerang system
             Tile(MENU_BOOMERANG_TOPLEFT,
-                 [self.menu_sprites],
+                 (self.menu_sprites,),
                  tileset.ITEMS_TILE_SET.get_sprite_image(BOOMERANG_FRAME_ID))
         if self.player.has_item(BOMB_LABEL):
             Tile(MENU_BOMBS_TOPLEFT,
-                 [self.menu_sprites],
+                 (self.menu_sprites,),
                  tileset.ITEMS_TILE_SET.get_sprite_image(BOMB_FRAME_ID))
         if self.player.has_item(CANDLE_LABEL):
             # Didn't implement red/blue candle system
             Tile(MENU_CANDLE_TOPLEFT,
-                 [self.menu_sprites],
+                 (self.menu_sprites,),
                  tileset.ITEMS_TILE_SET.get_sprite_image(RED_CANDLE_FRAME_ID))
 
     def draw_triforce(self):
@@ -198,9 +198,9 @@ class Level(metaclass=Singleton):
     def draw_money(self):
         # Draw amount of rupees inside the HUD
         if self.in_menu:
-            sprite_groups = [self.money_amount_sprites, self.menu_sprites]
+            sprite_groups = (self.money_amount_sprites, self.menu_sprites)
         else:
-            sprite_groups = [self.money_amount_sprites, self.visible_sprites]
+            sprite_groups = (self.money_amount_sprites, self.visible_sprites)
 
         if self.money_amount_sprites:
             for sprite in self.money_amount_sprites:
@@ -228,9 +228,9 @@ class Level(metaclass=Singleton):
     def draw_keys(self):
         # Draw amount of keys inside the HUD
         if self.in_menu:
-            sprite_groups = [self.keys_amount_sprites, self.menu_sprites]
+            sprite_groups = (self.keys_amount_sprites, self.menu_sprites)
         else:
-            sprite_groups = [self.keys_amount_sprites, self.visible_sprites]
+            sprite_groups = (self.keys_amount_sprites, self.visible_sprites)
 
         if self.keys_amount_sprites:
             for sprite in self.keys_amount_sprites:
@@ -258,9 +258,9 @@ class Level(metaclass=Singleton):
     def draw_bombs(self):
         # Draw amount of bombs inside the HUD
         if self.in_menu:
-            sprite_groups = [self.bombs_amount_sprites, self.menu_sprites]
+            sprite_groups = (self.bombs_amount_sprites, self.menu_sprites)
         else:
-            sprite_groups = [self.bombs_amount_sprites, self.visible_sprites]
+            sprite_groups = (self.bombs_amount_sprites, self.visible_sprites)
 
         if self.bombs_amount_sprites:
             for sprite in self.bombs_amount_sprites:
@@ -288,9 +288,9 @@ class Level(metaclass=Singleton):
     def draw_hearts(self):
         # Draw amount of health inside the HUD
         if self.in_menu:
-            sprite_groups = [self.health_sprites, self.menu_sprites]
+            sprite_groups = (self.health_sprites, self.menu_sprites)
         else:
-            sprite_groups = [self.health_sprites, self.visible_sprites]
+            sprite_groups = (self.health_sprites, self.visible_sprites)
         if self.health_sprites:
             for sprite in self.health_sprites:
                 sprite.kill()
@@ -328,9 +328,9 @@ class Level(metaclass=Singleton):
     def draw_item_a(self):
         # Draw the A item in the A Frame of the HUD
         if self.in_menu:
-            sprite_groups = [self.menu_sprites]
+            sprite_groups = (self.menu_sprites,)
         else:
-            sprite_groups = [self.visible_sprites]
+            sprite_groups = (self.visible_sprites,)
 
         item_a_pos = (self.menu_rect.x + 296,
                       self.menu_rect.y + 48)
@@ -351,9 +351,9 @@ class Level(metaclass=Singleton):
     def draw_item_b(self):
         # Draw the selected B item in the B Frame of the HUD
         if self.in_menu:
-            sprite_groups = [self.menu_sprites]
+            sprite_groups = (self.menu_sprites,)
         else:
-            sprite_groups = [self.visible_sprites]
+            sprite_groups = (self.visible_sprites,)
 
         item_b_pos = (self.menu_rect.x + 248,
                       self.menu_rect.y + 48)
@@ -386,11 +386,11 @@ class Level(metaclass=Singleton):
         ignore_non_existing_file = False
         if warp_type == WARP_WARPS:
             warp_file_path += MAPS_WARP
-            groups = [self.warp_sprites]
+            groups = (self.warp_sprites,)
         elif warp_type == WARP_BOMB:
             ignore_non_existing_file = True
             warp_file_path += MAPS_BOMB
-            groups = [self.visible_sprites, self.secret_bomb_sprites]
+            groups = (self.visible_sprites, self.secret_bomb_sprites)
             if DUNGEON_PREFIX_LABEL in level_id:
                 image = tileset.WARPS_TILE_SET.get_sprite_image(SECRET_WALL_FRAME_ID)
             else:
@@ -402,7 +402,7 @@ class Level(metaclass=Singleton):
         elif warp_type == WARP_FLAME:
             ignore_non_existing_file = True
             warp_file_path += MAPS_FLAME
-            groups = [self.visible_sprites, self.secret_flame_sprites]
+            groups = (self.visible_sprites, self.secret_flame_sprites)
             image = tileset.WARPS_TILE_SET.get_sprite_image(SECRET_STAIRS_FRAME_ID)
             if level_id in MAP_SECRETS_REVEALED.keys():
                 revealed = MAP_SECRETS_REVEALED[level_id]
@@ -448,14 +448,14 @@ class Level(metaclass=Singleton):
         for col in range(0, NB_TILE_WIDTH):
             y_top = HUD_OFFSET - TILE_SIZE
             y_bottom = SCREEN_HEIGHT
-            Obstacle((col*TILE_SIZE, y_top), [self.obstacle_sprites, self.border_sprites])
-            Obstacle((col*TILE_SIZE, y_bottom), [self.obstacle_sprites, self.border_sprites])
+            Obstacle((col*TILE_SIZE, y_top), (self.obstacle_sprites, self.border_sprites))
+            Obstacle((col*TILE_SIZE, y_bottom), (self.obstacle_sprites, self.border_sprites))
         # Draw lines of obstacles so no one gets out of the sides of the screen
         for row in range(HUD_TILE_HEIGHT, NB_TILE_HEIGHT):
             x_left = - TILE_SIZE
             x_right = SCREEN_WIDTH
-            Obstacle((x_left, row*TILE_SIZE), [self.obstacle_sprites, self.border_sprites])
-            Obstacle((x_right, row*TILE_SIZE), [self.obstacle_sprites, self.border_sprites])
+            Obstacle((x_left, row*TILE_SIZE), (self.obstacle_sprites, self.border_sprites))
+            Obstacle((x_right, row*TILE_SIZE), (self.obstacle_sprites, self.border_sprites))
 
         # Draw obstacles inside the level layout
         for row_index, row in enumerate(layout):
@@ -464,7 +464,7 @@ class Level(metaclass=Singleton):
                 y = row_index * TILE_SIZE + HUD_OFFSET  # skipping menu tiles at the top of screen
                 sprite_id = int(col)
                 if sprite_id != -1:
-                    Obstacle((x, y), [self.obstacle_sprites], sprite_id)
+                    Obstacle((x, y), (self.obstacle_sprites,), sprite_id)
 
     def load_items(self, level_id):
         layout = import_csv_layout(f'{MAPS_PATH}{level_id}{MAPS_ITEMS}{MAPS_EXTENSION}', True)
@@ -481,27 +481,27 @@ class Level(metaclass=Singleton):
                             and HEARTRECEPTACLE_LABEL in map_items
                             and MAP_ITEMS[level_id][HEARTRECEPTACLE_LABEL]):
                         HeartReceptacle((x, y),
-                                        [self.visible_sprites, self.lootable_items_sprites],
+                                        (self.visible_sprites, self.lootable_items_sprites),
                                         level_id)
                     elif sprite_id == LADDER_FRAME_ID and MAP_ITEMS[level_id][LADDER_LABEL]:
                         Ladder((x, y),
-                               [self.visible_sprites, self.lootable_items_sprites],
+                               (self.visible_sprites, self.lootable_items_sprites),
                                level_id)
                     elif sprite_id == RED_CANDLE_FRAME_ID and MAP_ITEMS[level_id][CANDLE_LABEL]:
                         RedCandle((x, y),
-                                  [self.visible_sprites, self.lootable_items_sprites],
+                                  (self.visible_sprites, self.lootable_items_sprites),
                                   level_id)
                     elif sprite_id == BOOMERANG_FRAME_ID and MAP_ITEMS[level_id][BOOMERANG_LABEL]:
                         Boomerang((x, y),
-                                  [self.visible_sprites, self.lootable_items_sprites],
+                                  (self.visible_sprites, self.lootable_items_sprites),
                                   level_id)
                     elif sprite_id == WOOD_SWORD_FRAME_ID and MAP_ITEMS[level_id][WOOD_SWORD_LABEL]:
                         WoodenSword((x, y),
-                                    [self.visible_sprites, self.lootable_items_sprites],
+                                    (self.visible_sprites, self.lootable_items_sprites),
                                     level_id)
                     elif sprite_id == KEY_FRAME_ID and MAP_ITEMS[level_id][KEY_LABEL]:
                         Key((x, y),
-                            [self.visible_sprites, self.lootable_items_sprites, self.particle_sprites],
+                            (self.visible_sprites, self.lootable_items_sprites, self.particle_sprites),
                             level_id)
 
     def load_enemies(self, level_id):
@@ -519,50 +519,50 @@ class Level(metaclass=Singleton):
                     self.enemies_spawned_in_the_room += 1
                     if sprite_id == RED_OCTOROCK_WALKING_DOWN_FRAME_ID:
                         RedOctorock((x, y),
-                                    [self.visible_sprites, self.enemy_sprites],
+                                    (self.visible_sprites, self.enemy_sprites),
                                     self.visible_sprites,
                                     self.obstacle_sprites,
                                     self.particle_sprites)
                     elif sprite_id == BLUE_OCTOROCK_WALKING_DOWN_FRAME_ID:
                         BlueOctorock((x, y),
-                                     [self.visible_sprites, self.enemy_sprites],
+                                     (self.visible_sprites, self.enemy_sprites),
                                      self.visible_sprites,
                                      self.obstacle_sprites,
                                      self.particle_sprites)
                     elif sprite_id == RED_MOBLIN_WALKING_DOWN_FRAME_ID:
                         RedMoblin((x, y),
-                                  [self.visible_sprites, self.enemy_sprites],
+                                  (self.visible_sprites, self.enemy_sprites),
                                   self.visible_sprites,
                                   self.obstacle_sprites,
                                   self.particle_sprites)
                     elif sprite_id == BLACK_MOBLIN_WALKING_DOWN_FRAME_ID:
                         BlackMoblin((x, y),
-                                    [self.visible_sprites, self.enemy_sprites],
+                                    (self.visible_sprites, self.enemy_sprites),
                                     self.visible_sprites,
                                     self.obstacle_sprites,
                                     self.particle_sprites)
                     elif sprite_id == STALFOS_WALKING_FRAME_ID:
                         Stalfos((x, y),
-                                [self.visible_sprites, self.enemy_sprites],
+                                (self.visible_sprites, self.enemy_sprites),
                                 self.visible_sprites,
                                 self.obstacle_sprites,
                                 self.particle_sprites)
                     elif sprite_id == GORIYA_WALKING_DOWN_FRAME_ID:
                         Goriya((x, y),
-                               [self.visible_sprites, self.enemy_sprites],
+                               (self.visible_sprites, self.enemy_sprites),
                                self.visible_sprites,
                                self.obstacle_sprites,
                                self.particle_sprites,
                                self.border_sprites)
                     elif sprite_id == ZORA_WALKING_DOWN_FRAME_ID:
                         Zora((x, y),
-                             [self.visible_sprites, self.enemy_sprites],
+                             (self.visible_sprites, self.enemy_sprites),
                              self.visible_sprites,
                              self.obstacle_sprites,
                              self.particle_sprites)
                     elif sprite_id == LEEVER_WALKING_FRAME_ID:
                         Leever((x, y),
-                               [self.visible_sprites, self.enemy_sprites],
+                               (self.visible_sprites, self.enemy_sprites),
                                self.visible_sprites,
                                self.obstacle_sprites,
                                self.particle_sprites)
@@ -594,8 +594,8 @@ class Level(metaclass=Singleton):
                             pygame.transform.flip(tileset.NPCS_TILE_SET.get_sprite_image(NPC_FLAME_ID),
                                                   True,
                                                   False)]
-            Npc(FLAME_1_POS, [self.visible_sprites, self.npc_sprites], flame_images)
-            Npc(FLAME_2_POS, [self.visible_sprites, self.npc_sprites], flame_images)
+            Npc(FLAME_1_POS, (self.visible_sprites, self.npc_sprites), flame_images)
+            Npc(FLAME_2_POS, (self.visible_sprites, self.npc_sprites), flame_images)
 
             # Caution : in python, 0 == False, so if npc_id is 0, this code is never executed
             npc_id = SHOPS[level_id][NPC_ID_LABEL]
@@ -605,11 +605,11 @@ class Level(metaclass=Singleton):
                     npc_images.append(pygame.transform.flip(npc_images[0],
                                                             True,
                                                             False))
-                Npc((NPC_X, NPC_Y), [self.visible_sprites, self.npc_sprites], npc_images)
+                Npc((NPC_X, NPC_Y), (self.visible_sprites, self.npc_sprites), npc_images)
 
             if SHOPS[level_id][TEXT_LABEL] and nb_items > 0:
                 text_pos_y = TEXT_OFFSET + HUD_OFFSET
-                TextBlock([self.visible_sprites, self.text_sprites],
+                TextBlock((self.visible_sprites, self.text_sprites),
                           SHOPS[level_id][TEXT_LABEL],
                           text_pos_y)
 
@@ -635,13 +635,13 @@ class Level(metaclass=Singleton):
                     elif item_price // 10 != 0:
                         price_x -= FONT_SPRITE_SIZE // 2
                     price_y = item_pos[i][1] + 3 * TILE_SIZE
-                    price_sprite = TextBlock([self.visible_sprites, self.text_sprites],
+                    price_sprite = TextBlock((self.visible_sprites, self.text_sprites),
                                              str(item_price),
                                              price_y,
                                              price_x)
 
                 Purchasable(item_pos[i],
-                            [self.visible_sprites, self.purchasable_sprites],
+                            (self.visible_sprites, self.purchasable_sprites),
                             item_label,
                             item_image,
                             item_price,
@@ -649,7 +649,7 @@ class Level(metaclass=Singleton):
 
     def load_player(self, pos):
         self.player = Player(pos,
-                             [self.visible_sprites],
+                             (self.visible_sprites,),
                              self.obstacle_sprites,
                              self.enemy_sprites,
                              self.visible_sprites,
@@ -910,7 +910,7 @@ class Level(metaclass=Singleton):
         # Print GAME OVER in middle of screen until key is pressed to exit game
         if self.death_motion_index == 7:
             game_over_message_pos_y = (SCREEN_HEIGHT // 2) + (HUD_OFFSET // 2) - (TILE_SIZE // 2)
-            TextBlock([self.visible_sprites],
+            TextBlock((self.visible_sprites,),
                       GAME_OVER_TEXT,
                       game_over_message_pos_y)
             self.death_motion_index += 1
@@ -991,13 +991,13 @@ class Level(metaclass=Singleton):
             match loot:
                 case 0 | 2 | 4 | 8:
                     rupee_amount = 5 if random.randint(1, 100) <= LOOT_BIG_RUPEE_PERCENTAGE else 1
-                    Rupee(pos, [self.visible_sprites, self.particle_sprites], rupee_amount)
+                    Rupee(pos, (self.visible_sprites, self.particle_sprites), rupee_amount)
                 case 1 | 7:
-                    CBomb(pos, [self.visible_sprites, self.particle_sprites])
+                    CBomb(pos, (self.visible_sprites, self.particle_sprites))
                 case 3:
-                    Fairy(pos, [self.visible_sprites, self.particle_sprites], self.border_sprites)
+                    Fairy(pos, (self.visible_sprites, self.particle_sprites), self.border_sprites)
                 case 5 | 6 | 9:
-                    Heart(pos, [self.visible_sprites, self.particle_sprites])
+                    Heart(pos, (self.visible_sprites, self.particle_sprites))
 
     def player_pick_up(self, item_label, amount=0):
         if item_label in ITEM_PICKUP_ANIMATION.keys():
@@ -1026,7 +1026,7 @@ class Level(metaclass=Singleton):
 
             self.player.add_item(item_label)
             item_pos = (self.player.rect.left + x_offset, self.player.rect.top + y_offset)
-            self.item_picked_up = Tile(item_pos, [self.visible_sprites], item_image)
+            self.item_picked_up = Tile(item_pos, (self.visible_sprites,), item_image)
         else:
             if (item_label == HEART_LABEL
                     or item_label == FAIRY_LABEL):
@@ -1048,25 +1048,25 @@ class Level(metaclass=Singleton):
         item_pos = (SCREEN_WIDTH // 2 - TILE_SIZE, (SCREEN_HEIGHT + HUD_OFFSET) // 2 - TILE_SIZE)
         if event_label == BOMB_LABEL:
             CBomb(item_pos,
-                  [self.visible_sprites, self.particle_sprites],
+                  (self.visible_sprites, self.particle_sprites),
                   True)
         elif event_label == RUPEE_LABEL:
             Rupee(item_pos,
-                  [self.visible_sprites, self.particle_sprites],
+                  (self.visible_sprites, self.particle_sprites),
                   DUNGEON_RUPEE_AMOUNT,
                   True)
         elif event_label == HEART_LABEL:
             Heart(item_pos,
-                  [self.visible_sprites, self.particle_sprites],
+                  (self.visible_sprites, self.particle_sprites),
                   True)
         elif event_label == KEY_LABEL:
             Key(item_pos,
-                [self.visible_sprites, self.particle_sprites],
+                (self.visible_sprites, self.particle_sprites),
                 level_id,
                 True)
         elif event_label == HEARTRECEPTACLE_LABEL:
             HeartReceptacle(item_pos,
-                            [self.visible_sprites, self.particle_sprites],
+                            (self.visible_sprites, self.particle_sprites),
                             level_id,
                             True)
         elif event_label == OPEN_DOORS_LABEL:

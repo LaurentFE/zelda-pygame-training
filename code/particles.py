@@ -9,7 +9,9 @@ from abc import ABC
 
 class Particle(pygame.sprite.Sprite, ABC):
     def __init__(self, owner_pos, owner_direction_vector, groups):
-        super().__init__(groups)
+        super().__init__()
+        for group in groups:
+            self.add(group)
 
         self.pos_x = owner_pos[0]
         self.pos_y = owner_pos[1]

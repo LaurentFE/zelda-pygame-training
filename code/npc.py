@@ -1,10 +1,12 @@
 import pygame
-from settings import *
 
 
 class Npc(pygame.sprite.Sprite):
-    def __init__(self, pos, groups: list, images: list):
-        super().__init__(groups)
+    def __init__(self, pos, groups, images: list):
+        super().__init__()
+        for group in groups:
+            self.add(group)
+
         self.pos = pos
 
         self.images = images

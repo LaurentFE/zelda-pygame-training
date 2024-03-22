@@ -5,7 +5,10 @@ import tileset
 
 class Selector(pygame.sprite.Sprite):
     def __init__(self, groups, pos):
-        super().__init__(groups)
+        super().__init__()
+        for group in groups:
+            self.add(group)
+
         self.pos_x = pos[0]
         self.pos_y = pos[1]
 

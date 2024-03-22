@@ -6,7 +6,9 @@ from abc import ABC
 
 class Entity(pygame.sprite.Sprite, ABC):
     def __init__(self, groups, visible_sprites, obstacle_sprites, particle_sprites):
-        super().__init__(groups)
+        super().__init__()
+        for group in groups:
+            self.add(group)
 
         self.visible_sprites = visible_sprites
         self.obstacle_sprites = obstacle_sprites

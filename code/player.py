@@ -282,7 +282,7 @@ class Player(Entity):
                     self.action_a_particle = PWoodenSword(self.rect.topleft,
                                                           self.direction_vector,
                                                           self.direction_label,
-                                                          [self.visible_sprites, self.particle_sprites],
+                                                          (self.visible_sprites, self.particle_sprites),
                                                           self.enemy_sprites,
                                                           self.particle_sprites)
                 else:
@@ -299,7 +299,7 @@ class Player(Entity):
                     PBoomerang(self.rect.topleft,
                                self.direction_vector,
                                self.direction_label,
-                               [self.visible_sprites, self.particle_sprites],
+                               (self.visible_sprites, self.particle_sprites),
                                self.enemy_sprites,
                                self.particle_sprites,
                                self.border_sprites,
@@ -311,7 +311,7 @@ class Player(Entity):
                         Bomb(self.rect.topleft,
                              self.direction_vector,
                              self.direction_label,
-                             [self.visible_sprites, self.particle_sprites],
+                             (self.visible_sprites, self.particle_sprites),
                              self.secret_bomb_sprites,)
                         self.bombs -= 1
                     else:
@@ -321,7 +321,7 @@ class Player(Entity):
                     Flame(self.rect.topleft,
                           self.direction_vector,
                           self.direction_label,
-                          [self.visible_sprites, self.particle_sprites],
+                          (self.visible_sprites, self.particle_sprites),
                           self.enemy_sprites,
                           self.secret_flame_sprites,
                           self)
@@ -414,7 +414,7 @@ class Player(Entity):
                     else:
                         if self.direction_vector.y < 0:
                             ladder_pos_y -= 16
-                    self.ladder = Tile((ladder_pos_x, ladder_pos_y), self.visible_sprites, ladder_image)
+                    self.ladder = Tile((ladder_pos_x, ladder_pos_y), (self.visible_sprites,), ladder_image)
                     sprite.type = LIMIT_LADDER_INDEX
 
                     # Put player above the ladder by being the last visible sprite added
