@@ -182,6 +182,7 @@ class Player(Entity):
         self.bombs = PLAYER_INITIAL_BOMB
         self.is_spinning = False
         self.isDead = False
+        self.is_winning = False
         self.current_speed = self.speed
 
         # Items flags
@@ -248,7 +249,10 @@ class Player(Entity):
         return False
 
     def can_action(self):
-        if STATE_ACTION not in self.state and self.state != STATE_WARPING and self.state != STATE_STAIRS:
+        if (STATE_ACTION not in self.state
+                and STATE_WARPING not in self.state
+                and self.state != STATE_STAIRS
+                and self.state != STATE_TRIFORCE):
             return True
         return False
 
@@ -569,6 +573,10 @@ class Player(Entity):
             self.invulnerable = True
             self.pickup_one_handed_starting_time = current_time
             self.pick_up_sound.play()
+        elif state == STATE_TRIFORCE:
+            self.state = STATE_TRIFORCE
+            self.invulnerable = True
+            self.is_winning = True
 
     def change_animation_frame(self,
                                animation_list,
@@ -622,7 +630,7 @@ class Player(Entity):
                                             self.pickup_one_handed_animation_cooldown,
                                             self.pickup_one_handed_frames))
 
-        elif self.state == TWO_HANDED:
+        elif self.state == TWO_HANDED or self.state == STATE_TRIFORCE:
             self.pickup_two_handed_animation_starting_time, self.pickup_two_handed_animation_frame_count = (
                 self.change_animation_frame(self.pickup_two_handed_animation,
                                             self.pickup_two_handed_animation_frame_count,

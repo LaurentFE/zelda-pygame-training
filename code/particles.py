@@ -1326,3 +1326,49 @@ class WoodenSword(Particle):
 
     def update(self):
         super().update()
+
+
+class Triforce(Particle):
+    def __init__(self, owner_pos, groups, level_id):
+
+        owner_direction_vector = pygame.math.Vector2()
+        super().__init__(owner_pos, owner_direction_vector, groups)
+
+        self.level_id = level_id
+
+        self.frame_id = TRIFORCE_FRAME_ID
+        self.nb_frames = TRIFORCE_FRAMES
+        self.load_animation_frames(tileset.ITEMS_TILE_SET)
+
+        self.image = self.move_animations[0]
+        self.rect = self.image.get_rect(topleft=(self.pos_x, self.pos_y))
+        self.hitbox = self.rect.inflate(-16, -16)
+
+        self.affects_player = True
+        self.bypasses_shield = True
+        self.collision_damage = 0
+
+        self.is_active = True
+
+    def load_animation_frames(self, items_tile_set):
+        super().load_animation_frames(items_tile_set)
+
+    def animate(self):
+        # No animation
+        pass
+
+    def collision(self, direction):
+        # This doesn't move, so it won't collide with things.
+        # But things will collide with it, and they will handle the collision
+        pass
+
+    def move(self):
+        # This doesn't move
+        pass
+
+    def effect(self):
+        MAP_ITEMS[self.level_id][TRIFORCE_FRAME_ID] = False
+        game.Level().pick_up_triforce()
+
+    def update(self):
+        super().update()
