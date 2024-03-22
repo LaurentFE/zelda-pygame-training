@@ -4,8 +4,11 @@ from settings import *
 
 
 class TextBlock(pygame.sprite.Sprite):
-    def __init__(self, groups: list, text, pos_y, pos_x=None):
-        super().__init__(groups)
+    def __init__(self, groups, text, pos_y, pos_x=None):
+        super().__init__()
+        for group in groups:
+            self.add(group)
+
         self.text = text.lower()
 
         self.pos_x = pos_x

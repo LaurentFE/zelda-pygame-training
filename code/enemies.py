@@ -376,7 +376,7 @@ class RedOctorock(Enemy):
     def attack(self):
         Rock(self.rect.topleft,
              self.direction_vector,
-             [self.visible_sprites, self.particle_sprites],
+             (self.visible_sprites, self.particle_sprites),
              self.direction_label,
              self.obstacle_sprites)
 
@@ -484,7 +484,7 @@ class BlueOctorock(Enemy):
 
         Rock(self.rect.topleft,
              self.direction_vector,
-             [self.visible_sprites, self.particle_sprites],
+             (self.visible_sprites, self.particle_sprites),
              self.direction_label,
              self.obstacle_sprites)
 
@@ -570,7 +570,7 @@ class RedMoblin(Enemy):
     def attack(self):
         Arrow(self.rect.topleft,
               self.direction_vector,
-              [self.visible_sprites, self.particle_sprites],
+              (self.visible_sprites, self.particle_sprites),
               self.direction_label,
               self.obstacle_sprites)
 
@@ -678,7 +678,7 @@ class BlackMoblin(Enemy):
 
         Arrow(self.rect.topleft,
               direction_vector,
-              [self.visible_sprites, self.particle_sprites],
+              (self.visible_sprites, self.particle_sprites),
               self.direction_label,
               self.obstacle_sprites)
 
@@ -988,7 +988,7 @@ class Goriya(Enemy):
             PBoomerang(self.rect.topleft,
                        direction_vector,
                        self.direction_label,
-                       [self.visible_sprites, self.particle_sprites],
+                       (self.visible_sprites, self.particle_sprites),
                        None,
                        self.particle_sprites,
                        self.border_sprites,
@@ -1201,7 +1201,7 @@ class Zora(Enemy):
     def attack(self):
         MagicMissile(self.rect.topleft,
                      self.direction_vector,
-                     [self.visible_sprites, self.particle_sprites],
+                     (self.visible_sprites, self.particle_sprites),
                      self.obstacle_sprites)
 
     def take_damage(self, amount, direction):

@@ -4,8 +4,11 @@ from settings import *
 
 
 class Purchasable(pygame.sprite.Sprite):
-    def __init__(self, pos, groups: list, label, image, price, price_sprite_ref):
-        super().__init__(groups)
+    def __init__(self, pos, groups, label, image, price, price_sprite_ref):
+        super().__init__()
+        for group in groups:
+            self.add(group)
+
         self.pos = pos
 
         self.image = image

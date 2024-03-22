@@ -5,7 +5,10 @@ from settings import *
 
 class Warp(pygame.sprite.Sprite):
     def __init__(self, pos, groups, warp_id, player):
-        super().__init__(groups)
+        super().__init__()
+        for group in groups:
+            self.add(group)
+
         self.pos_x = pos[0]
         self.pos_y = pos[1]
         self.warp_id = warp_id
