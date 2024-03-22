@@ -89,7 +89,10 @@ class Level(metaclass=Singleton):
         # Sprite setup
         # Player spawns at the center of the game surface
         self.load_player((PLAYER_START_X, PLAYER_START_Y))
-        self.overworld_background_theme.play(loops=-1)
+        if LEVEL_PREFIX_LABEL in STARTING_MAP:
+            self.overworld_background_theme.play(loops=-1)
+        else:
+            self.dungeon_background_theme.play(loops=-1)
 
         self.current_map = STARTING_MAP
         self.current_map_screen = STARTING_SCREEN
