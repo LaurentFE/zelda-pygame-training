@@ -509,7 +509,8 @@ class Level(metaclass=Singleton):
         self.enemies_spawned_in_the_room = 0
         self.monsters_killed_in_the_room = 0
         if (layout is not None
-                and DUNGEON_PREFIX_LABEL in level_id and not DUNGEON_DECIMATION[level_id]):
+                and ((DUNGEON_PREFIX_LABEL in level_id and not DUNGEON_DECIMATION[level_id])
+                     or LEVEL_PREFIX_LABEL in level_id)):
             for row_index, row in enumerate(layout):
                 for col_index, col in enumerate(row):
                     x = col_index * TILE_SIZE
