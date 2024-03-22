@@ -11,10 +11,14 @@ Use item B with ```LEFT SHIFT```
 
 Open the pause/item menu with ```ESCAPE```
 
+Reduce player health to 0 with ```BACKSPACE```
+
 In the pause/item menu, select item B by moving the blinking selector with ```arrow up / arrow down``` or ```Q D```
 (Not all visible items are implemented, they will have no sprite nor effect when used)
 
-Game can be closed by pressing ```ANY KEY``` on the GAME OVER screen
+Game can be closed by pressing ```ESC``` on the GAME OVER screen
+
+Game can be continued by pressing ```RETURN``` on the GAME OVER screen
 
 ## How to build & run project
 ### Prerequisites
