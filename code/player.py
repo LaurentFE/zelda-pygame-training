@@ -791,6 +791,21 @@ class Player(Entity):
         self.hitbox.left = self.rect.left + PLAYER_HITBOX_X_OFFSET
         self.realign_shield()
 
+    def revive(self, level_id):
+        self.heal(self.current_max_health//PLAYER_HEALTH_PER_HEART)
+        self.direction_label = DOWN_LABEL
+        self.state = STATE_IDLE
+        self.image = self.walking_animations[self.direction_label][0]
+        if LEVEL_PREFIX_LABEL in level_id:
+            self.set_position(OVERWORLD_PLAYER_START_POS)
+        else:
+            self.set_position(DUNGEON_PLAYER_START_POS)
+        self.ladder_in_use = False
+        self.is_boomerang_thrown = False
+        self.is_candle_lit = False
+        self.isDead = False
+        self.is_spinning = False
+
     def update(self):
         if not self.isDead:
             if STATE_HURT not in self.state:
