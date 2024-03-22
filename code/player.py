@@ -119,6 +119,9 @@ class Player(Entity):
         self.hitbox = self.rect.inflate(-PLAYER_HITBOX_X_DEFLATE, -PLAYER_HITBOX_Y_DEFLATE)
         self.hitbox.top = self.rect.top + PLAYER_HITBOX_Y_OFFSET
         self.hitbox.left = self.rect.left + PLAYER_HITBOX_X_OFFSET
+        shield_x = SHIELD_DOWN_X + self.rect.left
+        shield_y = SHIELD_DOWN_Y + self.rect.top
+        self.shield_hitbox = pygame.Rect((shield_x, shield_y), (SHIELD_HORIZONTAL_WIDTH, SHIELD_HORIZONTAL_HEIGHT))
 
         # All cooldowns are in milliseconds
         # Cooldown between animation frames
@@ -193,6 +196,28 @@ class Player(Entity):
         self.ladder = None
         self.is_boomerang_thrown = False
         self.is_candle_lit = False
+
+    def realign_shield(self):
+        if self.direction_label == UP_LABEL:
+            self.shield_hitbox.top = self.rect.top + SHIELD_UP_Y
+            self.shield_hitbox.left = self.rect.left + SHIELD_UP_X
+            self.shield_hitbox.height = SHIELD_HORIZONTAL_HEIGHT
+            self.shield_hitbox.width = SHIELD_HORIZONTAL_WIDTH
+        elif self.direction_label == DOWN_LABEL:
+            self.shield_hitbox.top = self.rect.top + SHIELD_DOWN_Y
+            self.shield_hitbox.left = self.rect.left + SHIELD_DOWN_X
+            self.shield_hitbox.height = SHIELD_HORIZONTAL_HEIGHT
+            self.shield_hitbox.width = SHIELD_HORIZONTAL_WIDTH
+        elif self.direction_label == LEFT_LABEL:
+            self.shield_hitbox.top = self.rect.top + SHIELD_LEFT_Y
+            self.shield_hitbox.left = self.rect.left + SHIELD_LEFT_X
+            self.shield_hitbox.height = SHIELD_VERTICAL_HEIGHT
+            self.shield_hitbox.width = SHIELD_VERTICAL_WIDTH
+        else:
+            self.shield_hitbox.top = self.rect.top + SHIELD_RIGHT_Y
+            self.shield_hitbox.left = self.rect.left + SHIELD_RIGHT_X
+            self.shield_hitbox.height = SHIELD_VERTICAL_HEIGHT
+            self.shield_hitbox.width = SHIELD_VERTICAL_WIDTH
 
     def load_pickup_one_handed_frames(self, player_tile_set):
         for i in range(self.pickup_one_handed_frames):
@@ -436,10 +461,7 @@ class Player(Entity):
                     # Shield test
                     if (not particle.bypasses_shield
                             and STATE_ACTION not in self.state
-                            and ((self.direction_label == UP_LABEL and particle.direction_vector.y > 0)
-                                 or (self.direction_label == DOWN_LABEL and particle.direction_vector.y < 0)
-                                 or (self.direction_label == LEFT_LABEL and particle.direction_vector.x > 0)
-                                 or (self.direction_label == RIGHT_LABEL and particle.direction_vector.x < 0))):
+                            and particle.hitbox.colliderect(self.shield_hitbox)):
                         # Successful block !
                         self.shield_block_sound.play()
                         if not isinstance(particle, PBoomerang):
@@ -506,6 +528,7 @@ class Player(Entity):
         if not self.isDead:
             self.rect.top = self.hitbox.top - PLAYER_HITBOX_Y_OFFSET
             self.rect.left = self.hitbox.left - PLAYER_HITBOX_X_OFFSET
+            self.realign_shield()
 
     def set_state(self, state):
         current_time = pygame.time.get_ticks()
@@ -766,9 +789,9 @@ class Player(Entity):
         self.rect.y = pos[1]
         self.hitbox.top = self.rect.top + PLAYER_HITBOX_Y_OFFSET
         self.hitbox.left = self.rect.left + PLAYER_HITBOX_X_OFFSET
+        self.realign_shield()
 
     def update(self):
-        player_draw_pos = self.rect.topleft
         if not self.isDead:
             if STATE_HURT not in self.state:
                 self.current_speed = self.speed
@@ -777,6 +800,7 @@ class Player(Entity):
 
             if STATE_WARPING not in self.state:
                 self.move()
+                player_draw_pos = self.rect.topleft
                 if self.health < 0:
                     self.health = 0
             else:
@@ -787,6 +811,7 @@ class Player(Entity):
                 self.isDead = True
                 self.low_health_sound.stop()
         else:
+            player_draw_pos = self.rect.topleft
             self.animate()
 
         pygame.display.get_surface().blit(self.image, player_draw_pos)
