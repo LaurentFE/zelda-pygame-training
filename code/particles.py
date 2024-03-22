@@ -1233,12 +1233,13 @@ class RedCandle(Particle):
 
 
 class Boomerang(Particle):
-    def __init__(self, owner_pos, groups, level_id):
+    def __init__(self, owner_pos, groups, level_id, dropped_by_event=False):
 
         owner_direction_vector = pygame.math.Vector2()
         super().__init__(owner_pos, owner_direction_vector, groups)
 
         self.level_id = level_id
+        self.dropped_by_event = dropped_by_event
 
         self.frame_id = BOOMERANG_FRAME_ID
         self.nb_frames = BOOMERANG_FRAMES
@@ -1271,7 +1272,10 @@ class Boomerang(Particle):
         pass
 
     def effect(self):
-        MAP_ITEMS[self.level_id][BOOMERANG_LABEL] = False
+        if not self.dropped_by_event:
+            MAP_ITEMS[self.level_id][BOOMERANG_LABEL] = False
+        else:
+            MONSTER_KILL_EVENT.pop(self.level_id)
         game.Level().player_pick_up(BOOMERANG_LABEL)
 
     def update(self):

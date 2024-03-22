@@ -1072,6 +1072,11 @@ class Level(metaclass=Singleton):
                             (self.visible_sprites, self.particle_sprites),
                             level_id,
                             True)
+        elif event_label == BOOMERANG_LABEL:
+            Boomerang(item_pos,
+                      (self.visible_sprites, self.lootable_items_sprites),
+                      level_id,
+                      True)
         elif event_label == OPEN_DOORS_LABEL:
             # kill all closed_event_door_sprites
             pass
