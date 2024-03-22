@@ -820,6 +820,7 @@ class Key(Particle):
         self.hitbox = self.rect.inflate(-16, 0)
 
         self.affects_player = True
+        self.bypasses_shield = True
         self.collision_damage = 0
 
         self.is_active = True
