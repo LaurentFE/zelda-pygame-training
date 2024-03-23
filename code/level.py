@@ -1035,45 +1035,45 @@ class Level(metaclass=Singleton):
         return self.menu_item_coord_and_frame_id[self.current_selected_item][0]
 
     def handle_input(self, keys):
-        if (not self.player.isDead
-                and not self.in_menu
-                and not self.in_map_transition):
-            self.player.handle_input(keys)
-        current_time = pygame.time.get_ticks()
-        if current_time - self.key_pressed_start_timer >= self.key_pressed_cooldown:
-            self.key_pressed_start_timer = current_time
+        if not self.in_map_transition:
+            if (not self.player.isDead
+                    and not self.in_menu):
+                self.player.handle_input(keys)
+            current_time = pygame.time.get_ticks()
+            if current_time - self.key_pressed_start_timer >= self.key_pressed_cooldown:
+                self.key_pressed_start_timer = current_time
 
-            # Toggle pause menu on/off
-            if (self.is_menu_key_pressed_out_of_menu(keys)
-                    and not self.player.isDead
-                    and not self.player.is_winning):
-                self.in_menu = True
-                self.current_selected_item = self.player.itemB
-                self.draw_selector()
-            elif (self.is_menu_key_pressed_in_menu(keys)
-                  and not self.player.isDead
-                    and not self.player.is_winning):
-                self.in_menu = False
-                self.player.change_item_b(self.current_selected_item)
-                for sprite in self.menu_sprites:
-                    sprite.kill()
-            # Move item selector in menu
-            elif self.is_right_key_pressed_in_menu_with_item(keys):
-                item_pos = self.get_selector_position_for_next_item()
-                self.item_selector.move(item_pos)
-            elif self.is_left_key_pressed_in_menu_with_item(keys):
-                item_pos = self.get_selector_position_for_next_item(True)
-                self.item_selector.move(item_pos)
-            elif (is_suicide_key_pressed(keys)
-                  and not self.in_menu
-                  and not self.player.isDead):
-                self.player.health = 0
-            elif self.death_motion_index == 8 and is_continue_key_pressed(keys):
-                self.continue_init()
-            elif self.death_motion_index == 8 and is_exit_key_pressed(keys) != 0:
-                self.death_played = True
-            elif self.victory_motion_index == 3 and len(keys) != 0:
-                self.victory_played = True
+                # Toggle pause menu on/off
+                if (self.is_menu_key_pressed_out_of_menu(keys)
+                        and not self.player.isDead
+                        and not self.player.is_winning):
+                    self.in_menu = True
+                    self.current_selected_item = self.player.itemB
+                    self.draw_selector()
+                elif (self.is_menu_key_pressed_in_menu(keys)
+                      and not self.player.isDead
+                        and not self.player.is_winning):
+                    self.in_menu = False
+                    self.player.change_item_b(self.current_selected_item)
+                    for sprite in self.menu_sprites:
+                        sprite.kill()
+                # Move item selector in menu
+                elif self.is_right_key_pressed_in_menu_with_item(keys):
+                    item_pos = self.get_selector_position_for_next_item()
+                    self.item_selector.move(item_pos)
+                elif self.is_left_key_pressed_in_menu_with_item(keys):
+                    item_pos = self.get_selector_position_for_next_item(True)
+                    self.item_selector.move(item_pos)
+                elif (is_suicide_key_pressed(keys)
+                      and not self.in_menu
+                      and not self.player.isDead):
+                    self.player.health = 0
+                elif self.death_motion_index == 8 and is_continue_key_pressed(keys):
+                    self.continue_init()
+                elif self.death_motion_index == 8 and is_exit_key_pressed(keys) != 0:
+                    self.death_played = True
+                elif self.victory_motion_index == 3 and len(keys) != 0:
+                    self.victory_played = True
 
     def drop_loot(self, pos):
         # Loot system follows (loosely) the system used in the NES game

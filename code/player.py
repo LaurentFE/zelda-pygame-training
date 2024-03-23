@@ -254,7 +254,7 @@ class Player(Entity):
         if (STATE_ACTION not in self.state
                 and STATE_WARPING not in self.state
                 and self.state != STATE_STAIRS
-                and self.state != STATE_TRIFORCE):
+                and PICKUP_PREFIX not in self.state):
             return True
         return False
 
