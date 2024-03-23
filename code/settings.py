@@ -671,7 +671,7 @@ UNDERWORLD_STAIRS = [
      HELP_LABEL: 'This (D) is the entrance of secret_to_everybody0 from level9'},
     {MAP_LABEL: LEVEL_PREFIX_LABEL,
      SCREEN_LABEL: '7',
-     PLAYER_POS_LABEL: (96, HUD_OFFSET + 32),
+     PLAYER_POS_LABEL: (96, HUD_OFFSET + 64),
      STAIRS_LABEL: False,
      HELP_LABEL: 'This (E) is the top exit of secret_tunnel0 to level7'},
     {MAP_LABEL: 'secret_tunnel',
