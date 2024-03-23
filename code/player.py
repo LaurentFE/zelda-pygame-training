@@ -582,12 +582,15 @@ class Player(Entity):
             self.despawn_animation_starting_time = current_time
         elif state == STATE_WARPING:
             self.state = state
+            self.direction_vector = pygame.math.Vector2(0, 0)
         elif state == STATE_WARPING_DUNGEON:
             self.state = state
+            self.direction_vector = pygame.math.Vector2(0, 0)
         elif state == STATE_STAIRS:
             self.state = state
             self.stairs_sound.play()
             self.stairs_animation_starting_time = current_time
+            self.direction_vector = pygame.math.Vector2(0, 0)
         elif state == STATE_IDLE:
             self.state = state
         elif state == TWO_HANDED:
