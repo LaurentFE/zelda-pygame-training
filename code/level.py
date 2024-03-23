@@ -1038,7 +1038,6 @@ class Level(metaclass=Singleton):
                 self.death_played = True
             elif self.victory_motion_index == 3 and len(keys) != 0:
                 self.victory_played = True
-                print('prout')
 
     def drop_loot(self, pos):
         # Loot system follows (loosely) the system used in the NES game
