@@ -19,6 +19,9 @@ class TileSet(pygame.sprite.Sprite):
             if tile_type == cfg.TILE_FONTS:
                 self.img_width = cfg.FONT_SPRITE_SIZE // cfg.TILE_SIZE
                 self.img_height = cfg.FONT_SPRITE_SIZE // cfg.TILE_SIZE
+            elif tile_type == cfg.TILE_DOORS:
+                self.img_width = cfg.DOOR_TILE_SIZE
+                self.img_height = cfg.DOOR_TILE_SIZE
 
             self.items_per_row = self.rec.width // cfg.TILE_SIZE
         else:
@@ -35,6 +38,7 @@ class TileSet(pygame.sprite.Sprite):
 
 # Global TileSet instances, they MUST be instantiated in Game __init__
 CONSUMABLES_TILE_SET = None
+DOORS_TILE_SET = None
 ENEMIES_TILE_SET = None
 FONT_TILE_SET = None
 HUD_TILE_SET = None
