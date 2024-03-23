@@ -176,8 +176,19 @@ class PWoodenSword(Particle):
     def collision(self, direction):
         # Collision with a monster
         for enemy in self.enemy_sprites:
-            if enemy.hitbox.colliderect(self.hitbox):
-                enemy.take_damage(self.collision_damage, self.direction_label)
+            if isinstance(enemy, game.Darknut):
+                if (enemy.state != STATE_STUN
+                        and STATE_HURT not in enemy.state
+                        and enemy.shield_hitbox.colliderect(self.hitbox)
+                        and self.collision_damage > 0):
+                    self.collision_damage = 0
+                    enemy.shield_block_sound.play()
+                elif (enemy.hitbox.colliderect(self.hitbox)
+                      and STATE_HURT not in enemy.state):
+                    enemy.take_damage(self.collision_damage, self.direction_label)
+            else:
+                if enemy.hitbox.colliderect(self.hitbox):
+                    enemy.take_damage(self.collision_damage, self.direction_label)
 
         # Collision with a lootable particle
         for particle in self.particle_sprites:
@@ -507,7 +518,9 @@ class MagicMissile(Particle):
                  owner_pos,
                  owner_direction_vector,
                  groups,
-                 obstacle_sprites):
+                 obstacle_sprites,
+                 dmg=MAGIC_MISSILE_DMG,
+                 aim_at_player=True):
         super().__init__(owner_pos, owner_direction_vector, groups)
 
         self.obstacle_sprites = obstacle_sprites
@@ -525,15 +538,18 @@ class MagicMissile(Particle):
         self.hitbox.left = self.rect.left
         self.hitbox.top = self.rect.top + 6
 
-        x_displacement = self.rect.centerx - game.Level().player.rect.centerx
-        y_displacement = self.rect.centery - game.Level().player.rect.centery
-        self.direction_vector = pygame.math.Vector2(-x_displacement, -y_displacement)
-        if self.direction_vector.magnitude() != 0:
-            self.direction_vector = self.direction_vector.normalize()
+        if aim_at_player:
+            x_displacement = self.rect.centerx - game.Level().player.rect.centerx
+            y_displacement = self.rect.centery - game.Level().player.rect.centery
+            self.direction_vector = pygame.math.Vector2(-x_displacement, -y_displacement)
+            if self.direction_vector.magnitude() != 0:
+                self.direction_vector = self.direction_vector.normalize()
+        else:
+            self.direction_vector = owner_direction_vector
 
         self.affects_player = True
         self.bypasses_shield = True
-        self.collision_damage = MAGIC_MISSILE_DMG
+        self.collision_damage = dmg
         self.speed = MAGIC_MISSILE_SPEED
 
         self.is_active = True
@@ -945,7 +961,7 @@ class BombSmoke(Particle):
 
         self.image = self.move_animations[0]
         self.rect = self.image.get_rect(topleft=(self.pos_x, self.pos_y))
-        self.hitbox = self.rect.inflate(-32, -32)
+        self.hitbox = self.rect
 
         self.collision_damage = 0
 

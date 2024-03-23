@@ -5,7 +5,7 @@ import tileset
 import level as game
 from settings import *
 from entities import Entity
-from particles import Rock, Arrow, MagicMissile, PBoomerang
+from particles import Rock, Arrow, MagicMissile, PBoomerang, BombSmoke, Flame
 
 
 # Known issue : Monster waits for STATE_ACTION to end before getting hurt
@@ -223,7 +223,10 @@ class Enemy(Entity):
 
     @abc.abstractmethod
     def take_damage(self, amount, direction):
-        if self.isSpawned and STATE_HURT not in self.state and not self.invulnerable:
+        if (self.isSpawned
+                and amount > 0
+                and STATE_HURT not in self.state
+                and not self.invulnerable):
             self.state = STATE_HURT
             self.hurt_starting_time = pygame.time.get_ticks()
             self.hurt_animation_starting_time = self.hurt_starting_time
@@ -1006,6 +1009,311 @@ class Goriya(Enemy):
 
     def update(self):
         super().update()
+
+
+class Darknut(Enemy):
+    def __init__(self, pos, groups, visible_sprites, obstacle_sprites, particle_sprites, border_sprites):
+        super().__init__(groups, visible_sprites, obstacle_sprites, particle_sprites, True)
+
+        self.border_sprites = border_sprites
+
+        self.walking_frames = DARKNUT_WALKING_FRAMES
+        self.action_frames = DARKNUT_WALKING_FRAMES
+        self.is_right_x_flipped = True
+        self.walking_up_frame_id = DARKNUT_WALKING_UP_FRAME_ID
+        self.walking_down_frame_id = DARKNUT_WALKING_DOWN_FRAME_ID
+        self.walking_left_frame_id = DARKNUT_WALKING_LEFT_FRAME_ID
+        self.walking_right_frame_id = DARKNUT_WALKING_LEFT_FRAME_ID
+        self.action_up_frame_id = DARKNUT_WALKING_UP_FRAME_ID
+        self.action_down_frame_id = DARKNUT_WALKING_DOWN_FRAME_ID
+        self.action_left_frame_id = DARKNUT_WALKING_LEFT_FRAME_ID
+        self.action_right_frame_id = DARKNUT_WALKING_LEFT_FRAME_ID
+        self.hurt_up_frame_id = DARKNUT_HURT_UP_FRAME_ID
+        self.hurt_down_frame_id = DARKNUT_HURT_DOWN_FRAME_ID
+        self.hurt_left_frame_id = DARKNUT_HURT_LEFT_FRAME_ID
+        self.hurt_right_frame_id = DARKNUT_HURT_LEFT_FRAME_ID
+
+        self.load_animation_frames(tileset.ENEMIES_TILE_SET)
+
+        # Set first image of the monster appearing when created, and generating corresponding hitbox
+        self.isSpawned = True
+        self.state = STATE_WALKING
+        self.direction_label = LEFT_LABEL
+        self.image = self.walking_animations[self.direction_label][0]
+        self.rect = self.image.get_rect(topleft=pos)
+        self.hitbox = self.rect.inflate(-2, -2)
+        shield_x = DARKNUT_SHIELD_DOWN_X + self.rect.left
+        shield_y = DARKNUT_SHIELD_DOWN_Y + self.rect.top
+        self.shield_hitbox = pygame.Rect((shield_x, shield_y),
+                                         (DARKNUT_HORIZONTAL_SHIELD_WIDTH, DARKNUT_HORIZONTAL_SHIELD_HEIGHT))
+
+        self.shield_block_sound = pygame.mixer.Sound(SOUND_SHIELD_BLOCK)
+        self.shield_block_sound.set_volume(0.3)
+
+        # Goriya Stats
+        self.health = DARKNUT_HEALTH
+        self.defense = DARKNUT_DEF
+        self.collision_damage = DARKNUT_DMG
+        self.magic_damage = DARKNUT_MAGIC_DMG
+        self.magic_starting_time = 0
+        self.magic_cooldown = DARKNUT_MAGIC_COOLDOWN
+        self.dash_starting_pos = self.rect.center
+        self.dash_starting_time = 0
+        self.dash_cooldown = DARKNUT_DASH_COOLDOWN
+        self.stun_starting_time = 0
+        self.stun_cooldown = DARKNUT_STUN_COOLDOWN
+        self.speed = DARKNUT_SPEED
+        self.stun_cooldown = DARKNUT_STUN_COOLDOWN
+        self.hurt_animation_cooldown = DARKNUT_HURT_ANIMATION_COOLDOWN
+        self.attacks = [DASH_LABEL, MAGIC_LABEL]
+        self.can_attack = False
+        self.current_attack = None
+        self.next_attack = random.choice(self.attacks)
+        self.attack_range_start = 100
+        self.attack_range_stop = 1500
+        self.idle_starting_time = pygame.time.get_ticks()
+        self.attack_cooldown = random.randrange(500, self.attack_range_stop, 100)
+
+        # All cooldowns are in milliseconds
+        # Cooldown between animation frames
+        self.walking_animation_cooldown = DARKNUT_WALKING_ANIMATION_COOLDOWN
+        self.action_animation_cooldown = DARKNUT_ACTION_ANIMATION_COOLDOWN
+
+    def load_dive_frames(self, enemies_tile_set):
+        pass
+
+    def load_animation_frames(self, enemies_tile_set):
+        super().load_animation_frames(enemies_tile_set)
+
+    def cooldowns(self):
+        current_time = pygame.time.get_ticks()
+
+        # Monster can shoot if he isn't in the hurt animation. Attack cooldown is randomized
+        if (STATE_HURT not in self.state
+                and self.state != STATE_STUN):
+            if (self.current_attack is None
+                    and current_time - self.idle_starting_time >= self.attack_cooldown):
+                self.can_attack = True
+                self.current_attack = self.next_attack
+                self.next_attack = random.choice(self.attacks)
+            elif self.current_attack == DASH_LABEL:
+                distance_travelled = pygame.math.Vector2(self.rect.center).distance_to(
+                    pygame.math.Vector2(self.dash_starting_pos))
+                if distance_travelled >= TILE_SIZE * 5:
+                    self.current_attack = None
+                    self.idle_starting_time = current_time
+                    self.state = STATE_WALKING
+                    attack_range_start = (self.attack_range_start + self.dash_cooldown
+                                          - (current_time - self.dash_starting_time))
+                    attack_range_stop = attack_range_start + self.attack_range_stop
+                    self.attack_cooldown = random.randrange(attack_range_start, attack_range_stop, 100)
+            elif self.current_attack == MAGIC_LABEL:
+                if current_time - self.magic_starting_time >= self.magic_cooldown:
+                    self.idle_starting_time = current_time
+                    self.current_attack = None
+                    self.attack_cooldown = random.randrange(self.attack_range_start, self.attack_range_stop, 100)
+
+        if self.state == STATE_STUN:
+            if current_time - self.stun_starting_time >= self.stun_cooldown:
+                self.state = STATE_WALKING
+
+        # Hurt monster is invulnerable during animation, this is reset here
+        if STATE_HURT in self.state:
+            if current_time - self.hurt_starting_time >= self.hurt_cooldown:
+                self.state = STATE_WALKING
+                self.invulnerable = False
+                self.hurt_animation_frame_count = 0
+
+    def change_animation_frame(self,
+                               animation_list,
+                               animation_frame_count,
+                               animation_starting_time,
+                               animation_cooldown,
+                               animation_frames_nb,
+                               reset_for_loop=True,
+                               idle_after=False):
+        return super().change_animation_frame(animation_list,
+                                              animation_frame_count,
+                                              animation_starting_time,
+                                              animation_cooldown,
+                                              animation_frames_nb,
+                                              reset_for_loop,
+                                              idle_after)
+
+    def animate(self):
+        super().animate()
+        self.realign_shield()
+
+    def collision(self, direction):
+        if direction == HORIZONTAL_LABEL:
+            for sprite in self.obstacle_sprites:
+                if (sprite.hitbox.colliderect(self.hitbox)
+                        and sprite.type != LIMIT_LADDER_INDEX
+                        and sprite.type != LIMIT_LAKE_BORDER_INDEX):
+                    if self.direction_vector.x > 0:
+                        self.hitbox.right = sprite.hitbox.left
+                    if self.direction_vector.x < 0:
+                        self.hitbox.left = sprite.hitbox.right
+                    self.state = STATE_WALKING
+                    self.idle_starting_time = pygame.time.get_ticks()
+                    self.current_attack = None
+                    self.attack_cooldown = random.randrange(300, 700, 100)
+
+        elif direction == VERTICAL_LABEL:
+            for sprite in self.obstacle_sprites:
+                if (sprite.hitbox.colliderect(self.hitbox)
+                        and sprite.type != LIMIT_LADDER_INDEX
+                        and sprite.type != LIMIT_LAKE_BORDER_INDEX):
+                    if self.direction_vector.y > 0:
+                        self.hitbox.bottom = sprite.hitbox.top
+                    if self.direction_vector.y < 0:
+                        self.hitbox.top = sprite.hitbox.bottom
+                    self.state = STATE_WALKING
+                    self.idle_starting_time = pygame.time.get_ticks()
+                    self.current_attack = None
+                    self.attack_cooldown = random.randrange(300, 700, 100)
+
+        for particle in self.particle_sprites:
+            if (isinstance(particle, PBoomerang)
+                    and particle.affects_enemy
+                    and particle.hitbox.colliderect(self.shield_hitbox)
+                    and self.state != STATE_STUN):
+                self.shield_block_sound.play()
+                particle.go_back = True
+                particle.affects_enemy = False
+                particle.collision_damage = 0
+            elif (isinstance(particle, BombSmoke)
+                  and particle.hitbox.colliderect(self.hitbox)):
+                self.state = STATE_STUN
+                self.stun_starting_time = pygame.time.get_ticks()
+            elif (isinstance(particle, Flame)
+                  and particle.hitbox.colliderect(self.hitbox)):
+                self.monster_hurt_sound.play()
+                particle.kill()
+
+    def move(self):
+        self.hitbox.x += self.direction_vector.x * self.current_speed
+        self.collision(HORIZONTAL_LABEL)
+        self.hitbox.y += self.direction_vector.y * self.current_speed
+        self.collision(VERTICAL_LABEL)
+
+        self.rect.center = self.hitbox.center
+        self.realign_shield()
+
+    def realign_shield(self):
+        if self.direction_label == UP_LABEL:
+            self.shield_hitbox.top = self.rect.top + DARKNUT_SHIELD_UP_Y
+            self.shield_hitbox.left = self.rect.left + DARKNUT_SHIELD_UP_X
+            self.shield_hitbox.height = DARKNUT_HORIZONTAL_SHIELD_HEIGHT
+            self.shield_hitbox.width = DARKNUT_HORIZONTAL_SHIELD_WIDTH
+        elif self.direction_label == DOWN_LABEL:
+            self.shield_hitbox.top = self.rect.top + DARKNUT_SHIELD_DOWN_Y
+            self.shield_hitbox.left = self.rect.left + DARKNUT_SHIELD_DOWN_X
+            self.shield_hitbox.height = DARKNUT_HORIZONTAL_SHIELD_HEIGHT
+            self.shield_hitbox.width = DARKNUT_HORIZONTAL_SHIELD_WIDTH
+        elif self.direction_label == LEFT_LABEL:
+            self.shield_hitbox.top = self.rect.top + DARKNUT_SHIELD_LEFT_Y
+            self.shield_hitbox.left = self.rect.left + DARKNUT_SHIELD_LEFT_X
+            self.shield_hitbox.height = DARKNUT_VERTICAL_SHIELD_HEIGHT
+            self.shield_hitbox.width = DARKNUT_VERTICAL_SHIELD_WIDTH
+        else:
+            self.shield_hitbox.top = self.rect.top + DARKNUT_SHIELD_RIGHT_Y
+            self.shield_hitbox.left = self.rect.left + DARKNUT_SHIELD_RIGHT_X
+            self.shield_hitbox.height = DARKNUT_VERTICAL_SHIELD_HEIGHT
+            self.shield_hitbox.width = DARKNUT_VERTICAL_SHIELD_WIDTH
+
+    def attack(self):
+        current_time = pygame.time.get_ticks()
+        if self.current_attack == DASH_LABEL:
+            self.dash_starting_time = current_time
+            self.state = DASH_LABEL
+            self.current_speed = DARKNUT_DASH_SPEED
+            self.dash_starting_pos = self.rect.center
+        else:
+            self.magic_starting_time = current_time
+            direction_label, direction_vector = self.aim_at_player()
+            MagicMissile(self.rect.topleft,
+                         direction_vector.rotate(45),
+                         (self.visible_sprites, self.particle_sprites),
+                         self.border_sprites,
+                         DARKNUT_MAGIC_DMG,
+                         False)
+            MagicMissile(self.rect.topleft,
+                         direction_vector,
+                         (self.visible_sprites, self.particle_sprites),
+                         self.border_sprites,
+                         DARKNUT_MAGIC_DMG,
+                         False)
+            MagicMissile(self.rect.topleft,
+                         direction_vector.rotate(-45),
+                         (self.visible_sprites, self.particle_sprites),
+                         self.border_sprites,
+                         DARKNUT_MAGIC_DMG,
+                         False)
+            self.state = STATE_WALKING
+
+    def take_damage(self, amount, direction):
+        super().take_damage(amount - self.defense, direction)
+        if STATE_HURT in self.state:
+            self.idle_starting_time = pygame.time.get_ticks()
+            self.current_attack = None
+            self.attack_cooldown = random.randrange(100 + self.hurt_cooldown, 400 + self.hurt_cooldown, 100)
+
+    def aim_at_player(self):
+        x_displacement = self.rect.centerx - game.Level().player.rect.centerx
+        y_displacement = self.rect.centery - game.Level().player.rect.centery
+        direction_vector = pygame.math.Vector2(-x_displacement, -y_displacement)
+        if direction_vector.magnitude() != 0:
+            direction_vector = direction_vector.normalize()
+        if abs(direction_vector.x) >= abs(direction_vector.y):
+            if direction_vector.x >= 0:
+                direction_label = RIGHT_LABEL
+            else:
+                direction_label = LEFT_LABEL
+        else:
+            if direction_vector.y >= 0:
+                direction_label = DOWN_LABEL
+            else:
+                direction_label = UP_LABEL
+
+        return direction_label, direction_vector
+
+    def update(self):
+        current_time = pygame.time.get_ticks()
+
+        if self.state != DASH_LABEL:
+            self.current_speed = self.speed
+
+        if STATE_HURT not in self.state:
+            if (self.isSpawned
+                    and self.state == STATE_WALKING):
+                if self.can_attack:
+                    self.state = STATE_ACTION
+                else:
+                    self.direction_label, self.direction_vector = self.aim_at_player()
+                    self.realign_shield()
+        else:
+            if self.hurt_animation_frame_count % 2:
+                self.current_speed = self.speed
+            else:
+                self.current_speed = 0
+
+        if self.isSpawned and not self.isDead:
+            if (self.state == STATE_ACTION
+                    and self.can_attack):
+                self.attack()
+                self.can_attack = False
+            elif self.state != STATE_STUN:
+                self.move()
+
+            if self.health <= 0:
+                self.despawn_animation_starting_time = current_time
+                self.isDead = True
+                self.monster_despawn_sound.play()
+
+        self.animate()
+        self.cooldowns()
+        pygame.display.get_surface().blit(self.image, self.rect.topleft)
 
 
 class Zora(Enemy):
