@@ -475,17 +475,13 @@ class BlueOctorock(Enemy):
         if abs(direction_vector.x) >= abs(direction_vector.y):
             if direction_vector.x >= 0:
                 self.direction_label = RIGHT_LABEL
-                rock_pos_x = self.rect.left + TILE_SIZE
             else:
                 self.direction_label = LEFT_LABEL
-                rock_pos_x = self.rect.left - TILE_SIZE
         else:
             if direction_vector.y >= 0:
                 self.direction_label = DOWN_LABEL
-                rock_pos_y = self.rect.top + TILE_SIZE
             else:
                 self.direction_label = UP_LABEL
-                rock_pos_y = self.rect.top - TILE_SIZE
         self.animate()
 
         Rock(self.rect.topleft,
