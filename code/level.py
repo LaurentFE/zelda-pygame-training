@@ -17,6 +17,7 @@ from warp import Warp, SecretPassage
 from purchasable import Purchasable
 from npc import Npc
 from textblock import TextBlock
+from door import Door
 
 
 class Singleton(type):
@@ -61,6 +62,7 @@ class Level(metaclass=Singleton):
         self.text_sprites = pygame.sprite.Group()
         self.secret_bomb_sprites = pygame.sprite.Group()
         self.secret_flame_sprites = pygame.sprite.Group()
+        self.door_sprites = pygame.sprite.Group()
 
         self.equipped_item_a_sprite = None
         self.equipped_item_b_sprite = None
@@ -86,16 +88,14 @@ class Level(metaclass=Singleton):
         self.triforce_sound = pygame.mixer.Sound(SOUND_TRIFORCE_OBTAINED)
         self.triforce_sound.set_volume(0.4)
 
-        # Sprite setup
-        # Player spawns at the center of the game surface
-        self.load_player((PLAYER_START_X, PLAYER_START_Y))
-        if LEVEL_PREFIX_LABEL in STARTING_MAP:
-            self.overworld_background_theme.play(loops=-1)
-        else:
-            self.dungeon_background_theme.play(loops=-1)
-
         self.current_map = STARTING_MAP
         self.current_map_screen = STARTING_SCREEN
+        if self.current_map == OVERWORLD_STARTING_MAP:
+            self.load_player(OVERWORLD_PLAYER_START_POS)
+            self.overworld_background_theme.play(loops=-1)
+        else:
+            self.load_player(DUNGEON_PLAYER_START_POS)
+            self.dungeon_background_theme.play(loops=-1)
         self.create_map(self.current_map + self.current_map_screen)
         self.in_map_transition = None
         self.map_scroll_animation_counter = 0
@@ -662,6 +662,13 @@ class Level(metaclass=Singleton):
                             item_price,
                             price_sprite)
 
+    def load_doors(self, level_id):
+        if DUNGEON_PREFIX_LABEL in level_id and level_id in DUNGEON_DOORS.keys():
+            for door_pos, door_type in DUNGEON_DOORS[level_id].items():
+                Door((self.visible_sprites, self.door_sprites),
+                     door_pos,
+                     door_type)
+
     def load_player(self, pos):
         self.player = Player(pos,
                              (self.visible_sprites,),
@@ -674,7 +681,8 @@ class Level(metaclass=Singleton):
                              self.purchasable_sprites,
                              self.npc_sprites,
                              self.secret_flame_sprites,
-                             self.secret_bomb_sprites)
+                             self.secret_bomb_sprites,
+                             self.door_sprites)
 
     def create_map(self, level_id):
         # This creates all Sprites of the new map
@@ -683,6 +691,7 @@ class Level(metaclass=Singleton):
         self.load_warps(level_id, WARP_WARPS)
         self.load_warps(level_id, WARP_BOMB)
         self.load_warps(level_id, WARP_FLAME)
+        self.load_doors(level_id)
         self.load_items(level_id)
         self.load_enemies(level_id)
         self.load_shop(level_id)
@@ -751,6 +760,8 @@ class Level(metaclass=Singleton):
                 purchasable.kill()
             for text in self.text_sprites:
                 text.kill()
+            for door in self.door_sprites:
+                door.kill()
             if self.player.ladder_in_use:
                 self.player.ladder_in_use = False
                 self.player.ladder.kill()
@@ -879,21 +890,35 @@ class Level(metaclass=Singleton):
         current_time = pygame.time.get_ticks()
 
         # Kill every sprite
+        for warp in self.warp_sprites:
+            warp.kill()
+        for obstacle in self.obstacle_sprites:
+            obstacle.kill()
+        for border in self.border_sprites:
+            border.kill()
         for enemy in self.enemy_sprites:
             enemy.kill()
         for particle in self.particle_sprites:
             particle.kill()
         for npc in self.npc_sprites:
             npc.kill()
-        for text in self.text_sprites:
-            text.kill()
         for loot in self.lootable_items_sprites:
             loot.kill()
         for merch in self.purchasable_sprites:
             merch.kill()
+        for npc in self.npc_sprites:
+            npc.kill()
+        for bomb_tile in self.secret_bomb_sprites:
+            bomb_tile.kill()
+        for flame_tile in self.secret_flame_sprites:
+            flame_tile.kill()
+        for door in self.door_sprites:
+            door.kill()
 
         # Player is in a hurt state for death_hurt_cooldown, by default 3 cycles of the hurt animation
         if self.death_motion_index == 1:
+            for text in self.text_sprites:
+                text.kill()
             if self.death_hurt_starting_time == 0:
                 self.death_hurt_starting_time = current_time
                 self.player.set_state(STATE_DYING)
@@ -966,7 +991,7 @@ class Level(metaclass=Singleton):
         # Print GAME OVER in middle of screen until key is pressed to exit game
         if self.death_motion_index == 7:
             game_over_message_pos_y = (SCREEN_HEIGHT // 2) + (HUD_OFFSET // 2) - (TILE_SIZE // 2)
-            TextBlock((self.visible_sprites,),
+            TextBlock((self.visible_sprites, self.text_sprites),
                       GAME_OVER_TEXT,
                       game_over_message_pos_y)
             self.death_motion_index += 1
@@ -1007,7 +1032,8 @@ class Level(metaclass=Singleton):
 
     def handle_input(self, keys):
         if (not self.player.isDead
-                and not self.in_menu):
+                and not self.in_menu
+                and not self.in_map_transition):
             self.player.handle_input(keys)
         current_time = pygame.time.get_ticks()
         if current_time - self.key_pressed_start_timer >= self.key_pressed_cooldown:
@@ -1034,7 +1060,13 @@ class Level(metaclass=Singleton):
             elif self.is_left_key_pressed_in_menu_with_item(keys):
                 item_pos = self.get_selector_position_for_next_item(True)
                 self.item_selector.move(item_pos)
-            elif self.death_motion_index == 8 and len(keys) != 0:
+            elif (is_suicide_key_pressed(keys)
+                  and not self.in_menu
+                  and not self.player.isDead):
+                self.player.health = 0
+            elif self.death_motion_index == 8 and is_continue_key_pressed(keys):
+                self.continue_init()
+            elif self.death_motion_index == 8 and is_exit_key_pressed(keys) != 0:
                 self.death_played = True
             elif self.victory_motion_index == 3 and len(keys) != 0:
                 self.victory_played = True
@@ -1137,8 +1169,9 @@ class Level(metaclass=Singleton):
                       level_id,
                       True)
         elif event_label == OPEN_DOORS_LABEL:
-            # kill all closed_event_door_sprites
-            pass
+            for door in self.door_sprites:
+                if door.type == DOOR_EVENT_LABEL:
+                    door.open()
         self.dead_monsters_event_played = True
 
     def pick_up_triforce(self):
@@ -1151,6 +1184,26 @@ class Level(metaclass=Singleton):
         self.item_picked_up = Tile(item_pos, (self.visible_sprites,), item_image)
         self.player.set_state(STATE_TRIFORCE)
         self.triforce_sound.play()
+
+    def continue_init(self):
+        for text in self.text_sprites:
+            text.kill()
+        if self.current_map == OVERWORLD_STARTING_MAP:
+            self.current_map = OVERWORLD_STARTING_MAP
+            self.current_map_screen = OVERWORLD_STARTING_SCREEN
+            self.create_map(OVERWORLD_STARTING_MAP + OVERWORLD_STARTING_SCREEN)
+            self.overworld_background_theme.play(loops=-1)
+        else:
+            self.current_map = DUNGEON_STARTING_MAP
+            self.current_map_screen = DUNGEON_STARTING_SCREEN
+            self.create_map(DUNGEON_STARTING_MAP + DUNGEON_STARTING_SCREEN)
+            self.dungeon_background_theme.play(loops=-1)
+        self.player.revive(self.current_map)
+        self.death_motion_index = 0
+        self.death_floor_index = 0
+        self.death_hurt_starting_time = 0
+        self.death_floor_switch_starting_time = 0
+        self.death_despawn_starting_time = 0
 
     def run(self):
         for monster in self.enemy_sprites:

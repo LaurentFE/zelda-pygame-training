@@ -40,7 +40,8 @@ class Player(Entity):
                  purchasable_sprites,
                  npc_sprites,
                  secret_flame_sprites,
-                 secret_bomb_sprites):
+                 secret_bomb_sprites,
+                 door_sprites):
         super().__init__(groups, visible_sprites, obstacle_sprites, particle_sprites)
 
         self.enemy_sprites = enemy_sprites
@@ -52,6 +53,7 @@ class Player(Entity):
         self.npc_sprites = npc_sprites
         self.secret_flame_sprites = secret_flame_sprites
         self.secret_bomb_sprites = secret_bomb_sprites
+        self.door_sprites = door_sprites
 
         self.pickup_one_handed_animation = []
         self.pickup_two_handed_animation = []
@@ -403,6 +405,25 @@ class Player(Entity):
                     if self.health <= PLAYER_HEALTH_PER_HEART and not self.is_low_health:
                         self.low_health_sound.play(loops=-1)
                         self.is_low_health = True
+        # Collision with Door
+        for door in self.door_sprites:
+            if door.hitbox.colliderect(self.hitbox):
+                if (door.rect.colliderect(self.hitbox)
+                        and door.type == DOOR_KEY_LABEL
+                        and self.keys > 0):
+                    self.keys -= 1
+                    door.open()
+                else:
+                    if direction == HORIZONTAL_LABEL:
+                        if self.direction_vector.x > 0:
+                            self.hitbox.right = door.hitbox.left
+                        if self.direction_vector.x < 0:
+                            self.hitbox.left = door.hitbox.right
+                    else:
+                        if self.direction_vector.y > 0:
+                            self.hitbox.bottom = door.hitbox.top
+                        if self.direction_vector.y < 0:
+                            self.hitbox.top = door.hitbox.bottom
 
         # Collision with Obstacles
         for sprite in self.obstacle_sprites:
@@ -799,6 +820,21 @@ class Player(Entity):
         self.hitbox.left = self.rect.left + PLAYER_HITBOX_X_OFFSET
         self.realign_shield()
 
+    def revive(self, level_id):
+        self.heal(self.current_max_health//PLAYER_HEALTH_PER_HEART)
+        self.direction_label = DOWN_LABEL
+        self.state = STATE_IDLE
+        self.image = self.walking_animations[self.direction_label][0]
+        if LEVEL_PREFIX_LABEL in level_id:
+            self.set_position(OVERWORLD_PLAYER_START_POS)
+        else:
+            self.set_position(DUNGEON_PLAYER_START_POS)
+        self.ladder_in_use = False
+        self.is_boomerang_thrown = False
+        self.is_candle_lit = False
+        self.isDead = False
+        self.is_spinning = False
+
     def update(self):
         if not self.isDead:
             if STATE_HURT not in self.state:
@@ -819,6 +855,8 @@ class Player(Entity):
                 self.isDead = True
                 self.low_health_sound.stop()
         else:
+            if self.ladder:
+                self.ladder.kill()
             player_draw_pos = self.rect.topleft
             self.animate()
 

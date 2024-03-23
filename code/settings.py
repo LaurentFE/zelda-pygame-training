@@ -18,8 +18,8 @@ TEXT_OFFSET = TEXT_MARGIN * FONT_SPRITE_SIZE
 #
 NONE_LABEL = 'None'
 GAME_NAME = 'A Zelda NES homage in Python'
-VICTORY_TEXT = 'congratulations ! the kingdom is safe, and you\'re a winner'
-GAME_OVER_TEXT = 'game over'
+VICTORY_TEXT = 'congratulations !\n\n\n\n\n\n\n\nthe kingdom is safe,\,and you\'re a winner'
+GAME_OVER_TEXT = 'game over\n\npress enter to continue\npress escape to exir'
 BLACK_LABEL = 'black'
 RED1_LABEL = 'red1'
 RED2_LABEL = 'red2'
@@ -37,6 +37,8 @@ VERTICAL_LABEL = 'vertical'
 # Error messages
 UNKNOWN_TILE_TYPE = 'tile_type must be a declared value in TILE_TYPES'
 INCOMPATIBLE_PALETTES = 'Both palettes[Colors] must be of the same length'
+WORD_TOO_LONG_FOR_TEXTBLOCK = 'Word is too long (>' + str(MAX_CHAR_PER_ROW) + ') for TextBlock : '
+TEXTBLOCK_CHAR_SPRITE_NOT_DEFINED = 'Character in TextBlock string doesn\'t have a defined sprite : '
 # Directions
 UP_LABEL = 'up'
 RIGHT_LABEL = 'right'
@@ -84,6 +86,9 @@ STAIRS_LABEL = 'stairs'
 SCREEN_LABEL = 'screen'
 PLAYER_POS_LABEL = 'player_pos'
 HELP_LABEL = 'help'
+# Dungeon Doors labels
+DOOR_KEY_LABEL = "Key locked door"
+DOOR_EVENT_LABEL = "Event locked door"
 # Event label
 OPEN_DOORS_LABEL = 'open doors'
 # Graphics paths
@@ -110,6 +115,7 @@ MAPS_FLAME = '_Secrets_Flame'
 MAPS_WARP = '_Warps'
 # Tile sets types
 TILE_CONSUMABLES = 'consumables'
+TILE_DOORS = 'doors'
 TILE_ENEMIES = 'enemies'
 TILE_FONTS = 'font'
 TILE_HUD = 'hud'
@@ -119,7 +125,7 @@ TILE_NPCS = 'npcs'
 TILE_PARTICLES = 'particles'
 TILE_PLAYER = 'player'
 TILE_WARPS = 'warps'
-TILE_TYPES = [TILE_CONSUMABLES, TILE_ENEMIES, TILE_FONTS, TILE_HUD, TILE_ITEMS,
+TILE_TYPES = [TILE_CONSUMABLES, TILE_DOORS, TILE_ENEMIES, TILE_FONTS, TILE_HUD, TILE_ITEMS,
               TILE_LEVELS, TILE_NPCS, TILE_PARTICLES, TILE_PLAYER, TILE_WARPS]
 # Warps types
 WARP_WARPS = 'warps'
@@ -170,6 +176,7 @@ SOUND_STAIRS = AUDIO_PATH + 'Stairs.wav'
 SOUND_FLAME = AUDIO_PATH + 'Flame.wav'
 SOUND_EVENT_CLEARED = AUDIO_PATH + 'Event_Cleared.wav'
 SOUND_TRIFORCE_OBTAINED = AUDIO_PATH + 'Triforce_Obtained.wav'
+SOUND_DOOR = AUDIO_PATH + 'Door.wav'
 
 # COLOR PALETTE INFO
 COLOR_KEY = (116, 116, 116)
@@ -581,6 +588,23 @@ MENU_MEAT_TOPLEFT = (304, 128)
 MENU_MEDICINE_TOPLEFT = (352, 128)
 MENU_MAGICAL_ROD_TOPLEFT = (400, 128)
 
+# DUNGEON DOORS SPRITES
+#
+DOOR_TILE_SIZE = 4
+DOOR_KEY_UP_FRAME_ID = 0
+DOOR_KEY_RIGHT_FRAME_ID = 4
+DOOR_KEY_DOWN_FRAME_ID = 8
+DOOR_KEY_LEFT_FRAME_ID = 12
+DOOR_EVENT_UP_FRAME_ID = 64
+DOOR_EVENT_RIGHT_FRAME_ID = 68
+DOOR_EVENT_DOWN_FRAME_ID = 72
+DOOR_EVENT_LEFT_FRAME_ID = 76
+# Door coordinates
+DOOR_UP_POS = (14 * TILE_SIZE, HUD_OFFSET)
+DOOR_RIGHT_POS = (28 * TILE_SIZE, HUD_OFFSET + 9 * TILE_SIZE)
+DOOR_DOWN_POS = (14 * TILE_SIZE, SCREEN_HEIGHT - 4 * TILE_SIZE)
+DOOR_LEFT_POS = (0, HUD_OFFSET + 9 * TILE_SIZE)
+
 # FONTS
 #
 FONT_CHARACTERS_PER_ROW = 10
@@ -744,7 +768,7 @@ FLAME_2_POS = (NPC_X + 6 * TILE_SIZE, NPC_Y)
 SHOPS = {
     'sword_cave0': {ITEMS_LABEL: {WOOD_SWORD_LABEL: 0},
                     NPC_ID_LABEL: OLD_MAN_ID,
-                    TEXT_LABEL: 'it\'s dangerous to go alone, take this !'},
+                    TEXT_LABEL: 'it\'s dangerous to go alone,\ntake this !'},
     'shop00': {ITEMS_LABEL: {CANDLE_LABEL: 30,
                              BOMB_LABEL: 15,
                              HEART_LABEL: 5},
@@ -803,9 +827,22 @@ DUNGEON_DECIMATION = {
     DUNGEON_PREFIX_LABEL + '0_11': False
 }
 
+# DUNGEON DOORS TRACKER
+#
+DUNGEON_DOORS = {
+    DUNGEON_PREFIX_LABEL + '0_1': {RIGHT_LABEL: DOOR_KEY_LABEL},
+    DUNGEON_PREFIX_LABEL + '0_2': {RIGHT_LABEL: DOOR_EVENT_LABEL},
+    DUNGEON_PREFIX_LABEL + '0_5': {UP_LABEL: DOOR_KEY_LABEL},
+    DUNGEON_PREFIX_LABEL + '0_6': {LEFT_LABEL: DOOR_KEY_LABEL}
+}
+
 # GAME STARTING COORDINATES
 #
-PLAYER_START_X = SCREEN_WIDTH // 2 - TILE_SIZE
-PLAYER_START_Y = (SCREEN_HEIGHT + HUD_OFFSET) // 2 - TILE_SIZE
-STARTING_MAP = LEVEL_PREFIX_LABEL
-STARTING_SCREEN = '10'
+OVERWORLD_PLAYER_START_POS = (SCREEN_WIDTH // 2 - TILE_SIZE, (SCREEN_HEIGHT + HUD_OFFSET) // 2 - TILE_SIZE)
+DUNGEON_PLAYER_START_POS = NEW_DUNGEON_BOTTOM_CENTER_POS
+OVERWORLD_STARTING_MAP = LEVEL_PREFIX_LABEL
+OVERWORLD_STARTING_SCREEN = '10'
+DUNGEON_STARTING_MAP = DUNGEON_PREFIX_LABEL + '0_'
+DUNGEON_STARTING_SCREEN = '10'
+STARTING_MAP = OVERWORLD_STARTING_MAP
+STARTING_SCREEN = OVERWORLD_STARTING_SCREEN
