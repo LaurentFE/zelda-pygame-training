@@ -17,6 +17,7 @@ from warp import Warp, SecretPassage
 from purchasable import Purchasable
 from npc import Npc
 from textblock import TextBlock
+from door import Door
 
 
 class Singleton(type):
@@ -63,6 +64,7 @@ class Level(metaclass=Singleton):
         self.text_sprites = pygame.sprite.Group()
         self.secret_bomb_sprites = pygame.sprite.Group()
         self.secret_flame_sprites = pygame.sprite.Group()
+        self.door_sprites = pygame.sprite.Group()
 
         self.equipped_item_a_sprite = None
         self.equipped_item_b_sprite = None
@@ -648,6 +650,13 @@ class Level(metaclass=Singleton):
                             item_price,
                             price_sprite)
 
+    def load_doors(self, level_id):
+        if DUNGEON_PREFIX_LABEL in level_id and level_id in DUNGEON_DOORS.keys():
+            for door_pos, door_type in DUNGEON_DOORS[level_id].items():
+                Door((self.visible_sprites, self.door_sprites),
+                     door_pos,
+                     door_type)
+
     def load_player(self, pos):
         self.player = Player(pos,
                              (self.visible_sprites,),
@@ -660,7 +669,8 @@ class Level(metaclass=Singleton):
                              self.purchasable_sprites,
                              self.npc_sprites,
                              self.secret_flame_sprites,
-                             self.secret_bomb_sprites)
+                             self.secret_bomb_sprites,
+                             self.door_sprites)
 
     def create_map(self, level_id):
         # This creates all Sprites of the new map
@@ -669,6 +679,7 @@ class Level(metaclass=Singleton):
         self.load_warps(level_id, WARP_WARPS)
         self.load_warps(level_id, WARP_BOMB)
         self.load_warps(level_id, WARP_FLAME)
+        self.load_doors(level_id)
         self.load_items(level_id)
         self.load_enemies(level_id)
         self.load_shop(level_id)
@@ -737,6 +748,8 @@ class Level(metaclass=Singleton):
                 purchasable.kill()
             for text in self.text_sprites:
                 text.kill()
+            for door in self.door_sprites:
+                door.kill()
             if self.player.ladder_in_use:
                 self.player.ladder_in_use = False
                 self.player.ladder.kill()
@@ -846,6 +859,8 @@ class Level(metaclass=Singleton):
             bomb_tile.kill()
         for flame_tile in self.secret_flame_sprites:
             flame_tile.kill()
+        for door in self.door_sprites:
+            door.kill()
 
         # Player is in a hurt state for death_hurt_cooldown, by default 3 cycles of the hurt animation
         if self.death_motion_index == 1:
@@ -964,7 +979,8 @@ class Level(metaclass=Singleton):
 
     def handle_input(self, keys):
         if (not self.player.isDead
-                and not self.in_menu):
+                and not self.in_menu
+                and not self.in_map_transition):
             self.player.handle_input(keys)
         current_time = pygame.time.get_ticks()
         if current_time - self.key_pressed_start_timer >= self.key_pressed_cooldown:
@@ -1094,8 +1110,9 @@ class Level(metaclass=Singleton):
                       level_id,
                       True)
         elif event_label == OPEN_DOORS_LABEL:
-            # kill all closed_event_door_sprites
-            pass
+            for door in self.door_sprites:
+                if door.type == DOOR_EVENT_LABEL:
+                    door.open()
         self.dead_monsters_event_played = True
 
     def continue_init(self):

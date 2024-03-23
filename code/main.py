@@ -13,6 +13,7 @@ class Game:
         pygame.display.set_caption(GAME_NAME)
         self.clock = pygame.time.Clock()
         tileset.CONSUMABLES_TILE_SET = tileset.TileSet(TILE_CONSUMABLES)
+        tileset.DOORS_TILE_SET = tileset.TileSet(TILE_DOORS)
         tileset.ENEMIES_TILE_SET = tileset.TileSet(TILE_ENEMIES)
         tileset.FONT_TILE_SET = tileset.TileSet(TILE_FONTS)
         tileset.HUD_TILE_SET = tileset.TileSet(TILE_HUD)

@@ -369,7 +369,7 @@ class Rock(Particle):
         self.load_animation_frames(tileset.PARTICLES_TILE_SET)
 
         self.image = self.move_animations[0]
-        self.rect = self.image.get_rect(topleft=(self.pos_x, self.pos_y))
+        self.rect = self.image.get_rect(topleft=(self.pos_x + TILE_SIZE//2, self.pos_y + 2))
         self.hitbox = self.rect.inflate(-16, -12)
         self.hitbox.left = self.rect.left
         self.hitbox.top = self.rect.top + 4
@@ -446,7 +446,7 @@ class Arrow(Particle):
         self.load_animation_frames(tileset.PARTICLES_TILE_SET)
 
         self.image = self.move_animations[owner_direction_label][0]
-        self.rect = self.image.get_rect(topleft=(self.pos_x, self.pos_y))
+        self.rect = self.image.get_rect(topleft=(self.pos_x + TILE_SIZE//2, self.pos_y))
         self.hitbox = self.rect.inflate(-16, -12)
         self.hitbox.left = self.rect.left
         self.hitbox.top = self.rect.top + 4
@@ -820,6 +820,7 @@ class Key(Particle):
         self.hitbox = self.rect.inflate(-16, 0)
 
         self.affects_player = True
+        self.bypasses_shield = True
         self.collision_damage = 0
 
         self.is_active = True
