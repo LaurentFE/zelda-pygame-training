@@ -781,7 +781,7 @@ MAP_ITEMS = {
     LEVEL_PREFIX_LABEL + '9': {HEARTRECEPTACLE_LABEL: True},
     LEVEL_PREFIX_LABEL + '14': {LADDER_LABEL: True},
     DUNGEON_PREFIX_LABEL + '0_3': {TRIFORCE_LABEL: True},
-    DUNGEON_PREFIX_LABEL + '0_4': {HEARTRECEPTACLE_LABEL: True},
+    DUNGEON_PREFIX_LABEL + '0_8': {HEARTRECEPTACLE_LABEL: True},
     DUNGEON_PREFIX_LABEL + '0_11': {KEY_LABEL: True}
 }
 
@@ -822,7 +822,10 @@ SHOPS = {
                              TEXT_LABEL: 'it\'s a secret to everybody.'},
     'you_ll_need_this0': {ITEMS_LABEL: {KEY_LABEL: 0},
                           NPC_ID_LABEL: OLD_MAN_ID,
-                          TEXT_LABEL: 'hey mister hero. you\'ll need this.'}
+                          TEXT_LABEL: 'hey mister hero. you\'ll need this.'},
+    'dungeon0_4': {ITEMS_LABEL: {BOMB_LABEL: 20},
+                   NPC_ID_LABEL: MOBLIN_ID,
+                   TEXT_LABEL: 'bombs are shocking, as a heavy armored monster once told me.'}
 }
 # SHOP_dict name indicates the tile set
 # Key is label of item

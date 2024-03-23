@@ -35,7 +35,7 @@ class Purchasable(pygame.sprite.Sprite):
         game.Level().player_pick_up(self.label, item_amount)
         game.Level().player_pick_up(RUPEE_LABEL, -self.price)
 
-        level_id = game.Level().current_map + game.Level().current_map_screen
+        level_id = str(game.Level().current_map) + str(game.Level().current_map_screen)
         SHOPS[level_id][ITEMS_LABEL].pop(self.label, None)
 
         if self.price_sprite_ref is not None:
