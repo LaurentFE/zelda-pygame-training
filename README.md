@@ -13,12 +13,25 @@ Open the pause/item menu with ```ESCAPE```
 
 Reduce player health to 0 with ```BACKSPACE```
 
-In the pause/item menu, select item B by moving the blinking selector with ```arrow up / arrow down``` or ```Q D```
-(Not all visible items are implemented, they will have no sprite nor effect when used)
+In the pause/item menu, select item B by moving the blinking selector with ```arrow left / arrow right``` or ```Q D```
 
 Game can be closed by pressing ```ESC``` on the GAME OVER screen, or  ```ANY KEY``` on the VICTORY screen
 
 Game can be continued by pressing ```RETURN``` on the GAME OVER screen
+
+## Gameplay hints
+
+You cand block non magic projectiles with your shield
+
+You can torch some trees with the candle, and reveal hidden caves
+
+You can explode some walls or rocks with bombs, and reveal hidden caves or passages
+
+The ladder is used to walk on a tile of water, as long as it's not already in use
+
+The boomerang doesn't hurt on its way back
+
+There are a total of 4 Heart Containers to pick up, each of them increases your life by one heart !
 
 ## How to build & run project
 ### Prerequisites
@@ -29,15 +42,21 @@ Installation command :
 ```python -m pip install -U pygame --user```
 
 ### Run
-Command line from the <project folder>/code/ :
+Command line from the `<project folder>/code/` :
 ```python ./main.py```
 
 ## Context of the project
 ### WHAT
-Recreation of The Legend of Zelda as seen on the NES, published in 1986 by Nintendo.
+Very loose recreation of The Legend of Zelda as seen on the NES, published in 1986 by Nintendo.
+With tons of creative liberty.
 
 ### HOW
 Developed in Python3 using the Pygame engine.
+IDE : https://www.jetbrains.com/fr-fr/pycharm/
+Graphics editing : https://www.getpaint.net/
+Tile/map system management : https://www.mapeditor.org/
+Graphic assets : https://www.spriters-resource.com
+Sound assets : https://www.sounds-resource.com/
 
 ### WHY
 The goals are : 
@@ -64,3 +83,30 @@ Might happen in a later project, or will use a free art pack made for this purpo
 
 ## WIP BOARD
 https://jamboard.google.com/d/17sGVfK9TGUQF2FjtBszIERMs1WPzu5huUBg2sg46HeE/edit?usp=sharing
+
+## AFTERTHOUGHT
+There are still many improvements possible. That I will most likely not implement, as it doesn't really fit with my goals / the scope I decided on.
+- I could do more refactoring to make further development less messy, mainly for Particles and Enemies. 
+For instance : create a DivingEnemy subclass to Enemy, and have Leever & Zora inherit from it. That would allow to stop duplicating code, and make the addition of further diving monsters easier.
+- I could simplify code a lot by removing all the flipping systems for the entity / particle sprites. I did it for the small useless challenge, and because I chose to think about how it would have been done when complex code was more advantageous than having all sprites in all directions and all colors, since space on a NES cartridge was VERY limited, and images are heavy.
+Today, I could just create these sprites in the .png tile set images, and give less headaches to people implementing systems here.
+- I could have used the palette swap system used for victory/game over animations, to also shift the colors of Entities when hurt, or the HUD in specific circumstances like in the NES game, or to represent different player equipment (such as the rings in the NES game)
+- I could separate settings.py in two files, one that does all the heavy lifting of providing all the code needs, and one that only contains elements that players could easily modify to change the game's difficulty / game feel.
+- Rely more on dicts in settings.py, that could clean the look a little and make file organisation slightly less confusing. But I should not do it to the point of making the code absolutely littered with ```DICT_NAME[DICT_ENTRY][LABEL_VARIATION]...```
+- I could separate the big items, and lootable items from the particles, as they differ from a design point of view, but it works really well that way so far, that's a lot of work time to do for a project no one will ever use / expand upon.  
+
+I thought about implementing some other features, and decided against. A few of them :
+- Load/Save feature : principle is easy (read/write into a file the info that represent the state of the game, such as many player flags, shop & secrets dicts from settings, ...), but I don't want to have negative fun implementing a load/save menu/screen in the game to handle it. Could do it through key binds to go around the hassle, we'll see.
+- Flying Enemy : no different from other Enemies, collides only with Border tiles, same kind of behaviour as Leever and Zora diving to do flying/landing
+- Map in HUD: didn't seem particularly exciting to solve (create a dict that registers which level exists/should be shown and which don't, blit them on the HUD map, blit a position sprite on the cell that corresponds to the level.current_map_screen)
+
+All in all, a very interesting project.
+Made me really comfortable around Python, allowed me to discover many practices (good and bad), working with Pygame felt great.
+Had me rethink about some design patterns, and ignore most of them.
+Make choices about many things I didn't think about before getting confronted with it, for instance I kind of wanted to have one file per class, but felt like files acting like modules and regrouping a class with its children made sense, and kept it that way.
+Developing solo was a really different experience from working in teams as I used to when I was a QA or in project management.
+Huge thanks to the friends that helped me get a foot back in software development, early git practices, etc.
+And thanks to the people who will stumble upon this and read it !
+
+This project could definitely be coded in a cleaner manner, and the more projects I'll work on, the better my code will get.
+This one is a first stone, and will stay the way it is so I can come back to it, and see my progress. I hope that I will see progress.
