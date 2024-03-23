@@ -1115,6 +1115,7 @@ class Darknut(Enemy):
 
         if self.state == STATE_STUN:
             if current_time - self.stun_starting_time >= self.stun_cooldown:
+                self.invulnerable = False
                 self.state = STATE_WALKING
 
         # Hurt monster is invulnerable during animation, this is reset here
