@@ -882,6 +882,10 @@ class Level(metaclass=Singleton):
             TextBlock((self.visible_sprites,),
                       VICTORY_TEXT,
                       victory_message_pos_y)
+            # If Victory Message goes over the triforce with blank lines or blank characters
+            # it becomes hidden behind a black Surface. Putting it back on the foreground
+            self.item_picked_up.remove(self.visible_sprites)
+            self.item_picked_up.add(self.visible_sprites)
             self.victory_motion_index += 1
 
     def death(self):

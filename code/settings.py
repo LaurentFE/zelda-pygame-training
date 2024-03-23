@@ -18,7 +18,7 @@ TEXT_OFFSET = TEXT_MARGIN * FONT_SPRITE_SIZE
 #
 NONE_LABEL = 'None'
 GAME_NAME = 'A Zelda NES homage in Python'
-VICTORY_TEXT = 'congratulations !\n\n\n\n\n\n\n\nthe kingdom is safe,\,and you\'re a winner'
+VICTORY_TEXT = 'congratulations !\n\n\n\n\n\n\n\n\n\nthe kingdom is safe,\nand you\'re a winner !!!'
 GAME_OVER_TEXT = 'game over\n\npress enter to continue\npress escape to exir'
 BLACK_LABEL = 'black'
 RED1_LABEL = 'red1'
