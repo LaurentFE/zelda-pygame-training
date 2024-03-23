@@ -31,6 +31,8 @@ VERTICAL_LABEL = 'vertical'
 # Error messages
 UNKNOWN_TILE_TYPE = 'tile_type must be a declared value in TILE_TYPES'
 INCOMPATIBLE_PALETTES = 'Both palettes[Colors] must be of the same length'
+WORD_TOO_LONG_FOR_TEXTBLOCK = 'Word is too long (>' + str(MAX_CHAR_PER_ROW) + ') for TextBlock : '
+TEXTBLOCK_CHAR_SPRITE_NOT_DEFINED = 'Character in TextBlock string doesn\'t have a defined sprite : '
 # Directions
 UP_LABEL = 'up'
 RIGHT_LABEL = 'right'
@@ -728,7 +730,7 @@ FLAME_2_POS = (NPC_X + 6 * TILE_SIZE, NPC_Y)
 SHOPS = {
     'sword_cave0': {ITEMS_LABEL: {WOOD_SWORD_LABEL: 0},
                     NPC_ID_LABEL: OLD_MAN_ID,
-                    TEXT_LABEL: 'it\'s dangerous to go alone, take this !'},
+                    TEXT_LABEL: 'it\'s dangerous to go alone,\ntake this !'},
     'shop00': {ITEMS_LABEL: {CANDLE_LABEL: 30,
                              BOMB_LABEL: 15,
                              HEART_LABEL: 5},
