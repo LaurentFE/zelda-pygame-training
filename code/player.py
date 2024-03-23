@@ -356,10 +356,16 @@ class Player(Entity):
             if current_time - self.idle_time >= self.walking_animation_cooldown:
                 self.state = STATE_IDLE
         elif self.state == ONE_HANDED:
+            if self.action_a_particle is not None:
+                self.action_a_particle.kill()
+                self.action_a_particle = None
             if current_time - self.pickup_one_handed_starting_time >= self.pickup_one_handed_cooldown:
                 self.state = STATE_IDLE
                 self.invulnerable = False
         elif self.state == TWO_HANDED:
+            if self.action_a_particle is not None:
+                self.action_a_particle.kill()
+                self.action_a_particle = None
             if current_time - self.pickup_two_handed_starting_time >= self.pickup_two_handed_cooldown:
                 self.state = STATE_IDLE
                 self.invulnerable = False
