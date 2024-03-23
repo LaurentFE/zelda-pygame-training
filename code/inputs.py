@@ -12,6 +12,9 @@ RIGHT_KEY_2 = pygame.K_d
 ACTION_A_KEY = pygame.K_SPACE
 ACTION_B_KEY = pygame.K_LSHIFT
 MENU_KEY = pygame.K_ESCAPE
+SUICIDE_KEY = pygame.K_BACKSPACE
+CONTINUE_KEY = pygame.K_RETURN
+EXIT_KEY = pygame.K_ESCAPE
 
 
 def is_move_key_pressed(keys):
@@ -65,5 +68,23 @@ def is_action_b_key_pressed(keys):
 
 def is_menu_key_pressed(keys):
     if MENU_KEY in keys:
+        return True
+    return False
+
+
+def is_suicide_key_pressed(keys):
+    if SUICIDE_KEY in keys:
+        return True
+    return False
+
+
+def is_continue_key_pressed(keys):
+    if CONTINUE_KEY in keys:
+        return True
+    return False
+
+
+def is_exit_key_pressed(keys):
+    if EXIT_KEY in keys:
         return True
     return False
