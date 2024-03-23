@@ -385,7 +385,9 @@ class Player(Entity):
         # Collision with Enemies
         for sprite in self.enemy_sprites:
             if sprite.hitbox.colliderect(self.hitbox):
-                if STATE_HURT not in self.state and not self.invulnerable and not sprite.invulnerable:
+                if (STATE_HURT not in self.state
+                        and not self.invulnerable
+                        and STATE_HURT not in sprite.state):
                     self.hurt_starting_time = pygame.time.get_ticks()
                     self.invulnerable = True
                     self.player_hurt_sound.play()
@@ -849,7 +851,7 @@ class Player(Entity):
             if STATE_HURT not in self.state:
                 self.current_speed = self.speed
             else:
-                self.current_speed = (PLAYER_HURT_FRAMES - self.hurt_animation_frame_count)
+                self.current_speed = 1 * (PLAYER_HURT_FRAMES - self.hurt_animation_frame_count)
 
             if STATE_WARPING not in self.state:
                 self.move()
