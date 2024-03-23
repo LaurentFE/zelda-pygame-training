@@ -18,13 +18,19 @@ TEXT_OFFSET = TEXT_MARGIN * FONT_SPRITE_SIZE
 #
 NONE_LABEL = 'None'
 GAME_NAME = 'A Zelda NES homage in Python'
-GAME_OVER_TEXT = 'game over press enter to continue press escape to exit'
+VICTORY_TEXT = 'congratulations !\n\n\n\n\n\n\n\nthe kingdom is safe,\,and you\'re a winner'
+GAME_OVER_TEXT = 'game over\n\npress enter to continue\npress escape to exir'
 BLACK_LABEL = 'black'
 RED1_LABEL = 'red1'
 RED2_LABEL = 'red2'
 RED3_LABEL = 'red3'
 RED4_LABEL = 'red4'
 RED_LIST = [RED1_LABEL, RED2_LABEL, RED3_LABEL, RED4_LABEL]
+WHITE1_LABEL = 'white1'
+WHITE2_LABEL = 'white2'
+WHITE3_LABEL = 'white3'
+WHITE4_LABEL = 'white4'
+WHITE_LIST = [WHITE1_LABEL, WHITE2_LABEL, WHITE3_LABEL, WHITE4_LABEL]
 FONT_CHARS = '0123456789abcdefghijklmnopqrstuvwxyz,!\'&."?- '
 HORIZONTAL_LABEL = 'horizontal'
 VERTICAL_LABEL = 'vertical'
@@ -64,6 +70,7 @@ STATE_DIVING = 'diving'
 # Pick up animation labels are also Player states
 ONE_HANDED = 'pickup_one_handed'
 TWO_HANDED = 'pickup_two_handed'
+STATE_TRIFORCE = 'pickup_triforce'
 # Shop data structure
 ITEMS_LABEL = 'items'
 NPC_ID_LABEL = 'npc_id'
@@ -168,6 +175,7 @@ SOUND_BOMB_EXPLODE = AUDIO_PATH + 'Bomb_Explode.wav'
 SOUND_STAIRS = AUDIO_PATH + 'Stairs.wav'
 SOUND_FLAME = AUDIO_PATH + 'Flame.wav'
 SOUND_EVENT_CLEARED = AUDIO_PATH + 'Event_Cleared.wav'
+SOUND_TRIFORCE_OBTAINED = AUDIO_PATH + 'Triforce_Obtained.wav'
 SOUND_DOOR = AUDIO_PATH + 'Door.wav'
 
 # COLOR PALETTE INFO
@@ -215,6 +223,32 @@ PALETTE_DEATH = {
         (124, 8, 0),
         (164, 0, 0)
     ]
+}
+PALETTE_TRIFORCE = {
+    WHITE1_LABEL: [
+        (0, 0, 0),
+        (116, 116, 116),
+        (188, 188, 188),
+        (255, 255, 255),
+    ],
+    WHITE2_LABEL: [
+        (0, 0, 0),
+        (116, 116, 116),
+        (116, 116, 116),
+        (188, 188, 188),
+    ],
+    WHITE3_LABEL: [
+        (0, 0, 0),
+        (0, 0, 0),
+        (116, 116, 116),
+        (116, 116, 116),
+    ],
+    WHITE4_LABEL: [
+        (0, 0, 0),
+        (0, 0, 0),
+        (0, 0, 0),
+        (0, 0, 0),
+    ],
 }
 
 # HEALTH & DAMAGES STATS
@@ -402,7 +436,7 @@ ITEM_PICKUP_ANIMATION = {
     CANDLE_LABEL: ONE_HANDED,
     HEARTRECEPTACLE_LABEL: TWO_HANDED,
     WOOD_SWORD_LABEL: ONE_HANDED,
-    TRIFORCE_LABEL: TWO_HANDED
+    TRIFORCE_LABEL: TRIFORCE_LABEL
 }
 
 # MONSTER ANIMATION & COOLDOWNS
@@ -517,6 +551,10 @@ HUD_FULL_HEART_FRAME_ID = 4
 HUD_HALF_HEART_FRAME_ID = 2
 HUD_EMPTY_HEART_FRAME_ID = 0
 HUD_NB_HEARTS_PER_LINE = 8
+
+# GAME WON ANIMATION DETAILS
+#
+MAP_VICTORY_FADE_COOLDOWN = 2000
 
 # GAME OVER ANIMATION DETAILS
 #

@@ -11,7 +11,7 @@ from obstacle import Obstacle
 from player import Player
 from enemies import RedOctorock, BlueOctorock, RedMoblin, BlackMoblin, Stalfos, Goriya, Zora, Leever
 from particles import (Heart, Rupee, CBomb, Fairy, Key, HeartReceptacle,
-                       Ladder, RedCandle, Boomerang, WoodenSword)
+                       Ladder, RedCandle, Boomerang, WoodenSword, Triforce)
 from selector import Selector
 from warp import Warp, SecretPassage
 from purchasable import Purchasable
@@ -33,8 +33,6 @@ class Level(metaclass=Singleton):
     def __init__(self):
         # Set up variables
         self.player = None
-        self.death_played = False
-        self.death_floor_index = 0
         self.in_menu = False
         self.kill_count = 0
 
@@ -87,6 +85,8 @@ class Level(metaclass=Singleton):
         self.game_over_sound.set_volume(0.4)
         self.event_cleared_sound = pygame.mixer.Sound(SOUND_EVENT_CLEARED)
         self.event_cleared_sound.set_volume(0.4)
+        self.triforce_sound = pygame.mixer.Sound(SOUND_TRIFORCE_OBTAINED)
+        self.triforce_sound.set_volume(0.4)
 
         self.current_map = STARTING_MAP
         self.current_map_screen = STARTING_SCREEN
@@ -112,7 +112,15 @@ class Level(metaclass=Singleton):
         # Set Stairs animation timer
         self.stairs_animation_starting_time = 0
         self.stairs_animation_duration = PLAYER_STAIRS_DURATION
+        # Set Victory animation variables & timers
+        self.victory_played = False
+        self.victory_floor_index = 0
+        self.victory_motion_index = 0
+        self.victory_floor_switch_starting_time = 0
+        self.victory_floor_switch_cooldown = MAP_VICTORY_FADE_COOLDOWN
         # Set Game Over animation variables & timers
+        self.death_played = False
+        self.death_floor_index = 0
         self.death_motion_index = 0
         self.death_spin_starting_time = 0
         self.death_spin_cooldown = PLAYER_DEATH_SPIN_AMOUNT * PLAYER_DEATH_SPIN_DURATION
@@ -506,6 +514,10 @@ class Level(metaclass=Singleton):
                         Key((x, y),
                             (self.visible_sprites, self.lootable_items_sprites, self.particle_sprites),
                             level_id)
+                    elif sprite_id == TRIFORCE_FRAME_ID and MAP_ITEMS[level_id][TRIFORCE_LABEL]:
+                        Triforce((x, y),
+                                 (self.visible_sprites, self.lootable_items_sprites),
+                                 level_id)
 
     def load_enemies(self, level_id):
         layout = import_csv_layout(f'{MAPS_PATH}{level_id}{MAPS_ENEMIES}{MAPS_EXTENSION}', True)
@@ -821,15 +833,56 @@ class Level(metaclass=Singleton):
             self.display_surface.blit(self.transition_surface, (x_offset - self.floor_rect.width, HUD_OFFSET))
             self.player.define_warping_position(x_offset, 0, self.current_map)
 
-    def palette_shift_floor(self, palette_in, palette_out, red_level):
-        if len(palette_in) != len(palette_out[red_level]):
+    def palette_shift_floor(self, palette_in, palette_out, color_level):
+        if len(palette_in) != len(palette_out[color_level]):
             raise ValueError(INCOMPATIBLE_PALETTES)
         for i in range(len(palette_in)):
             img_copy = self.floor_surface.copy()
-            img_copy.fill(PALETTE_DEATH[red_level][i])
+            img_copy.fill(palette_out[color_level][i])
             self.floor_surface.set_colorkey(palette_in[i])
             img_copy.blit(self.floor_surface, (0, 0))
             self.floor_surface = img_copy
+
+    def victory(self):
+        self.draw_hud()
+        self.draw_floor()
+        current_time = pygame.time.get_ticks()
+        # Kill every sprite
+        for enemy in self.enemy_sprites:
+            enemy.kill()
+        for particle in self.particle_sprites:
+            particle.kill()
+        for npc in self.npc_sprites:
+            npc.kill()
+        for text in self.text_sprites:
+            text.kill()
+        for loot in self.lootable_items_sprites:
+            loot.kill()
+        for merch in self.purchasable_sprites:
+            merch.kill()
+
+        if self.victory_motion_index == 1 and self.victory_floor_index < len(WHITE_LIST):
+            if self.victory_floor_switch_starting_time == 0:
+                self.victory_floor_switch_starting_time = current_time
+            palette_in = PALETTE_NATURAL_DUNGEON
+            palette_out = PALETTE_TRIFORCE
+            self.palette_shift_floor(palette_in, palette_out, WHITE_LIST[self.victory_floor_index])
+            self.display_surface.blit(self.floor_surface, (0, HUD_OFFSET))
+            if current_time - self.victory_floor_switch_starting_time >= self.victory_floor_switch_cooldown:
+                self.victory_floor_switch_starting_time = 0
+                self.victory_floor_index += 1
+        elif self.victory_motion_index == 1 and self.victory_floor_index == len(WHITE_LIST):
+            self.victory_motion_index += 1
+
+        if self.victory_motion_index > 1:
+            self.draw_floor(BLACK_LABEL)
+
+        if self.victory_motion_index == 2:
+            victory_message_pos_y = HUD_OFFSET + TILE_SIZE * 4
+            TextBlock((self.visible_sprites,),
+                      VICTORY_TEXT,
+                      victory_message_pos_y)
+            self.victory_motion_index += 1
 
     def death(self):
         self.draw_hud()
@@ -987,11 +1040,15 @@ class Level(metaclass=Singleton):
             self.key_pressed_start_timer = current_time
 
             # Toggle pause menu on/off
-            if self.is_menu_key_pressed_out_of_menu(keys) and not self.player.isDead:
+            if (self.is_menu_key_pressed_out_of_menu(keys)
+                    and not self.player.isDead
+                    and not self.player.is_winning):
                 self.in_menu = True
                 self.current_selected_item = self.player.itemB
                 self.draw_selector()
-            elif self.is_menu_key_pressed_in_menu(keys) and not self.player.isDead:
+            elif (self.is_menu_key_pressed_in_menu(keys)
+                  and not self.player.isDead
+                    and not self.player.is_winning):
                 self.in_menu = False
                 self.player.change_item_b(self.current_selected_item)
                 for sprite in self.menu_sprites:
@@ -1011,6 +1068,8 @@ class Level(metaclass=Singleton):
                 self.continue_init()
             elif self.death_motion_index == 8 and is_exit_key_pressed(keys) != 0:
                 self.death_played = True
+            elif self.victory_motion_index == 3 and len(keys) != 0:
+                self.victory_played = True
 
     def drop_loot(self, pos):
         # Loot system follows (loosely) the system used in the NES game
@@ -1115,6 +1174,17 @@ class Level(metaclass=Singleton):
                     door.open()
         self.dead_monsters_event_played = True
 
+    def pick_up_triforce(self):
+        # Put the Triforce in the hands of the Player
+        self.player.set_position((SCREEN_WIDTH // 2 - TILE_SIZE, SCREEN_HEIGHT // 2 + HUD_OFFSET // 2 - TILE_SIZE))
+        y_offset = - TILE_SIZE * 2 + self.player.direction_vector[1] * self.player.speed
+        item_image = tileset.ITEMS_TILE_SET.get_sprite_image(TRIFORCE_FRAME_ID)
+        y_offset += 2
+        item_pos = (self.player.rect.left, self.player.rect.top + y_offset)
+        self.item_picked_up = Tile(item_pos, (self.visible_sprites,), item_image)
+        self.player.set_state(STATE_TRIFORCE)
+        self.triforce_sound.play()
+
     def continue_init(self):
         for text in self.text_sprites:
             text.kill()
@@ -1156,7 +1226,15 @@ class Level(metaclass=Singleton):
             self.visible_sprites.remove(self.player)
             self.visible_sprites.add(self.player)
             # Update and draw the game
-            if not self.in_menu:
+            if self.player.is_winning:
+                if self.victory_motion_index == 0:
+                    self.victory_motion_index = 1
+                    self.dungeon_background_theme.stop()
+                self.victory()
+                if self.victory_played:
+                    # Close game
+                    pygame.event.post(pygame.event.Event(pygame.QUIT))
+            elif not self.in_menu:
                 self.draw_floor()
             # Update and draw the pause menu
             else:
