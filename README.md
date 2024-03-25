@@ -35,7 +35,7 @@ There are a total of 4 Heart Containers to pick up, each of them increases your 
 
 ## How to build & run project
 ### Prerequisites
-Python 3 : https://www.python.org
+Python 3 : https://www.python.org (v3.11.5 at the time of development)
 
 Pygame :  https://www.pygame.org/
 Installation command : 
