@@ -387,7 +387,8 @@ class Player(Entity):
             if sprite.hitbox.colliderect(self.hitbox):
                 if (STATE_HURT not in self.state
                         and not self.invulnerable
-                        and STATE_HURT not in sprite.state):
+                        and STATE_HURT not in sprite.state
+                        and sprite.is_above_ground):
                     self.hurt_starting_time = pygame.time.get_ticks()
                     self.invulnerable = True
                     self.player_hurt_sound.play()
