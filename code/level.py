@@ -1345,7 +1345,7 @@ class Level(metaclass=Singleton):
 
     def save(self):
         try:
-            f = open("../save/save", "w")
+            f = open("./save_file", "w")
             save_content = (f'current_max_health:{self.player.current_max_health}\n'
                             + f'health:{self.player.health}\n'
                             + f'bombs:{self.player.bombs}\n'
