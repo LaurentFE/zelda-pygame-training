@@ -21,7 +21,7 @@ Game can be continued by pressing ```RETURN``` on the GAME OVER screen
 
 ## Gameplay hints
 
-You cand block non magic projectiles with your shield
+You can't block non magic projectiles with your shield
 
 You can torch some trees with the candle, and reveal hidden caves
 
