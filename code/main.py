@@ -2,6 +2,7 @@ import pygame
 import sys
 from settings import *
 import tileset
+import inputs
 from level import Level
 
 
@@ -39,9 +40,9 @@ class Game:
                 if event.type == pygame.KEYDOWN:
                     keys_pressed.append(event.key)
                 if event.type == pygame.KEYUP:
+                    if event.key == inputs.SAVE_KEY:
+                        Level().save()
                     keys_pressed.remove(event.key)
-            if pygame.K_F5 in keys_pressed:
-                Level().save()
             Level().handle_input(keys_pressed)
 
 

@@ -43,6 +43,9 @@ class Level(metaclass=Singleton):
         self.transition_surface = None
         self.menu_surface = None
         self.menu_rect = None
+        self.sys_text_surface = None
+        self.sys_text_starting_time = 0
+        self.sys_text_cooldown = 2500
 
         # Set up group sprites
         self.warp_sprites = pygame.sprite.Group()
@@ -1330,23 +1333,43 @@ class Level(metaclass=Singleton):
 
             self.visible_sprites.update()
 
+        if self.sys_text_surface is not None:
+            sys_text_rect = self.sys_text_surface.get_rect()
+            x = (SCREEN_WIDTH - sys_text_rect.width) // 2
+            y = HUD_OFFSET + TILE_SIZE
+            sys_text_rect.topleft = (x, y)
+            pygame.draw.rect(self.display_surface, 'black', sys_text_rect)
+            self.display_surface.blit(self.sys_text_surface, sys_text_rect)
+            if pygame.time.get_ticks() - self.sys_text_starting_time >= self.sys_text_cooldown:
+                self.sys_text_surface = None
+
     def save(self):
-        f = open("../save/save", "w")
-        save_content = (f'current_max_health:{self.player.current_max_health}\n'
-                        + f'health:{self.player.health}\n'
-                        + f'bombs:{self.player.bombs}\n'
-                        + f'keys:{self.player.keys}\n'
-                        + f'money:{self.player.money}\n'
-                        + f'has_boomerang:{self.player.has_boomerang}\n'
-                        + f'has_bombs:{self.player.has_bombs}\n'
-                        + f'has_candle:{self.player.has_candle}\n'
-                        + f'has_ladder:{self.player.has_ladder}\n'
-                        + f'has_wood_sword:{self.player.has_wood_sword}\n'
-                        + f'MAP_SECRETS_REVEALED:{MAP_SECRETS_REVEALED}\n'
-                        + f'MAP_ITEMS:{MAP_ITEMS}\n'
-                        + f'SHOPS:{SHOPS}\n'
-                        + f'MONSTER_KILL_EVENT:{MONSTER_KILL_EVENT}\n'
-                        + f'DUNGEON_DECIMATION:{DUNGEON_DECIMATION}\n'
-                        + f'DUNGEON_DOORS:{DUNGEON_DOORS}\n')
-        f.write(save_content)
-        f.close()
+        try:
+            f = open("../save/save", "w")
+            save_content = (f'current_max_health:{self.player.current_max_health}\n'
+                            + f'health:{self.player.health}\n'
+                            + f'bombs:{self.player.bombs}\n'
+                            + f'keys:{self.player.keys}\n'
+                            + f'money:{self.player.money}\n'
+                            + f'has_boomerang:{self.player.has_boomerang}\n'
+                            + f'has_bombs:{self.player.has_bombs}\n'
+                            + f'has_candle:{self.player.has_candle}\n'
+                            + f'has_ladder:{self.player.has_ladder}\n'
+                            + f'has_wood_sword:{self.player.has_wood_sword}\n'
+                            + f'MAP_SECRETS_REVEALED:{MAP_SECRETS_REVEALED}\n'
+                            + f'MAP_ITEMS:{MAP_ITEMS}\n'
+                            + f'SHOPS:{SHOPS}\n'
+                            + f'MONSTER_KILL_EVENT:{MONSTER_KILL_EVENT}\n'
+                            + f'DUNGEON_DECIMATION:{DUNGEON_DECIMATION}\n'
+                            + f'DUNGEON_DOORS:{DUNGEON_DOORS}\n')
+            f.write(save_content)
+            f.close()
+            font = pygame.font.Font(None, 30)
+            self.sys_text_surface = font.render(str('Saved successfully'), True, 'white')
+            self.sys_text_starting_time = pygame.time.get_ticks()
+        except OSError as error:
+            font = pygame.font.Font(None, 30)
+            self.sys_text_surface = font.render(str('Save Failed'), True, 'red')
+            self.sys_text_starting_time = pygame.time.get_ticks()
+            message = f"Couldn't save progress. An OSError has occurred. Arguments:\n{error.args}"
+            print(message, file=sys.stderr)
