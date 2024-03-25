@@ -21,7 +21,7 @@ Game can be continued by pressing ```RETURN``` on the GAME OVER screen
 
 ## Gameplay hints
 
-You cand block non magic projectiles with your shield
+You can't block non magic projectiles with your shield
 
 You can torch some trees with the candle, and reveal hidden caves
 
@@ -48,14 +48,20 @@ Command line from the `<project folder>/code/` :
 ## Context of the project
 ### WHAT
 Very loose recreation of The Legend of Zelda as seen on the NES, published in 1986 by Nintendo.
+
 With tons of creative liberty.
 
 ### HOW
 Developed in Python3 using the Pygame engine.
+
 IDE : https://www.jetbrains.com/fr-fr/pycharm/
+
 Graphics editing : https://www.getpaint.net/
+
 Tile/map system management : https://www.mapeditor.org/
+
 Graphic assets : https://www.spriters-resource.com
+
 Sound assets : https://www.sounds-resource.com/
 
 ### WHY
@@ -101,12 +107,20 @@ I thought about implementing some other features, and decided against. A few of 
 - Map in HUD: didn't seem particularly exciting to solve (create a dict that registers which level exists/should be shown and which don't, blit them on the HUD map, blit a position sprite on the cell that corresponds to the level.current_map_screen)
 
 All in all, a very interesting project.
+
 Made me really comfortable around Python, allowed me to discover many practices (good and bad), working with Pygame felt great.
+
 Had me rethink about some design patterns, and ignore most of them.
+
 Make choices about many things I didn't think about before getting confronted with it, for instance I kind of wanted to have one file per class, but felt like files acting like modules and regrouping a class with its children made sense, and kept it that way.
+
 Developing solo was a really different experience from working in teams as I used to when I was a QA or in project management.
+
 Huge thanks to the friends that helped me get a foot back in software development, early git practices, etc.
+
 And thanks to the people who will stumble upon this and read it !
 
+
 This project could definitely be coded in a cleaner manner, and the more projects I'll work on, the better my code will get.
+
 This one is a first stone, and will stay the way it is so I can come back to it, and see my progress. I hope that I will see progress.
