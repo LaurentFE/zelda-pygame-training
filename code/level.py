@@ -1329,3 +1329,24 @@ class Level(metaclass=Singleton):
             # Only visible sprites left at this point are the Player, and all the HUD sprites
 
             self.visible_sprites.update()
+
+    def save(self):
+        f = open("../save/save", "w")
+        save_content = (f'current_max_health:{self.player.current_max_health}\n'
+                        + f'health:{self.player.health}\n'
+                        + f'bombs:{self.player.bombs}\n'
+                        + f'keys:{self.player.keys}\n'
+                        + f'money:{self.player.money}\n'
+                        + f'has_boomerang:{self.player.has_boomerang}\n'
+                        + f'has_bombs:{self.player.has_bombs}\n'
+                        + f'has_candle:{self.player.has_candle}\n'
+                        + f'has_ladder:{self.player.has_ladder}\n'
+                        + f'has_wood_sword:{self.player.has_wood_sword}\n'
+                        + f'MAP_SECRETS_REVEALED:{MAP_SECRETS_REVEALED}\n'
+                        + f'MAP_ITEMS:{MAP_ITEMS}\n'
+                        + f'SHOPS:{SHOPS}\n'
+                        + f'MONSTER_KILL_EVENT:{MONSTER_KILL_EVENT}\n'
+                        + f'DUNGEON_DECIMATION:{DUNGEON_DECIMATION}\n'
+                        + f'DUNGEON_DOORS:{DUNGEON_DOORS}\n')
+        f.write(save_content)
+        f.close()

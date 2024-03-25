@@ -40,6 +40,8 @@ class Game:
                     keys_pressed.append(event.key)
                 if event.type == pygame.KEYUP:
                     keys_pressed.remove(event.key)
+            if pygame.K_F5 in keys_pressed:
+                Level().save()
             Level().handle_input(keys_pressed)
 
 
