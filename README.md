@@ -1,7 +1,7 @@
 # The Legend of Zelda, a Pygame Training Exercise
 
 ## How to build & run project
-### Exe file for Windows users
+### Exe file for Windows10 users
 **FALSE POSITIVE THREAT WARNING** : 
 
 The game.exe file is made with PyInstaller, which is apparently used a lot by malware creators, making its bootloader associated with malwares. Your antivirus will most likely identify it as a false positive threat to your system.
