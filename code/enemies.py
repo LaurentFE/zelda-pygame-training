@@ -1405,6 +1405,7 @@ class Zora(Enemy):
         if self.state == STATE_RISING:
             if current_time - self.rise_starting_time >= self.rise_cooldown:
                 self.invulnerable = False
+                self.is_above_ground = True
                 self.state = STATE_WALKING
                 if self.rect.y <= game.Level().player.hitbox.centery:
                     self.direction_label = DOWN_LABEL
@@ -1430,7 +1431,6 @@ class Zora(Enemy):
         else:
             if current_time - self.under_ground_starting_time >= self.under_ground_cooldown:
                 self.state = STATE_RISING
-                self.is_above_ground = True
                 self.above_ground_starting_time = current_time
                 self.rise_starting_time = current_time
 
@@ -1627,6 +1627,7 @@ class Leever(Enemy):
         if self.state == STATE_RISING:
             if current_time - self.rise_starting_time >= self.rise_cooldown:
                 self.invulnerable = False
+                self.is_above_ground = True
                 self.state = STATE_WALKING
         elif self.state == STATE_DIVING:
             self.invulnerable = True
@@ -1650,7 +1651,6 @@ class Leever(Enemy):
             if current_time - self.under_ground_starting_time >= self.under_ground_cooldown:
                 self.state = STATE_RISING
                 self.rise_animation_frame_count = 0
-                self.is_above_ground = True
                 self.above_ground_starting_time = current_time
                 self.rise_starting_time = current_time
                 self.rise_animation_starting_time = current_time
