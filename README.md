@@ -19,9 +19,13 @@ Game can be closed by pressing ```ESC``` on the GAME OVER screen, or  ```ANY KEY
 
 Game can be continued by pressing ```RETURN``` on the GAME OVER screen
 
+Game state can be saved by pressing ```F5``` when appropriate
+
+Game state can be loaded from saved state by pressing ```F6``` when appropriate. This will reset the Player's position to where the game starts
+
 ## Gameplay hints
 
-You can't block non magic projectiles with your shield
+You can't block non-magic projectiles with your shield
 
 You can torch some trees with the candle, and reveal hidden caves
 
@@ -123,4 +127,4 @@ And thanks to the people who will stumble upon this and read it !
 
 This project could definitely be coded in a cleaner manner, and the more projects I'll work on, the better my code will get.
 
-This one is a first stone, and will stay the way it is so I can come back to it, and see my progress. I hope that I will see progress.
+This one is a first stone, and will stay the way it is, so I can come back to it and see my progress. I hope that I will see progress.

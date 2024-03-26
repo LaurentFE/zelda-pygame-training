@@ -846,6 +846,23 @@ class Player(Entity):
         self.isDead = False
         self.is_spinning = False
 
+    def reload_player(self):
+        if self.health <= PLAYER_HEALTH_PER_HEART:
+            self.low_health_sound.play(loops=-1)
+            self.is_low_health = True
+        else:
+            self.is_low_health = False
+            self.low_health_sound.stop()
+
+        self.is_boomerang_thrown = False
+        self.is_candle_lit = False
+        self.direction_label = DOWN_LABEL
+        self.state = STATE_IDLE
+        if self.ladder_in_use:
+            self.ladder_in_use = False
+            self.ladder.kill()
+            self.ladder = None
+
     def update(self):
         if not self.isDead:
             if STATE_HURT not in self.state:

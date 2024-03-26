@@ -15,6 +15,8 @@ MENU_KEY = pygame.K_ESCAPE
 SUICIDE_KEY = pygame.K_BACKSPACE
 CONTINUE_KEY = pygame.K_RETURN
 EXIT_KEY = pygame.K_ESCAPE
+SAVE_KEY = pygame.K_F5
+LOAD_KEY = pygame.K_F6
 
 
 def is_move_key_pressed(keys):
