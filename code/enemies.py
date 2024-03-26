@@ -1,11 +1,11 @@
 import abc
 import pygame
 import random
-import tileset
-import level as game
-from settings import *
-from entities import Entity
-from particles import Rock, Arrow, MagicMissile, PBoomerang, BombSmoke, Flame
+import code.tileset as tileset
+import code.level as game
+from code.settings import *
+from code.entities import Entity
+from code.particles import Rock, Arrow, MagicMissile, PBoomerang, BombSmoke, Flame
 
 
 # Known issue : Monster waits for STATE_ACTION to end before getting hurt
@@ -1180,7 +1180,8 @@ class Darknut(Enemy):
                 particle.affects_enemy = False
                 particle.collision_damage = 0
             elif (isinstance(particle, BombSmoke)
-                  and particle.hitbox.colliderect(self.hitbox)):
+                  and particle.hitbox.colliderect(self.hitbox)
+                  and not self.invulnerable):
                 self.state = STATE_STUN
                 self.stun_starting_time = pygame.time.get_ticks()
             elif (isinstance(particle, Flame)
@@ -1405,6 +1406,7 @@ class Zora(Enemy):
         if self.state == STATE_RISING:
             if current_time - self.rise_starting_time >= self.rise_cooldown:
                 self.invulnerable = False
+                self.is_above_ground = True
                 self.state = STATE_WALKING
                 if self.rect.y <= game.Level().player.hitbox.centery:
                     self.direction_label = DOWN_LABEL
@@ -1430,7 +1432,6 @@ class Zora(Enemy):
         else:
             if current_time - self.under_ground_starting_time >= self.under_ground_cooldown:
                 self.state = STATE_RISING
-                self.is_above_ground = True
                 self.above_ground_starting_time = current_time
                 self.rise_starting_time = current_time
 
@@ -1627,6 +1628,7 @@ class Leever(Enemy):
         if self.state == STATE_RISING:
             if current_time - self.rise_starting_time >= self.rise_cooldown:
                 self.invulnerable = False
+                self.is_above_ground = True
                 self.state = STATE_WALKING
         elif self.state == STATE_DIVING:
             self.invulnerable = True
@@ -1650,7 +1652,6 @@ class Leever(Enemy):
             if current_time - self.under_ground_starting_time >= self.under_ground_cooldown:
                 self.state = STATE_RISING
                 self.rise_animation_frame_count = 0
-                self.is_above_ground = True
                 self.above_ground_starting_time = current_time
                 self.rise_starting_time = current_time
                 self.rise_animation_starting_time = current_time

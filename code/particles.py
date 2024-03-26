@@ -1,9 +1,9 @@
 import abc
 import random
-import tileset
+import code.tileset as tileset
 import pygame
-import level as game
-from settings import *
+import code.level as game
+import code.settings as cfg
 from abc import ABC
 
 
@@ -43,7 +43,7 @@ class Particle(pygame.sprite.Sprite, ABC):
     @abc.abstractmethod
     def load_animation_frames(self, tile_set):
         for i in range(self.nb_frames):
-            tiles_offset = SPRITE_SIZE // TILE_SIZE * i
+            tiles_offset = cfg.SPRITE_SIZE // cfg.TILE_SIZE * i
             self.move_animations.append(tile_set.get_sprite_image(self.frame_id + tiles_offset))
 
     @abc.abstractmethod
@@ -93,22 +93,22 @@ class PWoodenSword(Particle):
         self.particle_sprites = particle_sprites
 
         self.direction_label = owner_direction_label
-        if owner_direction_label == UP_LABEL:
+        if owner_direction_label == cfg.UP_LABEL:
             self.pos_x += 6
             self.pos_y -= 22
             self.direction_vector.x = 0
             self.direction_vector.y = -1
-        elif owner_direction_label == RIGHT_LABEL:
+        elif owner_direction_label == cfg.RIGHT_LABEL:
             self.pos_x += 20
             self.pos_y += 2
             self.direction_vector.x = 1
             self.direction_vector.y = 0
-        elif owner_direction_label == DOWN_LABEL:
+        elif owner_direction_label == cfg.DOWN_LABEL:
             self.pos_x += 14
             self.pos_y += 22
             self.direction_vector.x = 0
             self.direction_vector.y = 1
-        elif owner_direction_label == LEFT_LABEL:
+        elif owner_direction_label == cfg.LEFT_LABEL:
             self.pos_x -= 20
             self.pos_y += 2
             self.direction_vector.x = -1
@@ -116,21 +116,21 @@ class PWoodenSword(Particle):
 
         self.move_animation_cooldown = 5
         self.move_animations = {
-            UP_LABEL: [],
-            RIGHT_LABEL: [],
-            DOWN_LABEL: [],
-            LEFT_LABEL: []
+            cfg.UP_LABEL: [],
+            cfg.RIGHT_LABEL: [],
+            cfg.DOWN_LABEL: [],
+            cfg.LEFT_LABEL: []
         }
 
-        self.frame_id = WOOD_SWORD_RIGHT_FRAME_ID
-        self.nb_frames = WOOD_SWORD_ATTACK_FRAMES
+        self.frame_id = cfg.WOOD_SWORD_RIGHT_FRAME_ID
+        self.nb_frames = cfg.WOOD_SWORD_ATTACK_FRAMES
         self.load_animation_frames(tileset.PARTICLES_TILE_SET)
         
         self.image = self.move_animations[self.direction_label][0]
         self.rect = self.image.get_rect(topleft=(self.pos_x, self.pos_y))
         # Hitbox will stay at full sword length despite the animation, because it is extremely fast and doesn't really
         # improve gameplay at all.
-        if owner_direction_label == UP_LABEL or owner_direction_label == DOWN_LABEL:
+        if owner_direction_label == cfg.UP_LABEL or owner_direction_label == cfg.DOWN_LABEL:
             self.hitbox = self.rect.inflate(-26, 0)
             self.hitbox.left = self.rect.left + 4
             self.hitbox.top = self.rect.top
@@ -140,9 +140,9 @@ class PWoodenSword(Particle):
             self.hitbox.top = self.rect.top + 14
 
         self.affects_enemy = True
-        self.collision_damage = WOOD_SWORD_DMG
+        self.collision_damage = cfg.WOOD_SWORD_DMG
 
-        self.sword_attack_sound = pygame.mixer.Sound(SOUND_SWORD_ATTACK)
+        self.sword_attack_sound = pygame.mixer.Sound(cfg.SOUND_SWORD_ATTACK)
         self.sword_attack_sound.set_volume(0.5)
         self.sword_attack_sound.play()
 
@@ -150,14 +150,14 @@ class PWoodenSword(Particle):
 
     def load_animation_frames(self, particle_tile_set):
         for i in range(self.nb_frames):
-            tiles_offset = SPRITE_SIZE // TILE_SIZE * i
-            self.move_animations[UP_LABEL].append(particle_tile_set.get_sprite_image(
-                WOOD_SWORD_UP_FRAME_ID + tiles_offset))
-            self.move_animations[RIGHT_LABEL].append(particle_tile_set.get_sprite_image(
-                WOOD_SWORD_RIGHT_FRAME_ID + tiles_offset))
-            self.move_animations[DOWN_LABEL].append(particle_tile_set.get_sprite_image(
-                WOOD_SWORD_DOWN_FRAME_ID + tiles_offset))
-            self.move_animations[LEFT_LABEL].append(
+            tiles_offset = cfg.SPRITE_SIZE // cfg.TILE_SIZE * i
+            self.move_animations[cfg.UP_LABEL].append(particle_tile_set.get_sprite_image(
+                cfg.WOOD_SWORD_UP_FRAME_ID + tiles_offset))
+            self.move_animations[cfg.RIGHT_LABEL].append(particle_tile_set.get_sprite_image(
+                cfg.WOOD_SWORD_RIGHT_FRAME_ID + tiles_offset))
+            self.move_animations[cfg.DOWN_LABEL].append(particle_tile_set.get_sprite_image(
+                cfg.WOOD_SWORD_DOWN_FRAME_ID + tiles_offset))
+            self.move_animations[cfg.LEFT_LABEL].append(
                 pygame.transform.flip(
                     particle_tile_set.get_sprite_image(self.frame_id + tiles_offset),
                     True,
@@ -177,14 +177,14 @@ class PWoodenSword(Particle):
         # Collision with a monster
         for enemy in self.enemy_sprites:
             if isinstance(enemy, game.Darknut):
-                if (enemy.state != STATE_STUN
-                        and STATE_HURT not in enemy.state
+                if (enemy.state != cfg.STATE_STUN
+                        and cfg.STATE_HURT not in enemy.state
                         and enemy.shield_hitbox.colliderect(self.hitbox)
                         and self.collision_damage > 0):
                     self.collision_damage = 0
                     enemy.shield_block_sound.play()
                 elif (enemy.hitbox.colliderect(self.hitbox)
-                      and STATE_HURT not in enemy.state):
+                      and cfg.STATE_HURT not in enemy.state):
                     enemy.take_damage(self.collision_damage, self.direction_label)
             else:
                 if enemy.hitbox.colliderect(self.hitbox):
@@ -231,23 +231,23 @@ class PBoomerang(Particle):
         self.monster_variant = monster_variant
 
         if self.direction_vector.x == 0 and self.direction_vector.y == 0:
-            if owner_direction_label == UP_LABEL:
+            if owner_direction_label == cfg.UP_LABEL:
                 self.direction_vector.x = 0
                 self.direction_vector.y = -1
-            elif owner_direction_label == RIGHT_LABEL:
+            elif owner_direction_label == cfg.RIGHT_LABEL:
                 self.direction_vector.x = 1
                 self.direction_vector.y = 0
-            elif owner_direction_label == DOWN_LABEL:
+            elif owner_direction_label == cfg.DOWN_LABEL:
                 self.direction_vector.x = 0
                 self.direction_vector.y = 1
-            elif owner_direction_label == LEFT_LABEL:
+            elif owner_direction_label == cfg.LEFT_LABEL:
                 self.direction_vector.x = -1
                 self.direction_vector.y = 0
 
         self.move_animation_cooldown = 100
 
-        self.frame_id = BOOMERANG_FRAME_ID
-        self.nb_frames = BOOMERANG_FRAMES
+        self.frame_id = cfg.BOOMERANG_FRAME_ID
+        self.nb_frames = cfg.BOOMERANG_FRAMES
         self.load_animation_frames(tileset.ITEMS_TILE_SET)
 
         self.image = self.move_animations[0]
@@ -258,16 +258,16 @@ class PBoomerang(Particle):
 
         if self.monster_variant:
             self.affects_player = True
-            self.collision_damage = PLAYER_HEALTH_PER_HEART
-            self.speed = BOOMERANG_SPEED
+            self.collision_damage = cfg.PLAYER_HEALTH_PER_HEART
+            self.speed = cfg.BOOMERANG_SPEED
             self.boomerang_starting_time = pygame.time.get_ticks()
             self.boomerang_go_back_cooldown = self.owner_ref.boomerang_timerange
         else:
             self.affects_enemy = True
-            self.collision_damage = BOOMERANG_DMG
-            self.speed = BOOMERANG_SPEED
+            self.collision_damage = cfg.BOOMERANG_DMG
+            self.speed = cfg.BOOMERANG_SPEED
 
-        self.boomerang_attack_sound = pygame.mixer.Sound(SOUND_BOOMERANG_ATTACK)
+        self.boomerang_attack_sound = pygame.mixer.Sound(cfg.SOUND_BOOMERANG_ATTACK)
         self.boomerang_attack_sound.set_volume(0.5)
         self.boomerang_attack_sound.play(loops=-1)
 
@@ -362,32 +362,32 @@ class Rock(Particle):
 
         self.obstacle_sprites = obstacle_sprites
 
-        if owner_direction_label == UP_LABEL:
+        if owner_direction_label == cfg.UP_LABEL:
             self.direction_vector.x = 0
             self.direction_vector.y = -1
-        elif owner_direction_label == RIGHT_LABEL:
+        elif owner_direction_label == cfg.RIGHT_LABEL:
             self.direction_vector.x = 1
             self.direction_vector.y = 0
-        elif owner_direction_label == DOWN_LABEL:
+        elif owner_direction_label == cfg.DOWN_LABEL:
             self.direction_vector.x = 0
             self.direction_vector.y = 1
-        elif owner_direction_label == LEFT_LABEL:
+        elif owner_direction_label == cfg.LEFT_LABEL:
             self.direction_vector.x = -1
             self.direction_vector.y = 0
 
-        self.frame_id = ROCK_FRAME_ID
-        self.nb_frames = ROCK_FRAMES
+        self.frame_id = cfg.ROCK_FRAME_ID
+        self.nb_frames = cfg.ROCK_FRAMES
         self.load_animation_frames(tileset.PARTICLES_TILE_SET)
 
         self.image = self.move_animations[0]
-        self.rect = self.image.get_rect(topleft=(self.pos_x + TILE_SIZE//2, self.pos_y + 2))
+        self.rect = self.image.get_rect(topleft=(self.pos_x + cfg.TILE_SIZE//2, self.pos_y + 2))
         self.hitbox = self.rect.inflate(-16, -12)
         self.hitbox.left = self.rect.left
         self.hitbox.top = self.rect.top + 4
 
         self.affects_player = True
-        self.collision_damage = ROCK_DMG
-        self.speed = ROCK_SPEED
+        self.collision_damage = cfg.ROCK_DMG
+        self.speed = cfg.ROCK_SPEED
 
         self.is_active = True
 
@@ -401,9 +401,9 @@ class Rock(Particle):
     def collision(self, direction):
         for sprite in self.obstacle_sprites:
             if (sprite.hitbox.colliderect(self.hitbox)
-                    and sprite.type != LIMIT_WATER_INDEX
-                    and sprite.type != LIMIT_LADDER_INDEX
-                    and sprite.type != LIMIT_LAKE_BORDER_INDEX):
+                    and sprite.type != cfg.LIMIT_WATER_INDEX
+                    and sprite.type != cfg.LIMIT_LADDER_INDEX
+                    and sprite.type != cfg.LIMIT_LAKE_BORDER_INDEX):
                 self.kill()
 
     def move(self):
@@ -431,56 +431,56 @@ class Arrow(Particle):
 
         self.obstacle_sprites = obstacle_sprites
 
-        if owner_direction_label == UP_LABEL:
+        if owner_direction_label == cfg.UP_LABEL:
             self.direction_vector.x = 0
             self.direction_vector.y = -1
-        elif owner_direction_label == RIGHT_LABEL:
+        elif owner_direction_label == cfg.RIGHT_LABEL:
             self.direction_vector.x = 1
             self.direction_vector.y = 0
-        elif owner_direction_label == DOWN_LABEL:
+        elif owner_direction_label == cfg.DOWN_LABEL:
             self.direction_vector.x = 0
             self.direction_vector.y = 1
-        elif owner_direction_label == LEFT_LABEL:
+        elif owner_direction_label == cfg.LEFT_LABEL:
             self.direction_vector.x = -1
             self.direction_vector.y = 0
 
-        self.frame_up_id = ARROW_FRAME_UP_ID
-        self.frame_right_id = ARROW_FRAME_RIGHT_ID
-        self.nb_frames = ARROW_FRAMES
+        self.frame_up_id = cfg.ARROW_FRAME_UP_ID
+        self.frame_right_id = cfg.ARROW_FRAME_RIGHT_ID
+        self.nb_frames = cfg.ARROW_FRAMES
 
         self.move_animations = {
-            UP_LABEL: [],
-            RIGHT_LABEL: [],
-            DOWN_LABEL: [],
-            LEFT_LABEL: []
+            cfg.UP_LABEL: [],
+            cfg.RIGHT_LABEL: [],
+            cfg.DOWN_LABEL: [],
+            cfg.LEFT_LABEL: []
         }
         self.load_animation_frames(tileset.PARTICLES_TILE_SET)
 
         self.image = self.move_animations[owner_direction_label][0]
-        self.rect = self.image.get_rect(topleft=(self.pos_x + TILE_SIZE//2, self.pos_y))
+        self.rect = self.image.get_rect(topleft=(self.pos_x + cfg.TILE_SIZE//2, self.pos_y))
         self.hitbox = self.rect.inflate(-16, -12)
         self.hitbox.left = self.rect.left
         self.hitbox.top = self.rect.top + 4
 
         self.affects_player = True
-        self.collision_damage = ARROW_DMG
-        self.speed = ARROW_SPEED
+        self.collision_damage = cfg.ARROW_DMG
+        self.speed = cfg.ARROW_SPEED
 
         self.is_active = True
 
     def load_animation_frames(self, particle_tile_set):
         for i in range(self.nb_frames):
-            tiles_offset = SPRITE_SIZE // TILE_SIZE * i
-            self.move_animations[UP_LABEL].append(
+            tiles_offset = cfg.SPRITE_SIZE // cfg.TILE_SIZE * i
+            self.move_animations[cfg.UP_LABEL].append(
                 particle_tile_set.get_sprite_image(self.frame_up_id + tiles_offset))
-            self.move_animations[DOWN_LABEL].append(
+            self.move_animations[cfg.DOWN_LABEL].append(
                 pygame.transform.flip(
                     particle_tile_set.get_sprite_image(self.frame_up_id + tiles_offset),
                     False,
                     True))
-            self.move_animations[RIGHT_LABEL].append(
+            self.move_animations[cfg.RIGHT_LABEL].append(
                 particle_tile_set.get_sprite_image(self.frame_right_id + tiles_offset))
-            self.move_animations[LEFT_LABEL].append(
+            self.move_animations[cfg.LEFT_LABEL].append(
                 pygame.transform.flip(
                     particle_tile_set.get_sprite_image(self.frame_right_id + tiles_offset),
                     True,
@@ -493,10 +493,10 @@ class Arrow(Particle):
     def collision(self, direction):
         for sprite in self.obstacle_sprites:
             if (sprite.hitbox.colliderect(self.hitbox)
-                    and sprite.type != LIMIT_TREE_INDEX
-                    and sprite.type != LIMIT_WATER_INDEX
-                    and sprite.type != LIMIT_LADDER_INDEX
-                    and sprite.type != LIMIT_LAKE_BORDER_INDEX):
+                    and sprite.type != cfg.LIMIT_TREE_INDEX
+                    and sprite.type != cfg.LIMIT_WATER_INDEX
+                    and sprite.type != cfg.LIMIT_LADDER_INDEX
+                    and sprite.type != cfg.LIMIT_LAKE_BORDER_INDEX):
                 self.kill()
 
     def move(self):
@@ -519,14 +519,14 @@ class MagicMissile(Particle):
                  owner_direction_vector,
                  groups,
                  obstacle_sprites,
-                 dmg=MAGIC_MISSILE_DMG,
+                 dmg=cfg.MAGIC_MISSILE_DMG,
                  aim_at_player=True):
         super().__init__(owner_pos, owner_direction_vector, groups)
 
         self.obstacle_sprites = obstacle_sprites
 
-        self.frame_id = MAGIC_MISSILE_FRAME_ID
-        self.nb_frames = MAGIC_MISSILE_FRAMES
+        self.frame_id = cfg.MAGIC_MISSILE_FRAME_ID
+        self.nb_frames = cfg.MAGIC_MISSILE_FRAMES
 
         self.move_animations = []
         self.move_animation_cooldown = 100
@@ -550,13 +550,13 @@ class MagicMissile(Particle):
         self.affects_player = True
         self.bypasses_shield = True
         self.collision_damage = dmg
-        self.speed = MAGIC_MISSILE_SPEED
+        self.speed = cfg.MAGIC_MISSILE_SPEED
 
         self.is_active = True
 
     def load_animation_frames(self, particle_tile_set):
         for i in range(self.nb_frames):
-            tiles_offset = SPRITE_SIZE // TILE_SIZE * i
+            tiles_offset = cfg.SPRITE_SIZE // cfg.TILE_SIZE * i
             self.move_animations.append(
                 particle_tile_set.get_sprite_image(self.frame_id + tiles_offset))
 
@@ -566,10 +566,10 @@ class MagicMissile(Particle):
     def collision(self, direction):
         for sprite in self.obstacle_sprites:
             if (sprite.hitbox.colliderect(self.hitbox)
-                    and sprite.type != LIMIT_TREE_INDEX
-                    and sprite.type != LIMIT_WATER_INDEX
-                    and sprite.type != LIMIT_LADDER_INDEX
-                    and sprite.type != LIMIT_LAKE_BORDER_INDEX):
+                    and sprite.type != cfg.LIMIT_TREE_INDEX
+                    and sprite.type != cfg.LIMIT_WATER_INDEX
+                    and sprite.type != cfg.LIMIT_LADDER_INDEX
+                    and sprite.type != cfg.LIMIT_LAKE_BORDER_INDEX):
                 self.kill()
 
     def move(self):
@@ -594,8 +594,8 @@ class Heart(Particle):
 
         self.dropped_by_event = dropped_by_event
 
-        self.frame_id = HEART_FRAME_ID
-        self.nb_frames = HEART_FRAMES
+        self.frame_id = cfg.HEART_FRAME_ID
+        self.nb_frames = cfg.HEART_FRAMES
         self.load_animation_frames(tileset.CONSUMABLES_TILE_SET)
 
         self.image = self.move_animations[0]
@@ -606,7 +606,7 @@ class Heart(Particle):
         self.bypasses_shield = True
         self.collision_damage = 0
 
-        self.heart_pickup_sound = pygame.mixer.Sound(SOUND_TINY_PICKUP)
+        self.heart_pickup_sound = pygame.mixer.Sound(cfg.SOUND_TINY_PICKUP)
         self.heart_pickup_sound.set_volume(0.3)
 
         self.is_active = True
@@ -629,9 +629,9 @@ class Heart(Particle):
     def effect(self):
         if self.dropped_by_event:
             level_id = str(game.Level().current_map) + str(game.Level().current_map_screen)
-            MONSTER_KILL_EVENT.pop(level_id)
+            cfg.MONSTER_KILL_EVENT.pop(level_id)
         self.heart_pickup_sound.play()
-        game.Level().player_pick_up(HEART_LABEL, 1)
+        game.Level().player_pick_up(cfg.HEART_LABEL, 1)
 
     def update(self):
         super().update()
@@ -646,8 +646,8 @@ class Rupee(Particle):
         self.amount = amount
         self.dropped_by_event = dropped_by_event
 
-        self.frame_id = RUPEE_FRAME_ID
-        self.nb_frames = RUPEE_FRAMES
+        self.frame_id = cfg.RUPEE_FRAME_ID
+        self.nb_frames = cfg.RUPEE_FRAMES
         self.load_animation_frames(tileset.CONSUMABLES_TILE_SET)
 
         self.image = self.move_animations[0]
@@ -678,8 +678,8 @@ class Rupee(Particle):
     def effect(self):
         if self.dropped_by_event:
             level_id = str(game.Level().current_map) + str(game.Level().current_map_screen)
-            MONSTER_KILL_EVENT.pop(level_id)
-        game.Level().player_pick_up(RUPEE_LABEL, self.amount)
+            cfg.MONSTER_KILL_EVENT.pop(level_id)
+        game.Level().player_pick_up(cfg.RUPEE_LABEL, self.amount)
 
     def update(self):
         super().update()
@@ -693,8 +693,8 @@ class CBomb(Particle):
 
         self.dropped_by_event = dropped_by_event
 
-        self.frame_id = CBOMB_FRAME_ID
-        self.nb_frames = CBOMB_FRAMES
+        self.frame_id = cfg.CBOMB_FRAME_ID
+        self.nb_frames = cfg.CBOMB_FRAMES
         self.load_animation_frames(tileset.CONSUMABLES_TILE_SET)
 
         self.image = self.move_animations[0]
@@ -705,7 +705,7 @@ class CBomb(Particle):
         self.bypasses_shield = True
         self.collision_damage = 0
 
-        self.bomb_pickup_sound = pygame.mixer.Sound(SOUND_SMALL_PICKUP)
+        self.bomb_pickup_sound = pygame.mixer.Sound(cfg.SOUND_SMALL_PICKUP)
         self.bomb_pickup_sound.set_volume(0.3)
 
         self.is_active = True
@@ -729,9 +729,9 @@ class CBomb(Particle):
     def effect(self):
         if self.dropped_by_event:
             level_id = str(game.Level().current_map) + str(game.Level().current_map_screen)
-            MONSTER_KILL_EVENT.pop(level_id)
+            cfg.MONSTER_KILL_EVENT.pop(level_id)
         self.bomb_pickup_sound.play()
-        game.Level().player_pick_up(BOMB_LABEL, PLAYER_BOMB_LOOT_AMOUNT)
+        game.Level().player_pick_up(cfg.BOMB_LABEL, cfg.PLAYER_BOMB_LOOT_AMOUNT)
 
     def update(self):
         super().update()
@@ -745,8 +745,8 @@ class Fairy(Particle):
 
         self.obstacle_sprites = obstacle_sprites
 
-        self.frame_id = FAIRY_FRAMES_ID
-        self.nb_frames = FAIRY_FRAMES
+        self.frame_id = cfg.FAIRY_FRAMES_ID
+        self.nb_frames = cfg.FAIRY_FRAMES
         self.load_animation_frames(tileset.CONSUMABLES_TILE_SET)
 
         self.image = self.move_animations[0]
@@ -756,12 +756,12 @@ class Fairy(Particle):
         self.affects_player = True
         self.bypasses_shield = True
         self.collision_damage = 0
-        self.speed = FAIRY_SPEED
+        self.speed = cfg.FAIRY_SPEED
 
         self.direction_starting_time = 0
         self.direction_cooldown = random.randrange(500, 2000, 100)
 
-        self.fairy_pickup_sound = pygame.mixer.Sound(SOUND_SMALL_PICKUP)
+        self.fairy_pickup_sound = pygame.mixer.Sound(cfg.SOUND_SMALL_PICKUP)
         self.fairy_pickup_sound.set_volume(0.3)
 
         self.is_active = True
@@ -775,7 +775,7 @@ class Fairy(Particle):
     def collision(self, direction):
         # This flies, so it will only collide with screen border obstacles, that are given in obstacles_sprites
         # Be careful when creating a fairy !
-        if direction == HORIZONTAL_LABEL:
+        if direction == cfg.HORIZONTAL_LABEL:
             for sprite in self.obstacle_sprites:
                 if sprite.hitbox.colliderect(self.hitbox):
                     if self.direction_vector.x > 0:
@@ -783,7 +783,7 @@ class Fairy(Particle):
                     if self.direction_vector.x < 0:
                         self.hitbox.left = sprite.hitbox.right
 
-        elif direction == VERTICAL_LABEL:
+        elif direction == cfg.VERTICAL_LABEL:
             for sprite in self.obstacle_sprites:
                 if sprite.hitbox.colliderect(self.hitbox):
                     if self.direction_vector.y > 0:
@@ -804,15 +804,15 @@ class Fairy(Particle):
                 self.direction_vector = self.direction_vector.normalize()
 
         self.hitbox.x += self.direction_vector.x * self.speed
-        self.collision(HORIZONTAL_LABEL)
+        self.collision(cfg.HORIZONTAL_LABEL)
         self.hitbox.y += self.direction_vector.y * self.speed
-        self.collision(VERTICAL_LABEL)
+        self.collision(cfg.VERTICAL_LABEL)
 
         self.rect.center = self.hitbox.center
 
     def effect(self):
         self.fairy_pickup_sound.play()
-        game.Level().player_pick_up(FAIRY_LABEL, PLAYER_HEALTH_MAX)
+        game.Level().player_pick_up(cfg.FAIRY_LABEL, cfg.PLAYER_HEALTH_MAX)
 
     def update(self):
         super().update()
@@ -827,8 +827,8 @@ class Key(Particle):
         self.level_id = level_id
         self.dropped_by_event = dropped_by_event
 
-        self.frame_id = KEY_FRAME_ID
-        self.nb_frames = KEY_FRAMES
+        self.frame_id = cfg.KEY_FRAME_ID
+        self.nb_frames = cfg.KEY_FRAMES
         self.load_animation_frames(tileset.CONSUMABLES_TILE_SET)
 
         self.image = self.move_animations[0]
@@ -860,10 +860,10 @@ class Key(Particle):
     def effect(self):
         if self.dropped_by_event:
             level_id = str(game.Level().current_map) + str(game.Level().current_map_screen)
-            MONSTER_KILL_EVENT.pop(level_id)
+            cfg.MONSTER_KILL_EVENT.pop(level_id)
         else:
-            MAP_ITEMS[self.level_id][KEY_LABEL] = False
-        game.Level().player_pick_up(KEY_LABEL, 1)
+            cfg.MAP_ITEMS[self.level_id][cfg.KEY_LABEL] = False
+        game.Level().player_pick_up(cfg.KEY_LABEL, 1)
 
     def update(self):
         super().update()
@@ -882,28 +882,28 @@ class Bomb(Particle):
         self.owner_pos = owner_pos
         self.groups = groups
 
-        self.frame_id = PBOMB_FRAME_ID
-        self.nb_frames = PBOMB_FRAMES
+        self.frame_id = cfg.PBOMB_FRAME_ID
+        self.nb_frames = cfg.PBOMB_FRAMES
         self.load_animation_frames(tileset.PARTICLES_TILE_SET)
 
         self.collision_damage = 0
 
-        self.bomb_drop_sound = pygame.mixer.Sound(SOUND_BOMB_DROP)
+        self.bomb_drop_sound = pygame.mixer.Sound(cfg.SOUND_BOMB_DROP)
         self.bomb_drop_sound.set_volume(0.3)
         self.bomb_drop_sound.play()
-        self.bomb_explode_sound = pygame.mixer.Sound(SOUND_BOMB_EXPLODE)
+        self.bomb_explode_sound = pygame.mixer.Sound(cfg.SOUND_BOMB_EXPLODE)
         self.bomb_explode_sound.set_volume(0.3)
 
-        if owner_direction_label == UP_LABEL:
+        if owner_direction_label == cfg.UP_LABEL:
             self.pos_x = owner_pos[0]
             self.pos_y = owner_pos[1] - 32
-        elif owner_direction_label == RIGHT_LABEL:
+        elif owner_direction_label == cfg.RIGHT_LABEL:
             self.pos_x = owner_pos[0] + 24
             self.pos_y = owner_pos[1]
-        elif owner_direction_label == DOWN_LABEL:
+        elif owner_direction_label == cfg.DOWN_LABEL:
             self.pos_x = owner_pos[0]
             self.pos_y = owner_pos[1] + 32
-        elif owner_direction_label == LEFT_LABEL:
+        elif owner_direction_label == cfg.LEFT_LABEL:
             self.pos_x = owner_pos[0] - 24
             self.pos_y = owner_pos[1]
         self.image = self.move_animations[0]
@@ -955,8 +955,8 @@ class BombSmoke(Particle):
         owner_direction_vector = pygame.math.Vector2()
         super().__init__(effect_pos, owner_direction_vector, groups)
 
-        self.frame_id = PBOMB_SMOKE_FRAME_ID
-        self.nb_frames = PBOMB_SMOKE_FRAMES
+        self.frame_id = cfg.PBOMB_SMOKE_FRAME_ID
+        self.nb_frames = cfg.PBOMB_SMOKE_FRAMES
         self.load_animation_frames(tileset.PARTICLES_TILE_SET)
 
         self.image = self.move_animations[0]
@@ -969,7 +969,7 @@ class BombSmoke(Particle):
 
         self.smoke_starting_time = self.move_animation_timer_start
         self.move_animation_cooldown = 150
-        self.smoke_cooldown = PBOMB_SMOKE_FRAMES * self.move_animation_cooldown
+        self.smoke_cooldown = cfg.PBOMB_SMOKE_FRAMES * self.move_animation_cooldown
 
     def load_animation_frames(self, particle_tile_set):
         super().load_animation_frames(particle_tile_set)
@@ -1009,34 +1009,34 @@ class Flame(Particle):
         self.player_ref = player
 
         self.direction_label = owner_direction_label
-        if owner_direction_label == UP_LABEL:
+        if owner_direction_label == cfg.UP_LABEL:
             self.direction_vector.x = 0
             self.direction_vector.y = -1
             self.pos_x = owner_pos[0]
-            self.pos_y = owner_pos[1] - TILE_SIZE
-        elif owner_direction_label == RIGHT_LABEL:
+            self.pos_y = owner_pos[1] - cfg.TILE_SIZE
+        elif owner_direction_label == cfg.RIGHT_LABEL:
             self.direction_vector.x = 1
             self.direction_vector.y = 0
-            self.pos_x = owner_pos[0] + TILE_SIZE
+            self.pos_x = owner_pos[0] + cfg.TILE_SIZE
             self.pos_y = owner_pos[1]
-        elif owner_direction_label == DOWN_LABEL:
+        elif owner_direction_label == cfg.DOWN_LABEL:
             self.direction_vector.x = 0
             self.direction_vector.y = 1
             self.pos_x = owner_pos[0]
-            self.pos_y = owner_pos[1] + TILE_SIZE
-        elif owner_direction_label == LEFT_LABEL:
+            self.pos_y = owner_pos[1] + cfg.TILE_SIZE
+        elif owner_direction_label == cfg.LEFT_LABEL:
             self.direction_vector.x = -1
             self.direction_vector.y = 0
-            self.pos_x = owner_pos[0] - TILE_SIZE
+            self.pos_x = owner_pos[0] - cfg.TILE_SIZE
             self.pos_y = owner_pos[1]
 
         self.distance_travelled = 0
-        self.max_distance = TILE_SIZE
+        self.max_distance = cfg.TILE_SIZE
 
         self.move_animation_cooldown = 100
 
-        self.frame_id = FLAME_FRAME_ID
-        self.nb_frames = FLAME_FRAMES
+        self.frame_id = cfg.FLAME_FRAME_ID
+        self.nb_frames = cfg.FLAME_FRAMES
         self.load_animation_frames(tileset.PARTICLES_TILE_SET)
 
         self.image = self.move_animations[0]
@@ -1044,10 +1044,10 @@ class Flame(Particle):
         self.hitbox = self.rect
 
         self.is_active = True
-        self.collision_damage = FLAME_DMG
-        self.speed = FLAME_SPEED
+        self.collision_damage = cfg.FLAME_DMG
+        self.speed = cfg.FLAME_SPEED
 
-        self.flame_sound = pygame.mixer.Sound(SOUND_FLAME)
+        self.flame_sound = pygame.mixer.Sound(cfg.SOUND_FLAME)
         self.flame_sound.set_volume(0.3)
         self.flame_sound.play()
 
@@ -1115,8 +1115,8 @@ class HeartReceptacle(Particle):
         self.level_id = level_id
         self.dropped_by_event = dropped_by_event
 
-        self.frame_id = HEARTRECEPTACLE_FRAME_ID
-        self.nb_frames = HEARTRECEPTACLE_FRAMES
+        self.frame_id = cfg.HEARTRECEPTACLE_FRAME_ID
+        self.nb_frames = cfg.HEARTRECEPTACLE_FRAMES
         self.load_animation_frames(tileset.CONSUMABLES_TILE_SET)
 
         self.image = self.move_animations[0]
@@ -1148,10 +1148,10 @@ class HeartReceptacle(Particle):
     def effect(self):
         if self.dropped_by_event:
             level_id = str(game.Level().current_map) + str(game.Level().current_map_screen)
-            MONSTER_KILL_EVENT.pop(level_id)
+            cfg.MONSTER_KILL_EVENT.pop(level_id)
         else:
-            MAP_ITEMS[self.level_id][HEARTRECEPTACLE_LABEL] = False
-        game.Level().player_pick_up(HEARTRECEPTACLE_LABEL)
+            cfg.MAP_ITEMS[self.level_id][cfg.HEARTRECEPTACLE_LABEL] = False
+        game.Level().player_pick_up(cfg.HEARTRECEPTACLE_LABEL)
 
     def update(self):
         super().update()
@@ -1165,8 +1165,8 @@ class Ladder(Particle):
 
         self.level_id = level_id
 
-        self.frame_id = LADDER_FRAME_ID
-        self.nb_frames = LADDER_FRAMES
+        self.frame_id = cfg.LADDER_FRAME_ID
+        self.nb_frames = cfg.LADDER_FRAMES
         self.load_animation_frames(tileset.ITEMS_TILE_SET)
 
         self.image = self.move_animations[0]
@@ -1196,8 +1196,8 @@ class Ladder(Particle):
         pass
 
     def effect(self):
-        MAP_ITEMS[self.level_id][LADDER_LABEL] = False
-        game.Level().player_pick_up(LADDER_LABEL)
+        cfg.MAP_ITEMS[self.level_id][cfg.LADDER_LABEL] = False
+        game.Level().player_pick_up(cfg.LADDER_LABEL)
 
     def update(self):
         super().update()
@@ -1211,8 +1211,8 @@ class RedCandle(Particle):
 
         self.level_id = level_id
 
-        self.frame_id = RED_CANDLE_FRAME_ID
-        self.nb_frames = RED_CANDLE_FRAMES
+        self.frame_id = cfg.RED_CANDLE_FRAME_ID
+        self.nb_frames = cfg.RED_CANDLE_FRAMES
         self.load_animation_frames(tileset.ITEMS_TILE_SET)
 
         self.image = self.move_animations[0]
@@ -1242,8 +1242,8 @@ class RedCandle(Particle):
         pass
 
     def effect(self):
-        MAP_ITEMS[self.level_id][CANDLE_LABEL] = False
-        game.Level().player_pick_up(CANDLE_LABEL)
+        cfg.MAP_ITEMS[self.level_id][cfg.CANDLE_LABEL] = False
+        game.Level().player_pick_up(cfg.CANDLE_LABEL)
 
     def update(self):
         super().update()
@@ -1258,8 +1258,8 @@ class Boomerang(Particle):
         self.level_id = level_id
         self.dropped_by_event = dropped_by_event
 
-        self.frame_id = BOOMERANG_FRAME_ID
-        self.nb_frames = BOOMERANG_FRAMES
+        self.frame_id = cfg.BOOMERANG_FRAME_ID
+        self.nb_frames = cfg.BOOMERANG_FRAMES
         self.load_animation_frames(tileset.ITEMS_TILE_SET)
 
         self.image = self.move_animations[0]
@@ -1290,10 +1290,10 @@ class Boomerang(Particle):
 
     def effect(self):
         if not self.dropped_by_event:
-            MAP_ITEMS[self.level_id][BOOMERANG_LABEL] = False
+            cfg.MAP_ITEMS[self.level_id][cfg.BOOMERANG_LABEL] = False
         else:
-            MONSTER_KILL_EVENT.pop(self.level_id)
-        game.Level().player_pick_up(BOOMERANG_LABEL)
+            cfg.MONSTER_KILL_EVENT.pop(self.level_id)
+        game.Level().player_pick_up(cfg.BOOMERANG_LABEL)
 
     def update(self):
         super().update()
@@ -1307,8 +1307,8 @@ class WoodenSword(Particle):
 
         self.level_id = level_id
 
-        self.frame_id = WOOD_SWORD_FRAME_ID
-        self.nb_frames = WOOD_SWORD_FRAMES
+        self.frame_id = cfg.WOOD_SWORD_FRAME_ID
+        self.nb_frames = cfg.WOOD_SWORD_FRAMES
         self.load_animation_frames(tileset.ITEMS_TILE_SET)
 
         self.image = self.move_animations[0]
@@ -1338,8 +1338,8 @@ class WoodenSword(Particle):
         pass
 
     def effect(self):
-        MAP_ITEMS[self.level_id][WOOD_SWORD_LABEL] = False
-        game.Level().player_pick_up(WOOD_SWORD_LABEL)
+        cfg.MAP_ITEMS[self.level_id][cfg.WOOD_SWORD_LABEL] = False
+        game.Level().player_pick_up(cfg.WOOD_SWORD_LABEL)
 
     def update(self):
         super().update()
@@ -1353,8 +1353,8 @@ class Triforce(Particle):
 
         self.level_id = level_id
 
-        self.frame_id = TRIFORCE_FRAME_ID
-        self.nb_frames = TRIFORCE_FRAMES
+        self.frame_id = cfg.TRIFORCE_FRAME_ID
+        self.nb_frames = cfg.TRIFORCE_FRAMES
         self.load_animation_frames(tileset.ITEMS_TILE_SET)
 
         self.image = self.move_animations[0]
@@ -1384,7 +1384,7 @@ class Triforce(Particle):
         pass
 
     def effect(self):
-        MAP_ITEMS[self.level_id][TRIFORCE_FRAME_ID] = False
+        cfg.MAP_ITEMS[self.level_id][cfg.TRIFORCE_FRAME_ID] = False
         game.Level().pick_up_triforce()
 
     def update(self):

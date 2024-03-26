@@ -1,11 +1,10 @@
 import pygame.mixer
-import tileset
-
-from settings import *
-from inputs import *
-from tile import Tile
-from entities import Entity
-from particles import PWoodenSword, Bomb, PBoomerang, Flame
+import code.tileset as tileset
+from code.settings import *
+from code.inputs import *
+from code.tile import Tile
+from code.entities import Entity
+from code.particles import PWoodenSword, Bomb, PBoomerang, Flame
 
 
 # NOTE : Behaviour difference between original NES version, and mine :
@@ -387,7 +386,8 @@ class Player(Entity):
             if sprite.hitbox.colliderect(self.hitbox):
                 if (STATE_HURT not in self.state
                         and not self.invulnerable
-                        and STATE_HURT not in sprite.state):
+                        and STATE_HURT not in sprite.state
+                        and sprite.is_above_ground):
                     self.hurt_starting_time = pygame.time.get_ticks()
                     self.invulnerable = True
                     self.player_hurt_sound.play()
@@ -845,6 +845,23 @@ class Player(Entity):
         self.is_candle_lit = False
         self.isDead = False
         self.is_spinning = False
+
+    def reload_player(self):
+        if self.health <= PLAYER_HEALTH_PER_HEART:
+            self.low_health_sound.play(loops=-1)
+            self.is_low_health = True
+        else:
+            self.is_low_health = False
+            self.low_health_sound.stop()
+
+        self.is_boomerang_thrown = False
+        self.is_candle_lit = False
+        self.direction_label = DOWN_LABEL
+        self.state = STATE_IDLE
+        if self.ladder_in_use:
+            self.ladder_in_use = False
+            self.ladder.kill()
+            self.ladder = None
 
     def update(self):
         if not self.isDead:

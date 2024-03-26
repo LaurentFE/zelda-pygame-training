@@ -1,7 +1,7 @@
 import pygame
-import tileset
+import code.tileset as tileset
 import sys
-from settings import *
+from code.settings import *
 
 
 class TextBlock(pygame.sprite.Sprite):

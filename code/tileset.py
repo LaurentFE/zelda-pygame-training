@@ -1,5 +1,5 @@
 import pygame
-import settings as cfg
+import code.settings as cfg
 
 
 class TileSet(pygame.sprite.Sprite):

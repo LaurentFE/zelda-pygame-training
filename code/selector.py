@@ -1,6 +1,6 @@
 import pygame
-from settings import *
-import tileset
+from code.settings import *
+import code.tileset as tileset
 
 
 class Selector(pygame.sprite.Sprite):

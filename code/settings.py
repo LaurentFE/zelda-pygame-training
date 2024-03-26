@@ -16,6 +16,7 @@ TEXT_OFFSET = TEXT_MARGIN * FONT_SPRITE_SIZE
 
 # CONSTANT STR
 #
+SAVE_FILE_PATH = "./save_file"
 NONE_LABEL = 'None'
 GAME_NAME = 'A Zelda NES homage in Python'
 VICTORY_TEXT = 'congratulations !\n\n\n\n\n\n\n\n\n\nthe kingdom is safe,\nand you\'re a winner !!!'
@@ -96,7 +97,7 @@ DOOR_EVENT_LABEL = "Event locked door"
 OPEN_DOORS_LABEL = 'open doors'
 # Graphics paths
 GRAPHICS_EXTENSION = '.png'
-GRAPHICS_PATH = '../graphics/'
+GRAPHICS_PATH = './graphics/'
 ENEMIES_PATH = GRAPHICS_PATH + 'enemies/'
 FONT_PATH = GRAPHICS_PATH + 'font/'
 HUD_PATH = GRAPHICS_PATH + 'hud/'
@@ -109,7 +110,7 @@ HUD_PERMA_PATH = HUD_PATH + 'hud_perma.png'
 BLACK_PATH = LEVELS_PATH + 'black.png'
 # Maps file paths
 MAPS_EXTENSION = '.csv'
-MAPS_PATH = '../map/'
+MAPS_PATH = './map/'
 MAPS_ENEMIES = '_Enemies'
 MAPS_ITEMS = '_Items'
 MAPS_LIMITS = '_Limits'
@@ -156,7 +157,7 @@ FAIRY_LABEL = 'Fairy'
 KEY_LABEL = 'Key'
 TRIFORCE_LABEL = 'Triforce'
 # Audio paths
-AUDIO_PATH = '../audio/'
+AUDIO_PATH = './audio/'
 THEME_OVERWORLD = AUDIO_PATH + 'Overworld.mp3'
 THEME_DUNGEON = AUDIO_PATH + 'Dungeon.mp3'
 SOUND_GAME_OVER = AUDIO_PATH + 'Game_Over.wav'
@@ -805,6 +806,7 @@ FLAME_2_POS = (NPC_X + 6 * TILE_SIZE, NPC_Y)
 
 # SHOPS AND SHOP CONTENT
 #
+# Warning : using ", " in the text of the shop will crash the game when the player loads their save file.
 SHOPS = {
     'sword_cave0': {ITEMS_LABEL: {WOOD_SWORD_LABEL: 0},
                     NPC_ID_LABEL: OLD_MAN_ID,
@@ -825,7 +827,7 @@ SHOPS = {
                           TEXT_LABEL: 'hey mister hero. you\'ll need this.'},
     'dungeon0_4': {ITEMS_LABEL: {BOMB_LABEL: 20},
                    NPC_ID_LABEL: MOBLIN_ID,
-                   TEXT_LABEL: 'bombs are shocking, as a heavy armored monster once told me.'}
+                   TEXT_LABEL: 'a heavy armored monster once told me that bombs are quite shocking.'}
 }
 # SHOP_dict name indicates the tile set
 # Key is label of item

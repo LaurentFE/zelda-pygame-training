@@ -1,6 +1,6 @@
 import pygame
-import level as game
-from settings import *
+import code.level as game
+from code.settings import *
 
 
 class Purchasable(pygame.sprite.Sprite):
