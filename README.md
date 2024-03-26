@@ -38,10 +38,20 @@ The boomerang doesn't hurt on its way back
 There are a total of 4 Heart Containers to pick up, each of them increases your life by one heart !
 
 ## How to build & run project
-### Prerequisites
-Python 3 : https://www.python.org (v3.11.5 at the time of development)
+### Exe file for Windows users
+There is a game.exe file included in the main directory of the project.
+
+If you download the whole repository, you can execute this file to play the game, even if you don't have Python installed on your machine.
+
+WARNING : This exe file is made with PyInstaller, which is apparently used a lot by malware creators, making its bootloader associated with malwares. Your antivirus will most likely identify it as a false positive threat to your system.
+
+If you don't trust it, please feel free to inspect the source files, and run the project with the next instructions
+
+### Prerequisites to run it yourself
+Python 3 : https://www.python.org (v3.11.5 used for the development of this project)
 
 Pygame :  https://www.pygame.org/
+
 Installation command : 
 ```python -m pip install -U pygame --user```
 
@@ -56,7 +66,7 @@ Very loose recreation of The Legend of Zelda as seen on the NES, published in 19
 With tons of creative liberty.
 
 ### HOW
-Developed in Python3 using the Pygame engine.
+Developed in Python3 using the Pygame engine : https://www.pygame.org/
 
 IDE : https://www.jetbrains.com/fr-fr/pycharm/
 
@@ -91,9 +101,6 @@ Not the focus of this project. Same for sound design.
 
 Might happen in a later project, or will use a free art pack made for this purpose.
 
-## WIP BOARD
-https://jamboard.google.com/d/17sGVfK9TGUQF2FjtBszIERMs1WPzu5huUBg2sg46HeE/edit?usp=sharing
-
 ## AFTERTHOUGHT
 There are still many improvements possible. That I will most likely not implement, as it doesn't really fit with my goals / the scope I decided on.
 - I could do more refactoring to make further development less messy, mainly for Particles and Enemies. 
@@ -106,9 +113,9 @@ Today, I could just create these sprites in the .png tile set images, and give l
 - I could separate the big items, and lootable items from the particles, as they differ from a design point of view, but it works really well that way so far, that's a lot of work time to do for a project no one will ever use / expand upon.  
 
 I thought about implementing some other features, and decided against. A few of them :
-- Load/Save feature : principle is easy (read/write into a file the info that represent the state of the game, such as many player flags, shop & secrets dicts from settings, ...), but I don't want to have negative fun implementing a load/save menu/screen in the game to handle it. Could do it through key binds to go around the hassle, we'll see.
-- Flying Enemy : no different from other Enemies, collides only with Border tiles, same kind of behaviour as Leever and Zora diving to do flying/landing
-- Map in HUD: didn't seem particularly exciting to solve (create a dict that registers which level exists/should be shown and which don't, blit them on the HUD map, blit a position sprite on the cell that corresponds to the level.current_map_screen)
+- Flying Enemy : no different from other Enemies, collides only with Border tiles, same kind of behaviour as Leever and Zora diving to do flying/landing,
+- Map in HUD: didn't seem particularly exciting to solve (create a dict that registers which level exists/should be shown and which don't, blit them on the HUD map, blit a position sprite on the cell that corresponds to the level.current_map_screen),
+- More content in general (bigger map, more dungeons, triforce fragments system, ...), but it's not where I want to go. Loads of work, for very little learning along the way. Maybe a few new mechanics to keep things interesting during gameplay, but nothing that really makes generating content worth it for a project that has no ambition of turning into a real game.
 
 All in all, a very interesting project.
 
@@ -116,7 +123,7 @@ Made me really comfortable around Python, allowed me to discover many practices 
 
 Had me rethink about some design patterns, and ignore most of them.
 
-Make choices about many things I didn't think about before getting confronted with it, for instance I kind of wanted to have one file per class, but felt like files acting like modules and regrouping a class with its children made sense, and kept it that way.
+I had to make choices about many things I didn't think about before getting confronted with it, for instance I kind of wanted to have one file per class, but felt like files acting like modules and regrouping a class with its children made sense, and kept it that way. Concepts of what belongs to a class, or another, how to keep them separated, trying to avoid them getting interdependent, ...
 
 Developing solo was a really different experience from working in teams as I used to when I was a QA or in project management.
 
