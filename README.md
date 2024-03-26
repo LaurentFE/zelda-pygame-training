@@ -12,6 +12,15 @@ For those who chose to trust the file : there is a game.exe file included in the
 
 If you download the whole repository, you can execute this file to play the game, even if you don't have Python installed on your machine.
 
+### CLI File for Mac OS X users
+In your terminal, change directory to the directory you find this README.md file in, and run the command : ```./mac_os-game```
+
+This should allow you to run this project without installing Python3 nor Pygame !
+
+This file has been generated on a M1 machine, with OS version 14.3.1, and I have no idea if it will work on any other architecture or OS version.
+
+Double-clicking on the file itself in the Finder will not work, as my code uses relative pathing to files, and double-clicking on the file will do the same as running it from your terminal, albeit it will do so from your HOME folder, and relative pathing to resource files will thus not work.
+
 ### Prerequisites to run it yourself
 Python 3 : https://www.python.org (v3.11.5 used for the development of this project)
 
