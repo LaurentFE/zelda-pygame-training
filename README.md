@@ -60,17 +60,7 @@ Game state can be loaded from saved state by pressing ```F6``` when appropriate.
 
 ## Gameplay hints
 
-You can't block non-magic projectiles with your shield
-
-You can torch some trees with the candle, and reveal hidden caves
-
-You can explode some walls or rocks with bombs, and reveal hidden caves or passages
-
-The ladder is used to walk on a tile of water, as long as it's not already in use
-
-The boomerang doesn't hurt on its way back
-
-There are a total of 4 Heart Containers to pick up, each of them increases your life by one heart !
+Please read the Survival Guide pdf, it contains lots of useful information and hints about the secrets of this world !
 
 ## Context of the project
 ### WHAT
