@@ -1,5 +1,29 @@
 # The Legend of Zelda, a Pygame Training Exercise
 
+## How to build & run project
+### Exe file for Windows users
+**FALSE POSITIVE THREAT WARNING** : 
+
+The game.exe file is made with PyInstaller, which is apparently used a lot by malware creators, making its bootloader associated with malwares. Your antivirus will most likely identify it as a false positive threat to your system.
+
+If you don't trust it, please feel free to inspect the source files, and run the project with the next instructions
+
+For those who chose to trust the file : there is a game.exe file included in the main directory of the project.
+
+If you download the whole repository, you can execute this file to play the game, even if you don't have Python installed on your machine.
+
+### Prerequisites to run it yourself
+Python 3 : https://www.python.org (v3.11.5 used for the development of this project)
+
+Pygame :  https://www.pygame.org/
+
+Installation command : 
+```python -m pip install -U pygame --user```
+
+### Run
+Command line from the `<project folder>/code/` :
+```python ./main.py```
+
 ## Controls
 _All controls are configurable in inputs.py_
 
@@ -36,28 +60,6 @@ The ladder is used to walk on a tile of water, as long as it's not already in us
 The boomerang doesn't hurt on its way back
 
 There are a total of 4 Heart Containers to pick up, each of them increases your life by one heart !
-
-## How to build & run project
-### Exe file for Windows users
-There is a game.exe file included in the main directory of the project.
-
-If you download the whole repository, you can execute this file to play the game, even if you don't have Python installed on your machine.
-
-WARNING : This exe file is made with PyInstaller, which is apparently used a lot by malware creators, making its bootloader associated with malwares. Your antivirus will most likely identify it as a false positive threat to your system.
-
-If you don't trust it, please feel free to inspect the source files, and run the project with the next instructions
-
-### Prerequisites to run it yourself
-Python 3 : https://www.python.org (v3.11.5 used for the development of this project)
-
-Pygame :  https://www.pygame.org/
-
-Installation command : 
-```python -m pip install -U pygame --user```
-
-### Run
-Command line from the `<project folder>/code/` :
-```python ./main.py```
 
 ## Context of the project
 ### WHAT
