@@ -1,6 +1,6 @@
 import pygame
-import level as game
-import settings as cfg
+import code.level as game
+import code.settings as cfg
 
 
 class Warp(pygame.sprite.Sprite):

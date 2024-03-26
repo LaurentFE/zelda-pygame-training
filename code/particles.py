@@ -1,9 +1,9 @@
 import abc
 import random
-import tileset
+import code.tileset as tileset
 import pygame
-import level as game
-import settings as cfg
+import code.level as game
+import code.settings as cfg
 from abc import ABC
 
 

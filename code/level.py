@@ -2,21 +2,21 @@ import random
 
 import pygame.mixer
 
-from support import *
-from inputs import *
-import tileset
-from tile import Tile
-from obstacle import Obstacle
-from player import Player
-from enemies import RedOctorock, BlueOctorock, RedMoblin, BlackMoblin, Stalfos, Goriya, Darknut, Zora, Leever
-from particles import (Heart, Rupee, CBomb, Fairy, Key, HeartReceptacle,
-                       Ladder, RedCandle, Boomerang, WoodenSword, Triforce)
-from selector import Selector
-from warp import Warp, SecretPassage
-from purchasable import Purchasable
-from npc import Npc
-from textblock import TextBlock
-from door import Door
+from code.support import *
+from code.inputs import *
+import code.tileset as tileset
+from code.tile import Tile
+from code.obstacle import Obstacle
+from code.player import Player
+from code.enemies import RedOctorock, BlueOctorock, RedMoblin, BlackMoblin, Stalfos, Goriya, Darknut, Zora, Leever
+from code.particles import (Heart, Rupee, CBomb, Fairy, Key, HeartReceptacle,
+                            Ladder, RedCandle, Boomerang, WoodenSword, Triforce)
+from code.selector import Selector
+from code.warp import Warp, SecretPassage
+from code.purchasable import Purchasable
+from code.npc import Npc
+from code.textblock import TextBlock
+from code.door import Door
 
 
 class Singleton(type):
@@ -1399,6 +1399,8 @@ class Level(metaclass=Singleton):
             warp.kill()
         for secret_flame in self.secret_flame_sprites:
             secret_flame.kill()
+        for secret_bomb in self.secret_bomb_sprites:
+            secret_bomb.kill()
         for enemy in self.enemy_sprites:
             enemy.kill()
         for particle in self.particle_sprites:

@@ -1,11 +1,10 @@
 import pygame.mixer
-import tileset
-
-from settings import *
-from inputs import *
-from tile import Tile
-from entities import Entity
-from particles import PWoodenSword, Bomb, PBoomerang, Flame
+import code.tileset as tileset
+from code.settings import *
+from code.inputs import *
+from code.tile import Tile
+from code.entities import Entity
+from code.particles import PWoodenSword, Bomb, PBoomerang, Flame
 
 
 # NOTE : Behaviour difference between original NES version, and mine :

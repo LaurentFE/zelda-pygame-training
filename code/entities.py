@@ -1,6 +1,6 @@
 import abc
 import pygame
-from settings import *
+from code.settings import *
 from abc import ABC
 
 

@@ -1,7 +1,7 @@
 import sys
 import pygame
 import re
-import settings as cfg
+import code.settings as cfg
 from csv import reader
 
 

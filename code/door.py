@@ -1,7 +1,7 @@
 import pygame
-import tileset
-import level as game
-import settings as cfg
+import code.tileset as tileset
+import code.level as game
+import code.settings as cfg
 
 
 class Door(pygame.sprite.Sprite):
