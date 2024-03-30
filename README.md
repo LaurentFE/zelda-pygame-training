@@ -12,6 +12,17 @@ For those who chose to trust the file : there is a game.exe file included in the
 
 If you download the whole repository, you can execute this file to play the game, even if you don't have Python installed on your machine.
 
+### CLI File for Mac OS X users
+In your terminal, change directory to the directory you find this README.md file in, and run the file : 
+
+```./mac_os-game```
+
+This should allow you to run this project without installing Python3 nor Pygame !
+
+This file has been generated on a M1 machine, with OS version 14.3.1, and I have no idea if it will work on any other architecture or OS version.
+
+Double-clicking on the file itself in the Finder will not work, as my code uses relative pathing to files, and double-clicking on the file will do the same as running it from your terminal, albeit it will do so from your HOME folder, and relative pathing to resource files will thus not work.
+
 ### Prerequisites to run it yourself
 Python 3 : https://www.python.org (v3.11.5 used for the development of this project)
 
@@ -49,17 +60,7 @@ Game state can be loaded from saved state by pressing ```F6``` when appropriate.
 
 ## Gameplay hints
 
-You can't block non-magic projectiles with your shield
-
-You can torch some trees with the candle, and reveal hidden caves
-
-You can explode some walls or rocks with bombs, and reveal hidden caves or passages
-
-The ladder is used to walk on a tile of water, as long as it's not already in use
-
-The boomerang doesn't hurt on its way back
-
-There are a total of 4 Heart Containers to pick up, each of them increases your life by one heart !
+Please read the Survival Guide pdf, it contains lots of useful information and hints about the secrets of this world !
 
 ## Context of the project
 ### WHAT

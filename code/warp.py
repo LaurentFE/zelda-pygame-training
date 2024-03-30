@@ -57,12 +57,12 @@ class SecretPassage(Warp):
     def reveal(self):
         self.is_revealed = True
         cfg.MAP_SECRETS_REVEALED[self.level_id] = True
-        self.hitbox = self.rect.inflate(-cfg.TILE_SIZE, -cfg.TILE_SIZE)
-        if cfg.UNDERWORLD_STAIRS[int(self.warp_id) - 4][cfg.STAIRS_LABEL]:
-            self.hitbox.top = self.rect.top
         for obstacle in self.obstacle_sprites:
-            if obstacle.rect.colliderect(self.rect):
+            if obstacle.hitbox.colliderect(self.hitbox):
                 obstacle.kill()
+        self.hitbox = self.rect.inflate(-cfg.TILE_SIZE, -cfg.TILE_SIZE)
+        self.hitbox.top = self.rect.top
+        self.hitbox.left = self.rect.left + 4
 
     def update(self):
         if self.is_revealed:
