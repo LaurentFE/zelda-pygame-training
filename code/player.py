@@ -120,6 +120,9 @@ class Player(Entity):
         self.hitbox = self.rect.inflate(-PLAYER_HITBOX_X_DEFLATE, -PLAYER_HITBOX_Y_DEFLATE)
         self.hitbox.top = self.rect.top + PLAYER_HITBOX_Y_OFFSET
         self.hitbox.left = self.rect.left + PLAYER_HITBOX_X_OFFSET
+        self.battle_hitbox = self.rect.inflate(-PLAYER_BATTLE_HITBOX_DEFLATE, -PLAYER_BATTLE_HITBOX_DEFLATE)
+        self.battle_hitbox.top = self.rect.top + PLAYER_BATTLE_HITBOX_DEFLATE // 2
+        self.battle_hitbox.left = self.rect.left + PLAYER_BATTLE_HITBOX_DEFLATE // 2
         shield_x = SHIELD_DOWN_X + self.rect.left
         shield_y = SHIELD_DOWN_Y + self.rect.top
         self.shield_hitbox = pygame.Rect((shield_x, shield_y), (SHIELD_HORIZONTAL_WIDTH, SHIELD_HORIZONTAL_HEIGHT))
@@ -383,7 +386,7 @@ class Player(Entity):
     def collision(self, direction):
         # Collision with Enemies
         for sprite in self.enemy_sprites:
-            if sprite.hitbox.colliderect(self.hitbox):
+            if sprite.hitbox.colliderect(self.battle_hitbox):
                 if (STATE_HURT not in self.state
                         and not self.invulnerable
                         and STATE_HURT not in sprite.state
@@ -394,20 +397,24 @@ class Player(Entity):
                     if direction == HORIZONTAL_LABEL:
                         self.state = STATE_HURT_HORIZONTAL
                         self.direction_vector.y = 0
-                        if self.hitbox.centerx - sprite.hitbox.centerx <= 0:
+                        if self.battle_hitbox.centerx - sprite.hitbox.centerx <= 0:
                             self.direction_vector.x = -1
+                            self.battle_hitbox.x -= self.current_speed
                             self.hitbox.x -= self.current_speed
                         else:
                             self.direction_vector.x = 1
+                            self.battle_hitbox.x += self.current_speed
                             self.hitbox.x += self.current_speed
                     else:
                         self.state = STATE_HURT_VERTICAL
                         self.direction_vector.x = 0
                         if self.hitbox.centerx - sprite.hitbox.centerx <= 0:
                             self.direction_vector.y = -1
+                            self.battle_hitbox.y -= self.current_speed
                             self.hitbox.y -= self.current_speed
                         else:
                             self.direction_vector.y = 1
+                            self.battle_hitbox.y += self.current_speed
                             self.hitbox.y += self.current_speed
                     self.health -= sprite.collision_damage
                     if self.health <= PLAYER_HEALTH_PER_HEART and not self.is_low_health:
@@ -561,6 +568,8 @@ class Player(Entity):
         if not self.isDead:
             self.rect.top = self.hitbox.top - PLAYER_HITBOX_Y_OFFSET
             self.rect.left = self.hitbox.left - PLAYER_HITBOX_X_OFFSET
+            self.battle_hitbox.top = self.rect.top + PLAYER_BATTLE_HITBOX_DEFLATE // 2
+            self.battle_hitbox.left = self.rect.left + PLAYER_BATTLE_HITBOX_DEFLATE // 2
             self.realign_shield()
 
     def set_state(self, state):
@@ -829,6 +838,8 @@ class Player(Entity):
         self.rect.y = pos[1]
         self.hitbox.top = self.rect.top + PLAYER_HITBOX_Y_OFFSET
         self.hitbox.left = self.rect.left + PLAYER_HITBOX_X_OFFSET
+        self.battle_hitbox.top = self.rect.top + PLAYER_BATTLE_HITBOX_DEFLATE // 2
+        self.battle_hitbox.left = self.rect.left + PLAYER_BATTLE_HITBOX_DEFLATE // 2
         self.realign_shield()
 
     def revive(self, level_id):
